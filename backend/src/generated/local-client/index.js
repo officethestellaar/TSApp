@@ -665,7 +665,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/areebalishivji/Documents/New_Club/TSwebapp/backend/src/generated/local-client",
+      "value": "/Users/areebalishivji/Documents/TSApp/backend/src/generated/local-client",
       "fromEnvVar": null
     },
     "config": {
@@ -679,7 +679,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/areebalishivji/Documents/New_Club/TSwebapp/backend/prisma/local.prisma",
+    "sourceFilePath": "/Users/areebalishivji/Documents/TSApp/backend/prisma/local.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

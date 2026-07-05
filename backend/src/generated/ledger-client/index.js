@@ -125,7 +125,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/areebalishivji/Documents/New_Club/TSwebapp/backend/src/generated/ledger-client",
+      "value": "/Users/areebalishivji/Documents/TSApp/backend/src/generated/ledger-client",
       "fromEnvVar": null
     },
     "config": {
@@ -139,7 +139,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/areebalishivji/Documents/New_Club/TSwebapp/backend/prisma/ledger.prisma",
+    "sourceFilePath": "/Users/areebalishivji/Documents/TSApp/backend/prisma/ledger.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -153,6 +153,7 @@ const config = {
     "db"
   ],
   "activeProvider": "sqlite",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
