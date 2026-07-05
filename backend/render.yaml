@@ -19,7 +19,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: FRONTEND_URL
-        value: https://your-app.vercel.app
+        value: https://ts-app-frontend.vercel.app,http://localhost:3000
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
