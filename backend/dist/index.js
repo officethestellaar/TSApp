@@ -33,6 +33,7 @@ const walkin_guests_1 = __importDefault(require("./routes/walkin-guests"));
 const housekeeping_1 = __importDefault(require("./routes/housekeeping"));
 const attendance_1 = __importDefault(require("./routes/attendance"));
 const salary_1 = __importDefault(require("./routes/salary"));
+const export_requests_1 = __importDefault(require("./routes/export-requests"));
 const automation_1 = require("./services/automation");
 const backup_1 = require("./services/backup");
 const sync_1 = require("./services/sync");
@@ -52,7 +53,11 @@ const authLimiter = (0, express_rate_limit_1.rateLimit)({
     message: { message: 'Too many requests from this IP, please try again after 5 minutes' }
 });
 app.use((0, helmet_1.default)());
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: process.env.FRONTEND_URL
+        ? process.env.FRONTEND_URL.split(',').map(s => s.trim())
+        : '*',
+}));
 app.use(express_1.default.json());
 app.use('/uploads', express_1.default.static('uploads'));
 app.get('/health', (req, res) => {
@@ -81,6 +86,7 @@ app.use('/api/walkin-guests', walkin_guests_1.default);
 app.use('/api/housekeeping', housekeeping_1.default);
 app.use('/api/attendance', attendance_1.default);
 app.use('/api/salary', salary_1.default);
+app.use('/api/export-requests', export_requests_1.default);
 // Error Handling Middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);

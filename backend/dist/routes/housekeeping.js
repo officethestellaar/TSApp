@@ -27,11 +27,11 @@ router.get('/tasks', auth_1.authenticateToken, async (req, res) => {
 });
 router.post('/tasks', auth_1.authenticateToken, (0, auth_1.authorizeRoles)(...SUPERVISOR_ROLES), async (req, res) => {
     try {
-        const { name, category, description, isPeriodic, frequencyDays, isDeepClean } = req.body;
+        const { name, category, description, floor, isPeriodic, frequencyDays, isDeepClean } = req.body;
         if (!name)
             return res.status(400).json({ message: 'Name is required' });
         const task = await prisma_1.default.housekeepingTask.create({
-            data: { name, category, description, isPeriodic, frequencyDays, isDeepClean },
+            data: { name, category, description, floor, isPeriodic, frequencyDays, isDeepClean },
         });
         (0, socket_1.emitEvent)('housekeeping', { action: 'TASK_CREATED', task });
         res.status(201).json(task);
@@ -42,10 +42,10 @@ router.post('/tasks', auth_1.authenticateToken, (0, auth_1.authorizeRoles)(...SU
 });
 router.patch('/tasks/:id', auth_1.authenticateToken, (0, auth_1.authorizeRoles)(...SUPERVISOR_ROLES), async (req, res) => {
     try {
-        const { name, category, description, isPeriodic, frequencyDays, isDeepClean, isActive } = req.body;
+        const { name, category, description, floor, isPeriodic, frequencyDays, isDeepClean, isActive } = req.body;
         const task = await prisma_1.default.housekeepingTask.update({
             where: { id: Number(req.params.id) },
-            data: { name, category, description, isPeriodic, frequencyDays, isDeepClean, isActive },
+            data: { name, category, description, floor, isPeriodic, frequencyDays, isDeepClean, isActive },
         });
         (0, socket_1.emitEvent)('housekeeping', { action: 'TASK_UPDATED', task });
         res.json(task);
@@ -448,15 +448,21 @@ router.get('/floor-templates', auth_1.authenticateToken, async (req, res) => {
 // ─── ALLOCATE FROM TEMPLATE ───────────────────────────────────
 router.post('/allocations/from-template', auth_1.authenticateToken, (0, auth_1.authorizeRoles)(...SUPERVISOR_ROLES), async (req, res) => {
     try {
-        let { employeeId, floors, floor, shift, date, startTime, endTime, specification } = req.body;
+        let { employeeId, floors, floor, shift, date, startTime, endTime, specification, templateIds } = req.body;
         // Accept single floor (legacy) or array of floors
         if (!floors)
             floors = floor ? [floor] : [];
         if (!employeeId || floors.length === 0 || !date)
             return res.status(400).json({ message: 'employeeId, floors, and date are required' });
-        const templates = await prisma_1.default.housekeepingFloorTemplate.findMany({ where: { floor: { in: floors } } });
+        let templates;
+        if (templateIds && Array.isArray(templateIds) && templateIds.length > 0) {
+            templates = await prisma_1.default.housekeepingFloorTemplate.findMany({ where: { id: { in: templateIds.map(Number) } } });
+        }
+        else {
+            templates = await prisma_1.default.housekeepingFloorTemplate.findMany({ where: { floor: { in: floors } } });
+        }
         if (templates.length === 0)
-            return res.status(400).json({ message: 'No templates found for the selected floors' });
+            return res.status(400).json({ message: 'No templates found' });
         const allocations = [];
         for (const tmpl of templates) {
             const allocation = await prisma_1.default.housekeepingAllocation.create({

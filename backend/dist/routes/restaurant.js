@@ -122,6 +122,57 @@ router.get('/tables', auth_1.authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+// Create table (SUPER_ADMIN, ADMIN, CLUB_MANAGER)
+router.post('/tables', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), async (req, res) => {
+    try {
+        const { number, capacity, floor } = req.body;
+        if (!number || !capacity) {
+            return res.status(400).json({ message: 'Table number and capacity are required.' });
+        }
+        const table = await prisma_1.default.restaurantTable.create({
+            data: { number: String(number), capacity: Number(capacity), floor: floor || 'Main Floor' },
+        });
+        res.status(201).json(table);
+    }
+    catch (error) {
+        if (error.code === 'P2002')
+            return res.status(409).json({ message: 'Table number already exists.' });
+        res.status(400).json({ message: error.message || 'Failed to create table' });
+    }
+});
+// Update table (SUPER_ADMIN, ADMIN, CLUB_MANAGER)
+router.put('/tables/:id', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const { number, capacity, floor } = req.body;
+        const table = await prisma_1.default.restaurantTable.update({
+            where: { id },
+            data: { number: number ? String(number) : undefined, capacity: capacity ? Number(capacity) : undefined, floor: floor ?? undefined },
+        });
+        res.json(table);
+    }
+    catch (error) {
+        if (error.code === 'P2002')
+            return res.status(409).json({ message: 'Table number already exists.' });
+        res.status(400).json({ message: error.message || 'Failed to update table' });
+    }
+});
+// Delete table (SUPER_ADMIN only)
+router.delete('/tables/:id', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN'), async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const table = await prisma_1.default.restaurantTable.findUnique({ where: { id }, include: { orders: { where: { status: 'OPEN' } } } });
+        if (!table)
+            return res.status(404).json({ message: 'Table not found.' });
+        if (table.orders.length > 0)
+            return res.status(400).json({ message: 'Cannot delete a table with active orders.' });
+        await prisma_1.default.restaurantTable.delete({ where: { id } });
+        res.json({ message: `Table ${table.number} deleted.` });
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message || 'Failed to delete table' });
+    }
+});
 // Get menu items (optional ?department= filter)
 router.get('/menu', auth_1.authenticateToken, async (req, res) => {
     try {

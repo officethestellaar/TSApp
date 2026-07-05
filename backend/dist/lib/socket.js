@@ -6,7 +6,9 @@ let io;
 const initIO = (server) => {
     io = new socket_io_1.Server(server, {
         cors: {
-            origin: '*', // In production, replace with frontend URL
+            origin: process.env.FRONTEND_URL
+                ? process.env.FRONTEND_URL.split(',').map(s => s.trim())
+                : '*',
             methods: ['GET', 'POST'],
         },
     });

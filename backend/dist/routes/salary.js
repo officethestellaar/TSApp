@@ -7,6 +7,36 @@ const express_1 = __importDefault(require("express"));
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
+// Staff self-view — only own salary records
+router.get('/my', auth_1.authenticateToken, async (req, res) => {
+    try {
+        const { month, year } = req.query;
+        const where = { userId: req.user.userId };
+        if (month)
+            where.month = Number(month);
+        if (year)
+            where.year = Number(year);
+        const records = await prisma_1.default.staffSalary.findMany({
+            where,
+            include: { user: { select: { id: true, name: true, email: true, role: { select: { name: true } } } } },
+            orderBy: [{ year: 'desc' }, { month: 'desc' }],
+        });
+        // Fetch attendance summary for each record
+        const salariesWithAttendance = await Promise.all(records.map(async (s) => {
+            const start = new Date(s.year, s.month - 1, 1);
+            const end = new Date(s.year, s.month, 0, 23, 59, 59, 999);
+            const attendanceRecords = await prisma_1.default.staffAttendance.findMany({
+                where: { userId: req.user.userId, date: { gte: start, lte: end } },
+                orderBy: { date: 'asc' },
+            });
+            return { ...s, attendanceRecords };
+        }));
+        res.json(salariesWithAttendance);
+    }
+    catch {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
     try {
         const { userId, month, year } = req.query;
@@ -50,20 +80,32 @@ router.post('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADM
 router.patch('/:id', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
     try {
         const data = {};
-        const fields = ['basicPay', 'hra', 'conveyance', 'medicalAllowance', 'specialAllowance', 'otherAllowances', 'pf', 'esi', 'professionalTax', 'tds', 'otherDeductions', 'attendanceDays', 'paidDays', 'status', 'paymentDate', 'remarks'];
+        const fields = ['basicPay', 'hra', 'conveyance', 'medicalAllowance', 'specialAllowance', 'otherAllowances', 'pf', 'esi', 'professionalTax', 'tds', 'otherDeductions', 'attendanceDays', 'paidDays', 'status', 'paymentDate', 'remarks', 'bonus', 'reduction'];
         for (const f of fields) {
             if (req.body[f] !== undefined)
                 data[f] = req.body[f];
         }
         if (data.paymentDate)
             data.paymentDate = new Date(data.paymentDate);
-        if (data.status === 'PAID' && !data.paymentDate)
-            data.paymentDate = new Date();
+        const existing = await prisma_1.default.staffSalary.findUnique({ where: { id: Number(req.params.id) } });
+        if (!existing)
+            return res.status(404).json({ message: 'Salary record not found' });
+        // When paying: apply bonus/reduction and generate invoice
+        if (data.status === 'PAID' && existing.status !== 'PAID') {
+            const bonus = data.bonus ?? existing.bonus ?? 0;
+            const reduction = data.reduction ?? existing.reduction ?? 0;
+            data.netPay = existing.netPay + Number(bonus) - Number(reduction);
+            data.paymentDate = data.paymentDate || new Date();
+            data.invoiceNumber = `SAL-${String(existing.userId).padStart(3, '0')}/${existing.month}/${existing.year}-${Date.now().toString(36).toUpperCase()}`;
+        }
+        else if (data.bonus !== undefined || data.reduction !== undefined) {
+            // Recalculate netPay when bonus/reduction change without paying
+            data.netPay = existing.netPay + Number(data.bonus ?? existing.bonus ?? 0) - Number(data.reduction ?? existing.reduction ?? 0);
+        }
         if (data.basicPay !== undefined || data.hra !== undefined || data.conveyance !== undefined || data.medicalAllowance !== undefined || data.specialAllowance !== undefined || data.otherAllowances !== undefined || data.pf !== undefined || data.esi !== undefined || data.professionalTax !== undefined || data.tds !== undefined || data.otherDeductions !== undefined) {
-            const existing = await prisma_1.default.staffSalary.findUnique({ where: { id: Number(req.params.id) } });
             if (existing) {
                 data.grossPay = (data.basicPay ?? existing.basicPay) + (data.hra ?? existing.hra) + (data.conveyance ?? existing.conveyance) + (data.medicalAllowance ?? existing.medicalAllowance) + (data.specialAllowance ?? existing.specialAllowance) + (data.otherAllowances ?? existing.otherAllowances);
-                data.netPay = data.grossPay - ((data.pf ?? existing.pf) + (data.esi ?? existing.esi) + (data.professionalTax ?? existing.professionalTax) + (data.tds ?? existing.tds) + (data.otherDeductions ?? existing.otherDeductions));
+                data.netPay = data.grossPay - ((data.pf ?? existing.pf) + (data.esi ?? existing.esi) + (data.professionalTax ?? existing.professionalTax) + (data.tds ?? existing.tds) + (data.otherDeductions ?? existing.otherDeductions)) + Number(data.bonus ?? existing.bonus ?? 0) - Number(data.reduction ?? existing.reduction ?? 0);
             }
         }
         const record = await prisma_1.default.staffSalary.update({ where: { id: Number(req.params.id) }, data });

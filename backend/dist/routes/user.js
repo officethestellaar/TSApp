@@ -114,7 +114,7 @@ router.get('/roles', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER
 // Create new staff user
 router.post('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN'), async (req, res) => {
     try {
-        let { email, password, name, roleId, roleName, defaultCheckIn } = req.body;
+        let { email, password, name, roleId, roleName, defaultCheckIn, monthlySalary } = req.body;
         const existingUser = await prisma_1.default.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(400).json({ message: 'User with this email already exists' });
@@ -133,6 +133,7 @@ router.post('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADM
                 name,
                 roleId: Number(roleId),
                 defaultCheckIn: defaultCheckIn || '09:00',
+                monthlySalary: monthlySalary ? Number(monthlySalary) : 0,
             },
             include: { role: true, staffProfile: true },
         });
@@ -273,6 +274,7 @@ exports.ALL_SCREENS = [
     { key: 'system-init', label: 'System Init' },
     { key: 'staff-attendance', label: 'Staff Attendance' },
     { key: 'staff-salary', label: 'Staff Salary' },
+    { key: 'salary', label: 'My Salary' },
 ];
 router.get('/screens', auth_1.authenticateToken, async (req, res) => {
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN';

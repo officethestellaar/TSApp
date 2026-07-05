@@ -77,6 +77,17 @@ router.patch('/:id', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER
         res.status(400).json({ message: 'Failed to update log', error: error.message });
     }
 });
+// Clear all audit logs (SUPER_ADMIN ONLY) — must be before /:id
+router.delete('/clear/all', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN'), async (req, res) => {
+    try {
+        const count = await prisma_1.default.auditLog.count();
+        await prisma_1.default.auditLog.deleteMany();
+        res.json({ message: `All ${count} audit logs cleared.` });
+    }
+    catch (error) {
+        res.status(400).json({ message: 'Failed to clear logs', error: error.message });
+    }
+});
 // Delete audit log (SUPER_ADMIN ONLY)
 router.delete('/:id', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN'), async (req, res) => {
     try {

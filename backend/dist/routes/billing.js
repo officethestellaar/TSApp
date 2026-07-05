@@ -11,6 +11,7 @@ const push_1 = require("../lib/push");
 const cache_1 = require("../lib/cache");
 const audit_1 = require("../lib/audit");
 const ledger_1 = require("../lib/ledger");
+const whatsapp_1 = require("../lib/whatsapp");
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
@@ -446,13 +447,15 @@ router.post('/payment/:id/approve', auth_1.authenticateToken, (0, auth_1.authori
         }
         const payment = await prisma_1.default.payment.findUnique({
             where: { id: paymentId },
-            include: { invoice: true },
+            include: { invoice: { include: { member: true, walkInGuest: true } } },
         });
         if (!payment)
             return res.status(404).json({ message: 'Payment not found' });
         if (payment.invoice.status !== 'PENDING_APPROVAL') {
             return res.status(400).json({ message: 'Invoice is not pending approval.' });
         }
+        const memberName = payment.invoice.member?.nameAsAadhaar || payment.invoice.walkInGuest?.name || 'Unknown';
+        const balance = payment.invoice.total - payment.amount;
         await prisma_1.default.$transaction(async (tx) => {
             await tx.invoice.update({
                 where: { id: payment.invoiceId },
@@ -476,6 +479,18 @@ router.post('/payment/:id/approve', auth_1.authenticateToken, (0, auth_1.authori
             invoiceNumber: payment.invoice.invoiceNumber,
             amount: payment.amount,
         });
+        (0, socket_1.emitEvent)('payment_confirmed', {
+            memberName,
+            invoiceNumber: payment.invoice.invoiceNumber,
+            invoiceTotal: payment.invoice.total,
+            amountReceived: payment.amount,
+            balance: balance > 0 ? balance : 0,
+        });
+        const memberPhone = payment.invoice.member?.whatsappNumber || payment.invoice.member?.mobileNumber || null;
+        if (memberPhone) {
+            const cleanPhone = memberPhone.replace(/[^0-9]/g, '');
+            (0, whatsapp_1.sendPaymentConfirmation)(cleanPhone, memberName, payment.invoice.invoiceNumber, payment.amount, balance > 0 ? balance : 0);
+        }
         (0, cache_1.clearCachePattern)('report_');
         res.json({ message: 'Payment approved and invoice settled.' });
     }

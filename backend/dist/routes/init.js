@@ -233,4 +233,56 @@ router.post('/reseed', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUP
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+/**
+ * Clear All Data (SUPER_ADMIN ONLY)
+ * Deletes all business data while preserving users, roles, and permissions.
+ */
+router.delete('/clear-all', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN'), async (req, res) => {
+    try {
+        await prisma_1.default.$transaction(async (tx) => {
+            // Children first (respect FK constraints)
+            await tx.message.deleteMany();
+            await tx.orderItem.deleteMany();
+            await tx.invoiceItem.deleteMany();
+            await tx.payment.deleteMany();
+            await tx.maintenanceLog.deleteMany();
+            await tx.inventoryLog.deleteMany();
+            await tx.feedback.deleteMany();
+            await tx.exportRequest.deleteMany();
+            await tx.auditLog.deleteMany();
+            await tx.familyMember.deleteMany();
+            await tx.invoice.deleteMany();
+            await tx.complaint.deleteMany();
+            await tx.order.deleteMany();
+            await tx.aMCPaymentRequest.deleteMany();
+            await tx.unenrollmentRequest.deleteMany();
+            await tx.accessLog.deleteMany();
+            await tx.walkInGuest.deleteMany();
+            await tx.tableReservation.deleteMany();
+            await tx.reservation.deleteMany();
+            await tx.housekeepingTaskInstance.deleteMany();
+            await tx.housekeepingAllocation.deleteMany();
+            await tx.housekeepingDeepCleaning.deleteMany();
+            await tx.housekeepingFloorTemplate.deleteMany();
+            await tx.housekeepingTask.deleteMany();
+            await tx.staffAttendance.deleteMany();
+            await tx.staffSalary.deleteMany();
+            await tx.leaveBalance.deleteMany();
+            await tx.staffLeave.deleteMany();
+            await tx.announcement.deleteMany();
+            await tx.activity.deleteMany();
+            await tx.menuItem.deleteMany();
+            await tx.inventoryItem.deleteMany();
+            await tx.asset.deleteMany();
+            await tx.restaurantTable.deleteMany();
+            await tx.recipe.deleteMany();
+            await tx.member.deleteMany();
+        });
+        res.json({ message: 'All business data cleared. Users, roles, and permissions preserved.' });
+    }
+    catch (error) {
+        console.error('[ClearAll] Failed:', error);
+        res.status(500).json({ message: 'Failed to clear data', error: error.message });
+    }
+});
 exports.default = router;
