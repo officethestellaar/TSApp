@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F8F9FA;
+  --foreground: #0A192F;
+  --stellaar-navy: #0A192F;
+  --stellaar-gold: #D4AF37;
+  --stellaar-gold-light: #F1D279;
+  --stellaar-silver: #E5E4E2;
+  --stellaar-platinum: #A7A7A7;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.4);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-navy: var(--stellaar-navy);
+  --color-gold: var(--stellaar-gold);
+  --color-gold-light: var(--stellaar-gold-light);
+  --color-silver: var(--stellaar-silver);
+  --color-platinum: var(--stellaar-platinum);
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Montserrat", var(--font-geist-sans);
+}
+
+body {
+  background-color: #F8F9FA;
+  /* Substrate Marble Pattern */
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(10, 25, 47, 0.05) 0px, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='400' height='400' viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+  color: var(--stellaar-navy);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 50px -10px rgba(10, 25, 47, 0.08);
+}
+
+.premium-gradient {
+  background: linear-gradient(135deg, #0A192F 0%, #1B263B 100%);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F1D279 100%);
+}
+
+.silver-gradient {
+  background: linear-gradient(135deg, #E5E4E2 0%, #BCC6CC 100%);
+}
+
+/* Custom scrollbar for elite feel */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(10, 25, 47, 0.1);
+  border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--stellaar-gold);
+}
+
+.stellaar-button {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
+.stellaar-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.3);
+}

@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/ledger-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./transaction_ledger.db"
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  staffId     Int
+  staffName   String
+  memberName  String
+  memberId    String?
+  amount      Float
+  type        String // INVOICE, PAYMENT, POS, PENALTY, etc.
+  description String
+  timestamp   DateTime @default(now())
+}

@@ -1,0 +1,665 @@
+generator client {
+  output = "../src/generated/local-client"
+
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./local_backup.db"
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model User {
+  id                      Int                        @id @default(autoincrement())
+  email                   String                     @unique
+  password                String
+  name                    String
+  roleId                  Int
+  status                  String                     @default("APPROVED")
+  locked                  Boolean                    @default(false)
+  pin                     String?
+  defaultCheckIn          String?                    @default("09:00")
+  monthlySalary           Float                      @default(0)
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
+  authUserId              String?                    @unique
+  resetPasswordToken      String?
+  resetPasswordExpires    DateTime?
+  announcements           Announcement[]
+  payments                Payment[]
+  systemLocks             SystemStatus[]
+  role                    Role                       @relation(fields: [roleId], references: [id])
+  amcRequests             AMCPaymentRequest[]
+  processedUnenrollments  UnenrollmentRequest[]
+  staffProfileId          String?                    @unique
+  staffProfile            staff?                     @relation(fields: [staffProfileId], references: [id])
+  leaveApplications       StaffLeave[]               @relation("StaffLeave_user")
+  reviewedLeaves          StaffLeave[]               @relation("StaffLeave_reviewer")
+  leaveBalances           LeaveBalance[]
+  housekeepingAllocations HousekeepingAllocation[]
+  housekeepingInstances   HousekeepingTaskInstance[]
+  attendanceRecords       StaffAttendance[]
+  salaryRecords           StaffSalary[]
+}
+
+model staff {
+  id            String   @id
+  name          String
+  role          String
+  description   String?
+  image_url     String?
+  display_order Int?     @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  systemUser    User?
+}
+
+model Member {
+  id                     Int                   @id @default(autoincrement())
+  membershipNumber       String                @unique
+  category               String
+  tenure                 String
+  nameAsAadhaar          String
+  fatherHusbandName      String
+  gender                 String
+  dob                    DateTime
+  maritalStatus          String
+  occupation             String
+  companyName            String?
+  designation            String?
+  aadhaarNumber          String                @unique
+  panNumber              String?
+  gstNumber              String?
+  mobileNumber           String                @unique
+  alternateMobile        String?
+  whatsappNumber         String?
+  email                  String?               @unique
+  residentialAddress     String
+  officeAddress          String?
+  city                   String
+  state                  String
+  pincode                String
+  nationality            String
+  bloodGroup             String
+  emergencyContactName   String
+  emergencyContactNumber String
+  referenceName          String?
+  salesExecutiveName     String?
+  photoUrl               String?
+  signatureUrl           String?
+  offerPrice             Float
+  membershipFee          Float
+  registrationFee        Float
+  discountAmount         Float
+  netAmount              Float
+  gstAmount              Float
+  totalAmount            Float
+  paymentMode            String
+  paymentRef             String?
+  paymentProofUrl        String?
+  receiptNumber          String?
+  bookingDate            DateTime              @default(now())
+  startDate              DateTime
+  expiryDate             DateTime
+  amcApplicable          Boolean               @default(true)
+  amcAmount              Float                 @default(5000)
+  status                 String                @default("PENDING")
+  amcStatus              String                @default("UNPAID")
+  accessStatus           String                @default("DISABLED")
+  isActive               Boolean               @default(true)
+  isBlacklisted          Boolean               @default(false)
+  lastLogin              DateTime?
+  lastAccess             DateTime?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  authUserId             String?               @unique
+  password               String?
+  resetPasswordToken     String?
+  resetPasswordExpires   DateTime?
+  amcYear                String?
+  ledgerBalance          Float                 @default(0)
+  validityType           String                @default("5_YEAR")
+  accessLogs             AccessLog[]
+  complaints             Complaint[]
+  familyMembers          FamilyMember[]
+  feedbacks              Feedback[]
+  invoices               Invoice[]
+  restaurantOrders       Order[]
+  reservations           Reservation[]
+  tableReservations      TableReservation[]
+  amcRequests            AMCPaymentRequest[]
+  unenrollmentRequests   UnenrollmentRequest[]
+}
+
+model TableReservation {
+  id          Int           @id @default(autoincrement())
+  memberId    Int
+  affiliateId Int?
+  date        DateTime
+  time        String
+  paxCount    Int
+  status      String        @default("PENDING")
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  member      Member        @relation(fields: [memberId], references: [id])
+  affiliate   FamilyMember? @relation(fields: [affiliateId], references: [id])
+}
+
+model AMCPaymentRequest {
+  id              Int       @id @default(autoincrement())
+  memberId        Int
+  amount          Float
+  transactionRef  String?
+  paymentDate     DateTime
+  proofUrl        String?
+  status          String    @default("PENDING")
+  rejectionReason String?
+  processedById   Int?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  member          Member    @relation(fields: [memberId], references: [id])
+  processedBy     User?     @relation(fields: [processedById], references: [id])
+}
+
+model Activity {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String
+  location     String
+  capacity     Int
+  startTime    DateTime
+  endTime      DateTime
+  category     String
+  image        String?
+  timer        DateTime?
+  status       String        @default("UPCOMING")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+}
+
+model UnenrollmentRequest {
+  id              Int       @id @default(autoincrement())
+  memberId        Int
+  reason          String
+  status          String    @default("PENDING")
+  rejectionReason String?
+  processedById   Int?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  member          Member    @relation(fields: [memberId], references: [id])
+  processedBy     User?     @relation(fields: [processedById], references: [id])
+}
+
+model Reservation {
+  id          Int           @id @default(autoincrement())
+  memberId    Int
+  affiliateId Int?
+  activityId  Int
+  paxCount    Int           @default(1)
+  status      String        @default("CONFIRMED")
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  member      Member        @relation(fields: [memberId], references: [id])
+  affiliate   FamilyMember? @relation(fields: [affiliateId], references: [id])
+  activity    Activity      @relation(fields: [activityId], references: [id])
+}
+
+model FamilyMember {
+  id                   Int                @id @default(autoincrement())
+  memberId             Int
+  membershipNumber     String?            @unique
+  name                 String
+  relation             String
+  dob                  DateTime
+  gender               String
+  mobileNumber         String?            @unique
+  email                String?            @unique
+  aadhaarNumber        String?
+  photoUrl             String?
+  biometricId          String?
+  qrCode               String?
+  accessPermissions    String?
+  status               String             @default("PENDING")
+  password             String?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  member               Member             @relation(fields: [memberId], references: [id])
+  reservations         Reservation[]
+  tableReservations    TableReservation[]
+  restaurantOrders     Order[]
+  complaints           Complaint[]
+  feedbacks            Feedback[]
+  accessLogs           AccessLog[]
+}
+
+model Invoice {
+  id                 Int           @id @default(autoincrement())
+  invoiceNumber      String        @unique
+  memberId           Int?
+  department         String
+  amount             Float
+  discount           Float         @default(0)
+  gst                Float
+  roundOff           Float         @default(0)
+  total              Float
+  status             String        @default("UNPAID")
+  cancellationStatus String? // PENDING, APPROVED, REJECTED
+  dueDate            DateTime
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  member             Member?       @relation(fields: [memberId], references: [id])
+  walkInGuestId      Int?
+  walkInGuest        WalkInGuest?  @relation(fields: [walkInGuestId], references: [id])
+  items              InvoiceItem[]
+  payments           Payment[]
+}
+
+model WalkInGuest {
+  id        Int       @id @default(autoincrement())
+  name      String
+  contact   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  invoices  Invoice[]
+}
+
+model InvoiceItem {
+  id          Int     @id @default(autoincrement())
+  invoiceId   Int
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Float
+  amount      Float
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+model Payment {
+  id              Int      @id @default(autoincrement())
+  receiptNumber   String   @unique
+  invoiceId       Int
+  amount          Float
+  paymentMode     String
+  referenceNumber String?
+  paymentDate     DateTime @default(now())
+  receivedById    Int?
+  transactionId   String?
+  proofUrl        String?
+  receivedBy      User?    @relation(fields: [receivedById], references: [id])
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id])
+}
+
+model RestaurantTable {
+  id       Int     @id @default(autoincrement())
+  number   String  @unique
+  capacity Int
+  status   String  @default("AVAILABLE")
+  floor    String  @default("Main Floor")
+  orders   Order[]
+}
+
+model MenuItem {
+  id          Int         @id @default(autoincrement())
+  name        String
+  category    String
+  price       Float
+  department  String      @default("RESTAURANT")
+  isAvailable Boolean     @default(true)
+  orderItems  OrderItem[]
+  recipes     Recipe[]
+}
+
+model InventoryItem {
+  id              Int            @id @default(autoincrement())
+  name            String
+  category        String // VEGETABLES, DAIRY, MEAT, BEVERAGE, DRY_GOODS
+  unit            String // kg, liters, pcs, etc.
+  currentStock    Float          @default(0)
+  minStockLevel   Float          @default(5) // For alerts
+  unitPrice       Float          @default(0)
+  lastRestockedAt DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  logs            InventoryLog[]
+  recipes         Recipe[]
+}
+
+model InventoryLog {
+  id            Int           @id @default(autoincrement())
+  itemId        Int
+  change        Float // Positive for restock, negative for usage
+  type          String // PURCHASE, USAGE, WASTE, ADJUSTMENT
+  description   String?
+  performedById Int
+  createdAt     DateTime      @default(now())
+  item          InventoryItem @relation(fields: [itemId], references: [id])
+}
+
+model Recipe {
+  id              Int           @id @default(autoincrement())
+  menuItemId      Int
+  inventoryItemId Int
+  quantity        Float // Amount of inventory item per menu item
+  exactWeight     Float?
+  menuItem        MenuItem      @relation(fields: [menuItemId], references: [id])
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  @@unique([menuItemId, inventoryItemId])
+}
+
+model Order {
+  id          Int             @id @default(autoincrement())
+  orderNumber String          @unique
+  tableId     Int
+  memberId    Int?
+  affiliateId Int?
+  paxCount    Int             @default(1)
+  status      String          @default("OPEN")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  isPrepaid   Boolean         @default(false)
+  isVerified  Boolean         @default(true)
+  table       RestaurantTable @relation(fields: [tableId], references: [id])
+  member      Member?         @relation(fields: [memberId], references: [id])
+  affiliate   FamilyMember?   @relation(fields: [affiliateId], references: [id])
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  quantity   Int
+  status     String   @default("PENDING")
+  notes      String?
+  order      Order    @relation(fields: [orderId], references: [id])
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+model AccessLog {
+  id             Int           @id @default(autoincrement())
+  memberId       Int
+  affiliateId    Int?
+  deviceIp       String?
+  deviceLocation String?
+  accessType     String        @default("ENTRY")
+  isAllowed      Boolean
+  denialReason   String?
+  timestamp      DateTime      @default(now())
+  member         Member        @relation(fields: [memberId], references: [id])
+  affiliate      FamilyMember? @relation(fields: [affiliateId], references: [id])
+}
+
+model Complaint {
+  id          Int           @id @default(autoincrement())
+  memberId    Int
+  affiliateId Int?
+  subject     String
+  description String
+  category    String
+  status      String        @default("OPEN")
+  priority    String        @default("MEDIUM")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  member      Member        @relation(fields: [memberId], references: [id])
+  affiliate   FamilyMember? @relation(fields: [affiliateId], references: [id])
+  messages    Message[]
+}
+
+model Message {
+  id          Int       @id @default(autoincrement())
+  complaintId Int
+  senderType  String // STAFF or MEMBER
+  senderId    Int // User ID or Member ID
+  senderName  String
+  content     String
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+}
+
+model Announcement {
+  id             Int      @id @default(autoincrement())
+  title          String
+  content        String
+  targetAudience String   @default("ALL")
+  isActive       Boolean  @default(true)
+  createdById    Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      User     @relation(fields: [createdById], references: [id])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  action      String // CREATE, UPDATE, DELETE, LOGIN, IMPORT, etc.
+  entityType  String // MEMBER, ASSET, INVENTORY, INVOICE, etc.
+  entityId    String?
+  description String
+  oldData     String? // JSON string
+  newData     String? // JSON string
+  userId      Int
+  userName    String
+  userRole    String
+  createdAt   DateTime @default(now())
+}
+
+model Asset {
+  id              Int              @id @default(autoincrement())
+  name            String
+  category        String // e.g., GYM, POOL, SPA, FURNITURE, IT
+  tagNumber       String           @unique
+  location        String
+  purchaseDate    DateTime
+  purchaseCost    Float
+  status          String           @default("OPERATIONAL") // OPERATIONAL, MAINTENANCE, RETIRED
+  lastMaintenance DateTime?
+  nextMaintenance DateTime?
+  description     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  maintenanceLogs MaintenanceLog[]
+}
+
+model MaintenanceLog {
+  id          Int      @id @default(autoincrement())
+  assetId     Int
+  serviceDate DateTime @default(now())
+  serviceType String // ROUTINE, REPAIR, INSPECTION
+  performedBy String
+  cost        Float    @default(0)
+  description String
+  status      String   @default("COMPLETED")
+  asset       Asset    @relation(fields: [assetId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Feedback {
+  id          Int           @id @default(autoincrement())
+  memberId    Int?
+  affiliateId Int?
+  memberName  String?
+  rating      Int
+  comments    String?
+  department  String        @default("RESTAURANT")
+  isResolved  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  member      Member?       @relation(fields: [memberId], references: [id])
+  affiliate   FamilyMember? @relation(fields: [affiliateId], references: [id])
+}
+
+model SystemStatus {
+  id         Int       @id @default(1)
+  isLocked   Boolean   @default(false)
+  lockedAt   DateTime?
+  lockedById Int?
+  reason     String?
+  lockedBy   User?     @relation(fields: [lockedById], references: [id])
+}
+
+model StaffLeave {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  leaveType    String
+  startDate    DateTime
+  endDate      DateTime
+  reason       String
+  status       String    @default("PENDING")
+  reviewedById Int?
+  reviewNotes  String?
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation("StaffLeave_user", fields: [userId], references: [id])
+  reviewedBy   User?     @relation("StaffLeave_reviewer", fields: [reviewedById], references: [id])
+}
+
+model LeaveBalance {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  earnedLeave Float    @default(0)
+  sickLeave   Float    @default(0)
+  casualLeave Float    @default(0)
+  year        Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model StaffAttendance {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  date          DateTime
+  checkIn       DateTime?
+  checkOut      DateTime?
+  status        String    @default("PRESENT")
+  overtimeHours Float     @default(0)
+  remarks       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model StaffSalary {
+  id               Int       @id @default(autoincrement())
+  userId           Int
+  month            Int
+  year             Int
+  basicPay         Float     @default(0)
+  hra              Float     @default(0)
+  conveyance       Float     @default(0)
+  medicalAllowance Float     @default(0)
+  specialAllowance Float     @default(0)
+  otherAllowances  Float     @default(0)
+  grossPay         Float     @default(0)
+  pf               Float     @default(0)
+  esi              Float     @default(0)
+  professionalTax  Float     @default(0)
+  tds              Float     @default(0)
+  otherDeductions  Float     @default(0)
+  netPay           Float     @default(0)
+  bonus            Float     @default(0)
+  reduction        Float     @default(0)
+  invoiceNumber    String?
+  attendanceDays   Int       @default(0)
+  paidDays         Int       @default(0)
+  status           String    @default("PENDING")
+  paymentDate      DateTime?
+  remarks          String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month, year])
+}
+
+model HousekeepingTask {
+  id            Int                        @id @default(autoincrement())
+  name          String
+  category      String                     @default("MEDIUM")
+  description   String?
+  floor         String?
+  isPeriodic    Boolean                    @default(false)
+  frequencyDays Int?
+  isDeepClean   Boolean                    @default(false)
+  isActive      Boolean                    @default(true)
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  instances     HousekeepingTaskInstance[]
+}
+
+model HousekeepingAllocation {
+  id            Int                        @id @default(autoincrement())
+  employeeId    Int
+  floor         String
+  area          String
+  shift         String                     @default("MORNING") // MORNING, EVENING, NIGHT
+  date          DateTime
+  startTime     String?
+  endTime       String?
+  specification String?
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  employee      User                       @relation(fields: [employeeId], references: [id])
+  instances     HousekeepingTaskInstance[]
+}
+
+model HousekeepingTaskInstance {
+  id           Int                     @id @default(autoincrement())
+  allocationId Int?
+  taskId       Int
+  employeeId   Int
+  floor        String
+  area         String
+  priority     String                  @default("MEDIUM")
+  dueTime      String?
+  status       String                  @default("PENDING")
+  assignedAt   DateTime                @default(now())
+  startedAt    DateTime?
+  completedAt  DateTime?
+  remarks      String?
+  photoUrl     String?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  allocation   HousekeepingAllocation? @relation(fields: [allocationId], references: [id])
+  task         HousekeepingTask        @relation(fields: [taskId], references: [id])
+  employee     User                    @relation(fields: [employeeId], references: [id])
+}
+
+model HousekeepingDeepCleaning {
+  id         Int      @id @default(autoincrement())
+  floor      String
+  date       DateTime
+  startTime  String?
+  endTime    String?
+  status     String   @default("PENDING")
+  assignedTo String?
+  photos     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model HousekeepingFloorTemplate {
+  id        Int      @id @default(autoincrement())
+  floor     String
+  area      String
+  tasks     String
+  frequency String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

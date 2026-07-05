@@ -1,0 +1,37 @@
+
+> stellaar-backend@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/index.ts
+
+[INFO] 04:00:53 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+[Automation] Background worker nodes initialized.
+[Backup] Autonomous 30-minute recovery snapshot service active.
+[Sync] Initiating autonomous cloud-to-local synchronization...
+Server is running on port 5001
+[Sync] Cloned 11 records for role
+[Sync] Cloned 1 records for user
+[Sync] Cloned 2 records for member
+[Sync] Cloned 3 records for activity
+[Sync] Cloned 3 records for reservation
+[Sync] Cloned 1 records for familyMember
+[Sync] Cloned 0 records for invoice
+[Sync] Cloned 0 records for invoiceItem
+[Sync] Cloned 0 records for payment
+[Sync] Cloned 6 records for restaurantTable
+[Sync] Cloned 8 records for menuItem
+[Sync] Cloned 5 records for inventoryItem
+[Sync] Cloned 0 records for inventoryLog
+[Sync] Cloned 5 records for recipe
+[Sync] Cloned 1 records for order
+[Sync] Cloned 4 records for orderItem
+[Sync] Cloned 0 records for accessLog
+[Sync] Cloned 1 records for complaint
+[Sync] Cloned 1 records for message
+[Sync] Cloned 1 records for announcement
+[Sync] Cloned 4 records for auditLog
+[Sync] Cloned 3 records for asset
+[Sync] Cloned 0 records for maintenanceLog
+[Sync] Cloned 0 records for aMCPaymentRequest
+[Sync] Cloned 0 records for feedback
+[Sync] Cloned 1 records for systemStatus
+[Sync] Local registry is now bit-perfect with Supabase Cloud.
+[Lifecycle] Initial registry alignment successful.
