@@ -442,7 +442,7 @@ export default function UserListPage() {
               <div className="border-t border-gray-100 pt-6">
                 <h3 className="text-sm font-bold text-gray-900 mb-1">Granular Screen Permissions</h3>
                 <p className="text-xs text-gray-500 mb-4">
-                  Role-default screens (marked with *) are always enabled. Toggle additional permissions below.
+                  Screens marked with default are role-defaults. You can override CRUD permissions for any screen per user.
                 </p>
                 <div className="space-y-2">
                   {allScreens.map((screen) => {
@@ -467,13 +467,12 @@ export default function UserListPage() {
                               <button
                                 key={action.key}
                                 type="button"
-                                disabled={isDefault && action.key === 'canRead'}
                                 onClick={() => toggleEditPermAction(screen.key, action.key)}
                                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                                   isActive
                                     ? 'bg-blue-600 text-white shadow-sm'
                                     : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                                } ${isDefault && action.key === 'canRead' ? '!bg-gray-300 !text-gray-500 cursor-not-allowed' : ''}`}
+                                }`}
                                 title={`${action.label} ${screen.label}`}
                               >
                                 <Icon size={12} />
@@ -482,19 +481,15 @@ export default function UserListPage() {
                             );
                           })}
                         </div>
-                        {isDefault ? (
-                          <div className="w-[46px]" />
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setEditAllPermActions(screen.key, !anyChecked)}
-                            className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
-                              anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
-                            }`}
-                          >
-                            {anyChecked ? 'Clear' : 'All'}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setEditAllPermActions(screen.key, !anyChecked)}
+                          className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
+                            anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
+                          }`}
+                        >
+                          {anyChecked ? 'Clear' : 'All'}
+                        </button>
                       </div>
                     );
                   })}
@@ -531,7 +526,7 @@ export default function UserListPage() {
                 Assign Create / Read / Update / Delete permissions for <strong>{permUser.name}</strong>
               </p>
               <p className="text-[10px] text-gray-400 mt-1 font-medium">
-                Role-default screens (marked with *) are always enabled and non-editable. Toggle additional screens below.
+                Role-default screens (marked with default) are inherited from their role. You can override any permission per user.
               </p>
             </div>
             <div className="p-6">
@@ -558,13 +553,12 @@ export default function UserListPage() {
                             <button
                               key={action.key}
                               type="button"
-                              disabled={isDefault && action.key === 'canRead'}
                               onClick={() => togglePermAction(screen.key, action.key)}
                               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                                 isActive
                                   ? 'bg-blue-600 text-white shadow-sm'
                                   : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                              } ${isDefault && action.key === 'canRead' ? '!bg-gray-300 !text-gray-500 cursor-not-allowed' : ''}`}
+                              }`}
                               title={`${action.label} ${screen.label}`}
                             >
                               <Icon size={13} />
@@ -573,19 +567,15 @@ export default function UserListPage() {
                           );
                         })}
                       </div>
-                      {isDefault ? (
-                        <div className="w-[52px]" />
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setAllPermActions(screen.key, !anyChecked)}
-                          className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
-                            anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
-                          }`}
-                        >
-                          {anyChecked ? 'Clear' : 'All'}
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setAllPermActions(screen.key, !anyChecked)}
+                        className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
+                          anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
+                        }`}
+                      >
+                        {anyChecked ? 'Clear' : 'All'}
+                      </button>
                     </div>
                   );
                 })}

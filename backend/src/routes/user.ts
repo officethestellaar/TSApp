@@ -63,7 +63,7 @@ router.patch('/me', authenticateToken, async (req: any, res) => {
       include: { role: true, staffProfile: true },
     });
 
-    emitEvent('staff_update', { action: 'UPDATED', user: { id: user.id, name: user.name } });
+    emitEvent('staff_update', { action: 'UPDATED', user: { id: user.id, name: user.name } }, { userId: user.id });
 
     const { password: _, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
@@ -143,7 +143,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req, r
       include: { role: true, staffProfile: true },
     });
 
-    emitEvent('staff_update', { action: 'CREATED', user: { id: user.id, name: user.name } });
+    emitEvent('staff_update', { action: 'CREATED', user: { id: user.id, name: user.name } }, { userId: user.id });
 
     const { password: _, ...userWithoutPassword } = user;
     res.status(201).json(userWithoutPassword);
@@ -186,7 +186,7 @@ router.patch('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (re
       include: { role: true, staffProfile: true },
     });
 
-    emitEvent('staff_update', { action: 'UPDATED', user: { id: user.id, name: user.name } });
+    emitEvent('staff_update', { action: 'UPDATED', user: { id: user.id, name: user.name } }, { userId: user.id });
 
     const { password: _, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
@@ -214,7 +214,7 @@ router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (r
       where: { id: userId },
     });
 
-    emitEvent('staff_update', { action: 'DELETED', userId });
+    emitEvent('staff_update', { action: 'DELETED', userId }, { userId });
 
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
@@ -241,7 +241,7 @@ router.patch('/:id/lock', authenticateToken, authorizeRoles('SUPER_ADMIN'), asyn
       select: { id: true, locked: true, name: true },
     });
 
-    emitEvent('staff_update', { action: locked ? 'LOCKED' : 'UNLOCKED', userId, name: user.name });
+    emitEvent('staff_update', { action: locked ? 'LOCKED' : 'UNLOCKED', userId, name: user.name }, { userId });
     res.json(user);
   } catch { res.status(500).json({ message: 'Internal server error' }); }
 });
@@ -336,7 +336,7 @@ router.get('/screens', authenticateToken, async (req: any, res) => {
   const isSuperAdmin = req.user.role === 'SUPER_ADMIN';
   const roleDefaults = getRoleDefaultKeys(req.user.role);
   let userScreens: { screenKey: string; canCreate: boolean; canRead: boolean; canUpdate: boolean; canDelete: boolean }[] = [];
-  // Start with role defaults (read-only)
+  // Start with role defaults (read-only baseline)
   const roleDefaultPerms = expandChildren(roleDefaults).map(key => ({
     screenKey: key,
     canCreate: false,
@@ -344,20 +344,28 @@ router.get('/screens', authenticateToken, async (req: any, res) => {
     canUpdate: false,
     canDelete: false,
   }));
-  // Merge user-specific screens (override defaults)
+  // Merge user-specific screens (allow overriding defaults per user)
   const userPerms = await prisma.userScreenAccess.findMany({
     where: { userId: req.user.userId },
     select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
   });
-  const userMap = new Map(userPerms.filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete).map(a => [a.screenKey, a]));
+  const userMap = new Map(userPerms.map(a => [a.screenKey, a]));
   const merged = new Map<string, { screenKey: string; canCreate: boolean; canRead: boolean; canUpdate: boolean; canDelete: boolean }>();
   for (const d of roleDefaultPerms) {
     const u = userMap.get(d.screenKey);
-    merged.set(d.screenKey, u || d);
+    // If user has an explicit entry (even all-false), use it; otherwise use default
+    const entry = u || d;
+    // Include only if at least one CRUD is active
+    if (entry.canCreate || entry.canRead || entry.canUpdate || entry.canDelete) {
+      merged.set(d.screenKey, entry);
+    }
     if (u) userMap.delete(d.screenKey);
   }
+  // Add extra non-default screens that have at least one active CRUD
   for (const [, u] of userMap) {
-    merged.set(u.screenKey, u);
+    if (u.canCreate || u.canRead || u.canUpdate || u.canDelete) {
+      merged.set(u.screenKey, u);
+    }
   }
   userScreens = Array.from(merged.values());
   res.json({ allScreens: ALL_SCREENS, userScreens, isSuperAdmin, roleDefaults: expandChildren(roleDefaults) });
@@ -394,16 +402,11 @@ router.put('/:id/screens', authenticateToken, authorizeRoles('SUPER_ADMIN'), asy
       return res.json({ message: 'Super admin has unrestricted access', screenKeys: ALL_SCREENS.map(s => s.key) });
     }
 
-    // Role defaults are non-editable — only save screens outside the role default set
-    const roleDefaults = new Set(expandChildren(getRoleDefaultKeys(user.role.name)));
-    const extraKeys = screenKeys.filter(k => !roleDefaults.has(k));
-
-    await prisma.userScreenAccess.deleteMany({
-      where: { userId, screenKey: { notIn: Array.from(roleDefaults) } },
-    });
-    if (extraKeys.length > 0) {
+    // Save all screens (role-default + extra are fully editable per user)
+    await prisma.userScreenAccess.deleteMany({ where: { userId } });
+    if (screenKeys.length > 0) {
       await prisma.userScreenAccess.createMany({
-        data: expandChildren(extraKeys).map((key: string) => ({ userId, screenKey: key })),
+        data: expandChildren(screenKeys).map((key: string) => ({ userId, screenKey: key })),
       });
     }
 
@@ -455,13 +458,10 @@ router.put('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
     const roleDefaults = new Set(expandChildren(getRoleDefaultKeys(user.role.name)));
 
     // Delete existing non-default entries
-    await prisma.userScreenAccess.deleteMany({
-      where: { userId, screenKey: { notIn: Array.from(roleDefaults) } },
-    });
+    await prisma.userScreenAccess.deleteMany({ where: { userId } });
 
-    // Insert non-default screens with granular permissions
+    // Save all screens (default + extra) with granular permissions
     const entries = Object.entries(screens)
-      .filter(([key]) => !roleDefaults.has(key))
       .filter(([key, perm]: [string, any]) => {
         if (key.length === 0) return false;
         const crud = [perm.canCreate ?? false, perm.canRead ?? false, perm.canUpdate ?? false, perm.canDelete ?? false];
