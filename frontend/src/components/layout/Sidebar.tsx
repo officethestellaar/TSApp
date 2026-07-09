@@ -206,10 +206,14 @@ export default function Sidebar() {
             const visibleItems = section.items.filter((item) => {
               const roleMatch = !item.roles || item.roles.includes(user?.role || '');
               if (!roleMatch) return false;
-              if (item.screenKey) {
+              const screenKey = item.screenKey;
+              if (screenKey) {
                 if (!user?.screenKeys) return false;
-                if (item.screenKey.endsWith('-billing') && user.screenKeys.includes('billing')) return true;
-                return user.screenKeys.includes(item.screenKey);
+                if (user.screenKeys.includes(screenKey)) return true;
+                const parentKey = user.screenKeys.find(key => screenKey.startsWith(key + '-'));
+                if (parentKey) return true;
+                if (screenKey.endsWith('-billing') && user.screenKeys.includes('billing')) return true;
+                return false;
               }
               return true;
             });

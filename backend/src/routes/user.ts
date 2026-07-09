@@ -299,15 +299,38 @@ router.get('/screens', authenticateToken, async (req: any, res) => {
       where: { userId: req.user.userId },
       select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     });
-    userScreens = access
-      .filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete)
-      .map(a => ({
-        screenKey: a.screenKey,
-        canCreate: a.canCreate,
-        canRead: a.canRead,
-        canUpdate: a.canUpdate,
-        canDelete: a.canDelete,
-      }));
+    const active = access.filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete);
+    const knownChildren: Record<string, string[]> = {
+      housekeeping: [
+        'housekeeping-tasks',
+        'housekeeping-allocations',
+        'housekeeping-deep-cleaning',
+        'housekeeping-reports',
+      ],
+    };
+    // Expand child screens from parent grants
+    const childKeys = new Set<string>();
+    for (const a of active) {
+      const children = knownChildren[a.screenKey] || [];
+      for (const ck of children) {
+        childKeys.add(ck);
+      }
+    }
+    const seen = new Set(active.map(a => a.screenKey));
+    for (const ck of childKeys) {
+      if (!seen.has(ck)) {
+        const parent = active.find(a => (knownChildren[a.screenKey] || []).includes(ck));
+        active.push({
+          screenKey: ck,
+          canCreate: parent?.canCreate ?? false,
+          canRead: parent?.canRead ?? false,
+          canUpdate: parent?.canUpdate ?? false,
+          canDelete: parent?.canDelete ?? false,
+        });
+        seen.add(ck);
+      }
+    }
+    userScreens = active;
   }
   res.json({ allScreens: ALL_SCREENS, userScreens, isSuperAdmin });
 });
@@ -346,8 +369,22 @@ router.put('/:id/screens', authenticateToken, authorizeRoles('SUPER_ADMIN'), asy
 
     await prisma.userScreenAccess.deleteMany({ where: { userId } });
     if (screenKeys.length > 0) {
+      const expanded = new Set(screenKeys);
+      const knownChildren: Record<string, string[]> = {
+        housekeeping: [
+          'housekeeping-tasks',
+          'housekeeping-allocations',
+          'housekeeping-deep-cleaning',
+          'housekeeping-reports',
+        ],
+      };
+      for (const key of screenKeys) {
+        for (const ck of knownChildren[key] || []) {
+          expanded.add(ck);
+        }
+      }
       await prisma.userScreenAccess.createMany({
-        data: screenKeys.map((key: string) => ({ userId, screenKey: key })),
+        data: Array.from(expanded).map((key: string) => ({ userId, screenKey: key })),
       });
     }
 
@@ -398,22 +435,34 @@ router.put('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
     const entries = Object.entries(screens)
       .filter(([key, perm]: [string, any]) => {
         if (key.length === 0) return false;
-        const canCreate = perm.canCreate ?? false;
-        const canRead = perm.canRead ?? false;
-        const canUpdate = perm.canUpdate ?? false;
-        const canDelete = perm.canDelete ?? false;
-        return canCreate || canRead || canUpdate || canDelete;
-      });
-    if (entries.length > 0) {
-      await prisma.userScreenAccess.createMany({
-        data: entries.map(([screenKey, perm]: [string, any]) => ({
-          userId,
-          screenKey,
+        const crud = [perm.canCreate ?? false, perm.canRead ?? false, perm.canUpdate ?? false, perm.canDelete ?? false];
+        return crud.some(Boolean);
+      })
+      .flatMap(([key, perm]: [string, any]) => {
+        const crud = {
           canCreate: perm.canCreate ?? false,
           canRead: perm.canRead ?? false,
           canUpdate: perm.canUpdate ?? false,
           canDelete: perm.canDelete ?? false,
-        })),
+        };
+        // When any permission is given, also auto-grant all child screens (e.g., housekeeping → housekeeping-tasks)
+        const knownChildren: Record<string, string[]> = {
+          housekeeping: [
+            'housekeeping-tasks',
+            'housekeeping-allocations',
+            'housekeeping-deep-cleaning',
+            'housekeeping-reports',
+          ],
+        };
+        const children = knownChildren[key] || [];
+        return [
+          { userId, screenKey: key, ...crud },
+          ...children.map(childKey => ({ userId, screenKey: childKey, ...crud })),
+        ];
+      });
+    if (entries.length > 0) {
+      await prisma.userScreenAccess.createMany({
+        data: entries,
       });
     }
 

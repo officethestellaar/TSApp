@@ -84,6 +84,11 @@ function ScreenGuard({ children }: { children: React.ReactNode }) {
 
     const userKeys = user.screenKeys || [];
     let hasAccess = userKeys.includes(requiredKey);
+    // Check child screen (e.g., user has 'housekeeping' → can access 'housekeeping-tasks')
+    if (!hasAccess) {
+      hasAccess = userKeys.some((key: string) => requiredKey.startsWith(key + '-'));
+    }
+    // Billing fallback
     if (!hasAccess && requiredKey === 'billing') {
       hasAccess = userKeys.some((k: string) => k.endsWith('-billing'));
     }
