@@ -299,13 +299,15 @@ router.get('/screens', authenticateToken, async (req: any, res) => {
       where: { userId: req.user.userId },
       select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     });
-    userScreens = access.map(a => ({
-      screenKey: a.screenKey,
-      canCreate: a.canCreate,
-      canRead: a.canRead,
-      canUpdate: a.canUpdate,
-      canDelete: a.canDelete,
-    }));
+    userScreens = access
+      .filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete)
+      .map(a => ({
+        screenKey: a.screenKey,
+        canCreate: a.canCreate,
+        canRead: a.canRead,
+        canUpdate: a.canUpdate,
+        canDelete: a.canDelete,
+      }));
   }
   res.json({ allScreens: ALL_SCREENS, userScreens, isSuperAdmin });
 });
@@ -317,13 +319,15 @@ router.get('/:id/screens', authenticateToken, authorizeRoles('SUPER_ADMIN'), asy
       where: { userId },
       select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     });
-    res.json(access.map(a => ({
-      screenKey: a.screenKey,
-      canCreate: a.canCreate,
-      canRead: a.canRead,
-      canUpdate: a.canUpdate,
-      canDelete: a.canDelete,
-    })));
+    res.json(access
+      .filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete)
+      .map(a => ({
+        screenKey: a.screenKey,
+        canCreate: a.canCreate,
+        canRead: a.canRead,
+        canUpdate: a.canUpdate,
+        canDelete: a.canDelete,
+      })));
   } catch { res.status(500).json({ message: 'Internal server error' }); }
 });
 
@@ -363,7 +367,9 @@ router.get('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
     });
     const permMap: Record<string, { canCreate: boolean; canRead: boolean; canUpdate: boolean; canDelete: boolean }> = {};
     for (const a of access) {
-      permMap[a.screenKey] = { canCreate: a.canCreate, canRead: a.canRead, canUpdate: a.canUpdate, canDelete: a.canDelete };
+      if (a.canCreate || a.canRead || a.canUpdate || a.canDelete) {
+        permMap[a.screenKey] = { canCreate: a.canCreate, canRead: a.canRead, canUpdate: a.canUpdate, canDelete: a.canDelete };
+      }
     }
     res.json({ allScreens: ALL_SCREENS, permissions: permMap });
   } catch { res.status(500).json({ message: 'Internal server error' }); }
@@ -389,14 +395,22 @@ router.put('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
     await prisma.userScreenAccess.deleteMany({ where: { userId } });
 
     // Insert new with granular permissions
-    const entries = Object.entries(screens).filter(([key]) => key.length > 0);
+    const entries = Object.entries(screens)
+      .filter(([key, perm]: [string, any]) => {
+        if (key.length === 0) return false;
+        const canCreate = perm.canCreate ?? false;
+        const canRead = perm.canRead ?? false;
+        const canUpdate = perm.canUpdate ?? false;
+        const canDelete = perm.canDelete ?? false;
+        return canCreate || canRead || canUpdate || canDelete;
+      });
     if (entries.length > 0) {
       await prisma.userScreenAccess.createMany({
         data: entries.map(([screenKey, perm]: [string, any]) => ({
           userId,
           screenKey,
           canCreate: perm.canCreate ?? false,
-          canRead: perm.canRead ?? true,
+          canRead: perm.canRead ?? false,
           canUpdate: perm.canUpdate ?? false,
           canDelete: perm.canDelete ?? false,
         })),

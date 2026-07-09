@@ -146,11 +146,16 @@ export default function UserListPage() {
     }
   };
 
+  const activeScreens = (data: Record<string, ScreenPermEntry>) =>
+    Object.fromEntries(
+      Object.entries(data).filter(([, p]) => p.canCreate || p.canRead || p.canUpdate || p.canDelete)
+    );
+
   const savePermissions = async () => {
     if (!permUser) return;
     setSavingPerms(true);
     try {
-      await api.put(`users/${permUser.id}/screens/permissions`, { screens: permData });
+      await api.put(`users/${permUser.id}/screens/permissions`, { screens: activeScreens(permData) });
       if (editUser?.id === permUser.id) {
         setEditPermData({ ...permData });
       }
@@ -204,7 +209,7 @@ export default function UserListPage() {
       const body: any = { name: editData.name, email: editData.email, roleId: Number(editData.roleId) };
       if (editData.password) body.password = editData.password;
       await api.patch(`users/${editUser.id}`, body);
-      await api.put(`users/${editUser.id}/screens/permissions`, { screens: editPermData });
+      await api.put(`users/${editUser.id}/screens/permissions`, { screens: activeScreens(editPermData) });
       setEditUser(null);
       fetchUsers();
       toast.success('User updated');
