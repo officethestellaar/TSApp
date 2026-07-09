@@ -22,6 +22,7 @@ describe('ProtectedRoute', () => {
       loading: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUserScreens: vi.fn(),
     });
 
     render(
@@ -39,6 +40,7 @@ describe('ProtectedRoute', () => {
       loading: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUserScreens: vi.fn(),
     });
 
     render(
@@ -56,6 +58,7 @@ describe('ProtectedRoute', () => {
       loading: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUserScreens: vi.fn(),
     });
 
     render(
@@ -73,6 +76,7 @@ describe('ProtectedRoute', () => {
       loading: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUserScreens: vi.fn(),
     });
 
     render(

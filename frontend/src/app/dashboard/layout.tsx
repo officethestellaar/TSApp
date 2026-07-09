@@ -7,6 +7,7 @@ import AttendanceGuard from '@/components/attendance/AttendanceGuard';
 import Sidebar from '@/components/layout/Sidebar';
 import TopBar from '@/components/layout/TopBar';
 import { useAuth } from '@/context/AuthContext';
+import { useSocket } from '@/context/SocketContext';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,19 @@ const PATH_SCREEN_MAP: Record<string, string> = {
 function ScreenGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUserScreens } = useAuth();
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket || !user) return;
+    const handler = (data: any) => {
+      if ((data.action === 'PERMISSIONS_UPDATED' || data.action === 'SCREENS_UPDATED') && data.userId === user.id) {
+        refreshUserScreens();
+      }
+    };
+    socket.on('staff_update', handler);
+    return () => { socket.off('staff_update', handler); };
+  }, [socket, user, refreshUserScreens]);
 
   useEffect(() => {
     if (loading || !user) return;
