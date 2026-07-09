@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { ChefHat, Clock, AlertCircle, BookOpen, Package } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, LoadingSpinner } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, LoadingSpinner, GrantedQuickActions } from '../_components/shared';
 
 export default function ChefDashboardPage() {
   const { user } = useAuth();
@@ -40,6 +40,7 @@ export default function ChefDashboardPage() {
         <QuickAction href="/dashboard/menu/restaurant" icon={BookOpen} label="Restaurant Menu" screenKey="restaurant-menu" />
         <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" screenKey="inventory" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

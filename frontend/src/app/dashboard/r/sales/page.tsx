@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { UserPlus, TrendingUp, Users, Receipt } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, DashboardStats } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function SalesExecutiveDashboardPage() {
   const { user } = useAuth();
@@ -27,6 +27,7 @@ export default function SalesExecutiveDashboardPage() {
         <QuickAction href="/dashboard/members" icon={Users} label="All Members" screenKey="members" />
         <QuickAction href="/dashboard/billing" icon={Receipt} label="Billing" screenKey="billing" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

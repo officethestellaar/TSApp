@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Users, PiggyBank, Utensils, Receipt, Inbox, Calendar, BarChart3, BookOpen, MessageSquare } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, DashboardStats } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function ClubManagerDashboardPage() {
   const { user } = useAuth();
@@ -38,6 +38,7 @@ export default function ClubManagerDashboardPage() {
         <QuickAction href="/dashboard/menu" icon={BookOpen} label="Menus" screenKey="menu-hub" />
         <QuickAction href="/dashboard/complaints" icon={MessageSquare} label="Concierge" screenKey="concierge" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

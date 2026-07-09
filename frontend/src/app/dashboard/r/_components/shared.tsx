@@ -2,8 +2,50 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Activity, LayoutDashboard, Users, CreditCard, Utensils, BarChart3, MessageSquare, Bell, ShieldCheck, BookOpen, Package, User, IndianRupee, ChefHat, FileText, Calendar, Inbox, Settings, Building2, PiggyBank, CalendarClock, Scissors, Kanban, ClipboardCheck, Calculator, Clock, DoorOpen, Coffee, AlertCircle, CheckCircle2, Dumbbell, Waves, UserCheck, Wallet, ClipboardList, Receipt, History } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+
+const SCREEN_ACTION_MAP: Record<string, { label: string; href: string; icon: any; color?: string }> = {
+  'overview': { label: 'Overview', href: '/dashboard/overview', icon: LayoutDashboard },
+  'members': { label: 'Members', href: '/dashboard/members', icon: Users },
+  'requests': { label: 'Requests', href: '/dashboard/requests', icon: Inbox },
+  'records': { label: 'Records', href: '/dashboard/records', icon: FileText },
+  'activities': { label: 'Activities', href: '/dashboard/activities', icon: Calendar },
+  'concierge': { label: 'Concierge', href: '/dashboard/complaints', icon: MessageSquare },
+  'notices': { label: 'Notices', href: '/dashboard/announcements', icon: Bell },
+  'billing': { label: 'Billing', href: '/dashboard/billing', icon: Receipt },
+  'restaurant-billing': { label: 'Restaurant Billing', href: '/dashboard/billing/new?department=RESTAURANT', icon: Utensils },
+  'salon-billing': { label: 'Salon Billing', href: '/dashboard/billing/new?department=SALON', icon: Scissors },
+  'gym-billing': { label: 'Gym Billing', href: '/dashboard/billing/new?department=GYM', icon: Dumbbell },
+  'pool-billing': { label: 'Pool Billing', href: '/dashboard/billing/new?department=POOL', icon: Waves },
+  'banquet-billing': { label: 'Banquet Billing', href: '/dashboard/billing/new?department=BANQUET', icon: Calendar },
+  'personal-trainer-billing': { label: 'PT Billing', href: '/dashboard/billing/new?department=PERSONAL_TRAINER', icon: User },
+  'menu-hub': { label: 'Menu Hub', href: '/dashboard/menu', icon: BookOpen },
+  'amc-approvals': { label: 'AMC Approvals', href: '/dashboard/amc-approvals', icon: AlertCircle },
+  'ledger': { label: 'Ledger', href: '/dashboard/ledger', icon: BookOpen },
+  'restaurant-pos': { label: 'Restaurant POS', href: '/dashboard/restaurant', icon: Utensils },
+  'kitchen-display': { label: 'Kitchen Display', href: '/dashboard/restaurant/kds', icon: ChefHat },
+  'restaurant-menu': { label: 'Restaurant Menu', href: '/dashboard/menu/restaurant', icon: BookOpen },
+  'inventory': { label: 'Inventory', href: '/dashboard/inventory', icon: Package },
+  'assets': { label: 'Assets', href: '/dashboard/assets', icon: ShieldCheck },
+  'salon-menu': { label: 'Salon Menu', href: '/dashboard/menu/salon', icon: Scissors },
+  'gym-menu': { label: 'Gym Menu', href: '/dashboard/menu/gym', icon: Dumbbell },
+  'pool-menu': { label: 'Pool Menu', href: '/dashboard/menu/pool', icon: Waves },
+  'banquet-menu': { label: 'Banquet Menu', href: '/dashboard/menu/banquet', icon: Calendar },
+  'personal-trainer-menu': { label: 'PT Menu', href: '/dashboard/menu/personal-trainer', icon: User },
+  'housekeeping': { label: 'Housekeeping', href: '/dashboard/housekeeping', icon: ClipboardCheck },
+  'housekeeping-tasks': { label: 'Tasks', href: '/dashboard/housekeeping/tasks', icon: ClipboardList },
+  'housekeeping-allocations': { label: 'Allocations', href: '/dashboard/housekeeping/allocations', icon: Users },
+  'housekeeping-deep-cleaning': { label: 'Deep Cleaning', href: '/dashboard/housekeeping/deep-cleaning', icon: Settings },
+  'housekeeping-reports': { label: 'Housekeeping Reports', href: '/dashboard/housekeeping/reports', icon: BarChart3 },
+  'reports': { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
+  'audit-logs': { label: 'Audit Logs', href: '/dashboard/access-logs', icon: History },
+  'users': { label: 'Users', href: '/dashboard/users', icon: Users },
+  'leave': { label: 'Leave', href: '/dashboard/leave', icon: CalendarClock },
+  'system-init': { label: 'System Init', href: '/dashboard/init', icon: Settings },
+  'staff-attendance': { label: 'Staff Attendance', href: '/dashboard/staff/attendance', icon: Clock },
+  'staff-salary': { label: 'Staff Salary', href: '/dashboard/staff/salary', icon: CreditCard },
+};
 
 export interface MetricSummary { today: number; yesterday: number; month: number; lastMonth: number; year: number; lastYear: number; growth: { day: number; month: number; year: number; }; }
 export interface DashboardStats { totalMembers: number; revenue: MetricSummary; members: MetricSummary; }
@@ -102,5 +144,33 @@ export function ComparisonNode({ label, growth, subtitle }: { label: string, gro
       </div>
       <p className="text-[10px] font-black uppercase tracking-widest text-slate/40">{subtitle}</p>
     </div>
+  );
+}
+
+export function GrantedQuickActions() {
+  const { user } = useAuth();
+  if (!user?.screenKeys || user.role === 'SUPER_ADMIN') return null;
+  const granted = user.screenKeys
+    .map(key => SCREEN_ACTION_MAP[key])
+    .filter(Boolean)
+    .filter((item, index, arr) => arr.findIndex(i => i.href === item.href) === index);
+  if (granted.length === 0) return null;
+  return (
+    <>
+      <div className="border-t border-navy/5 pt-6">
+        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-navy/30 mb-4">Granted Modules</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {granted.map(item => (
+            <Link key={item.href} href={item.href}
+              className="flex items-center gap-3 px-5 py-4 bg-white rounded-2xl border border-navy/5 hover:border-gold/40 hover:shadow-lg hover:-translate-y-0.5 transition-all">
+              <div className="p-2.5 rounded-xl bg-navy/5">
+                <item.icon size={18} className="text-navy" />
+              </div>
+              <span className="text-xs font-bold text-navy">{item.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }

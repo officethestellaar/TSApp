@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { CreditCard, Scissors, Users, Receipt } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, DashboardStats } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function SalonManagerDashboardPage() {
   const { user } = useAuth();
@@ -27,6 +27,7 @@ export default function SalonManagerDashboardPage() {
         <QuickAction href="/dashboard/billing/new?department=SALON" icon={Receipt} label="Salon Billing" screenKey="billing" />
         <QuickAction href="/dashboard/billing" icon={CreditCard} label="Billing History" screenKey="billing" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

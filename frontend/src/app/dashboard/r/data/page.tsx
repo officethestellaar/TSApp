@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { UserPlus, Users, FileText, Calendar, BookOpen, Package, ShieldCheck, Inbox } from 'lucide-react';
-import { DashHeader, QuickAction } from '../_components/shared';
+import { DashHeader, QuickAction, GrantedQuickActions } from '../_components/shared';
 
 export default function DataOperatorDashboardPage() {
   const { user } = useAuth();
@@ -23,6 +23,7 @@ export default function DataOperatorDashboardPage() {
         <QuickAction href="/dashboard/assets" icon={ShieldCheck} label="Assets" screenKey="assets" />
         <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" screenKey="requests" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

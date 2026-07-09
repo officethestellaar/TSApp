@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Users, UserPlus, CreditCard, Search, Receipt, Calendar, MessageSquare, Inbox, Bell, FileText } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, DashboardStats } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function ReceptionistDashboardPage() {
   const { user } = useAuth();
@@ -32,6 +32,7 @@ export default function ReceptionistDashboardPage() {
         <QuickAction href="/dashboard/announcements" icon={Bell} label="Notices" screenKey="notices" />
         <QuickAction href="/dashboard/records" icon={FileText} label="Records" screenKey="records" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

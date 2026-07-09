@@ -5,7 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Utensils, CheckCircle2, ChefHat, CreditCard, BookOpen, Receipt, DoorOpen } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, DashboardStats } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function RestaurantManagerDashboardPage() {
   const { user } = useAuth();
@@ -55,6 +55,7 @@ export default function RestaurantManagerDashboardPage() {
           </div>
         </div>
       )}
+      <GrantedQuickActions />
     </div>
   );
 }

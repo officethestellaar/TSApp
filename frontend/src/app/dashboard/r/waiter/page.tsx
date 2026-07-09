@@ -5,7 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Utensils, CheckCircle2, Receipt, DoorOpen } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, LoadingSpinner } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, LoadingSpinner, GrantedQuickActions } from '../_components/shared';
 
 export default function WaiterDashboardPage() {
   const { user } = useAuth();
@@ -68,6 +68,7 @@ export default function WaiterDashboardPage() {
         <QuickAction href="/dashboard/restaurant" icon={Utensils} label="All Tables" screenKey="restaurant-pos" />
         <QuickAction href="/dashboard/billing/new?department=RESTAURANT" icon={Receipt} label="Restaurant Billing" screenKey="billing" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

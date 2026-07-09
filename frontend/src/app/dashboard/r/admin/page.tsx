@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import api from '@/lib/api';
 import { CreditCard, Users, ShieldCheck, Activity, Calendar } from 'lucide-react';
-import { DashHeader, AnalyticCard, ComparisonNode, LoadingSpinner, DashboardStats } from '../_components/shared';
+import { DashHeader, AnalyticCard, ComparisonNode, LoadingSpinner, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
@@ -102,6 +102,7 @@ export default function AdminDashboardPage() {
           <ComparisonNode label="Year-over-Year" growth={stats?.revenue.growth.year || 0} subtitle="Vs. Last Fiscal" />
         </div>
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

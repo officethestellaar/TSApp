@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { CreditCard, TrendingUp, PiggyBank, Receipt, BookOpen, AlertCircle, BarChart3, Utensils, Scissors, Dumbbell } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, DashboardStats } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function AccountantDashboardPage() {
   const { user } = useAuth();
@@ -32,6 +32,7 @@ export default function AccountantDashboardPage() {
         <QuickAction href="/dashboard/billing/new?department=SALON" icon={Scissors} label="Salon Bill" screenKey="billing" />
         <QuickAction href="/dashboard/billing/new?department=GYM" icon={Dumbbell} label="Gym Bill" screenKey="billing" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

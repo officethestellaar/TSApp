@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { CreditCard, Users, UserPlus, ClipboardCheck, Package, ShieldCheck, Clock, Calendar, BarChart3, Inbox } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard, DashboardStats } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function OperationsManagerDashboardPage() {
   const { user } = useAuth();
@@ -32,6 +32,7 @@ export default function OperationsManagerDashboardPage() {
         <QuickAction href="/dashboard/reports" icon={BarChart3} label="Reports" screenKey="reports" />
         <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" screenKey="requests" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }

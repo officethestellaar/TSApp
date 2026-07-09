@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { ClipboardCheck, ClipboardList, Settings, Users, BarChart3, Clock, Package, Inbox } from 'lucide-react';
-import { DashHeader, QuickAction, StatCard } from '../_components/shared';
+import { DashHeader, QuickAction, StatCard, GrantedQuickActions } from '../_components/shared';
 
 export default function HousekeepingDashboardPage() {
   const { user } = useAuth();
@@ -28,6 +28,7 @@ export default function HousekeepingDashboardPage() {
         <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" screenKey="inventory" />
         <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" screenKey="requests" />
       </div>
+      <GrantedQuickActions />
     </div>
   );
 }
