@@ -144,7 +144,7 @@ describe('Screen Permission Endpoints', () => {
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Granular permissions updated');
       expect(mockUserScreenAccess.deleteMany).toHaveBeenCalledWith({
-        where: { userId: 5, screenKey: { notIn: expect.any(Array) } },
+        where: { userId: 5 },
       });
       expect(mockUserScreenAccess.createMany).toHaveBeenCalledWith({
         data: [
