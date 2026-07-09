@@ -291,66 +291,93 @@ export const ALL_SCREENS = [
   { key: 'salary', label: 'My Salary' },
 ];
 
+// Non-editable role → default screen keys (always present, cannot be removed via UI)
+const ROLE_SCREEN_MAP: Record<string, string[]> = {
+  SUPER_ADMIN: ALL_SCREENS.map(s => s.key),
+  ADMIN: ALL_SCREENS.map(s => s.key),
+  CLUB_MANAGER: ['members', 'billing', 'restaurant-pos', 'requests', 'activities', 'reports', 'menu-hub', 'concierge'],
+  OPERATIONS_MANAGER: ['housekeeping', 'inventory', 'assets', 'staff-attendance', 'activities', 'members', 'reports', 'requests'],
+  DATA_OPERATOR: ['members', 'records', 'activities', 'menu-hub', 'inventory', 'assets', 'requests'],
+  SALES_EXECUTIVE: ['members', 'billing'],
+  ACCOUNTANT: ['billing', 'ledger', 'amc-approvals', 'reports'],
+  RESTAURANT_MANAGER: ['restaurant-pos', 'kitchen-display', 'restaurant-menu', 'billing'],
+  SALON_MANAGER: ['salon-menu', 'billing'],
+  HOUSEKEEPING_SUPERVISOR: ['housekeeping', 'housekeeping-tasks', 'housekeeping-allocations', 'housekeeping-deep-cleaning', 'housekeeping-reports', 'staff-attendance', 'inventory', 'requests'],
+  HOUSEKEEPING_EXECUTIVE: ['housekeeping', 'housekeeping-tasks', 'housekeeping-allocations', 'housekeeping-deep-cleaning', 'housekeeping-reports', 'staff-attendance', 'inventory', 'requests'],
+  RECEPTIONIST: ['members', 'billing', 'activities', 'concierge', 'requests', 'notices', 'records'],
+  WAITER: ['restaurant-pos', 'billing'],
+  CHEF: ['kitchen-display', 'restaurant-menu', 'inventory'],
+};
+
+function getRoleDefaultKeys(roleName: string): string[] {
+  return ROLE_SCREEN_MAP[roleName] || [];
+}
+
+const KNOWN_CHILDREN: Record<string, string[]> = {
+  housekeeping: [
+    'housekeeping-tasks',
+    'housekeeping-allocations',
+    'housekeeping-deep-cleaning',
+    'housekeeping-reports',
+  ],
+};
+
+function expandChildren(keys: string[]): string[] {
+  const expanded = new Set(keys);
+  for (const key of keys) {
+    for (const ck of KNOWN_CHILDREN[key] || []) {
+      expanded.add(ck);
+    }
+  }
+  return Array.from(expanded);
+}
+
 router.get('/screens', authenticateToken, async (req: any, res) => {
   const isSuperAdmin = req.user.role === 'SUPER_ADMIN';
+  const roleDefaults = getRoleDefaultKeys(req.user.role);
   let userScreens: { screenKey: string; canCreate: boolean; canRead: boolean; canUpdate: boolean; canDelete: boolean }[] = [];
-  if (!isSuperAdmin) {
-    const access = await prisma.userScreenAccess.findMany({
-      where: { userId: req.user.userId },
-      select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    });
-    const active = access.filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete);
-    const knownChildren: Record<string, string[]> = {
-      housekeeping: [
-        'housekeeping-tasks',
-        'housekeeping-allocations',
-        'housekeeping-deep-cleaning',
-        'housekeeping-reports',
-      ],
-    };
-    // Expand child screens from parent grants
-    const childKeys = new Set<string>();
-    for (const a of active) {
-      const children = knownChildren[a.screenKey] || [];
-      for (const ck of children) {
-        childKeys.add(ck);
-      }
-    }
-    const seen = new Set(active.map(a => a.screenKey));
-    for (const ck of childKeys) {
-      if (!seen.has(ck)) {
-        const parent = active.find(a => (knownChildren[a.screenKey] || []).includes(ck));
-        active.push({
-          screenKey: ck,
-          canCreate: parent?.canCreate ?? false,
-          canRead: parent?.canRead ?? false,
-          canUpdate: parent?.canUpdate ?? false,
-          canDelete: parent?.canDelete ?? false,
-        });
-        seen.add(ck);
-      }
-    }
-    userScreens = active;
+  // Start with role defaults (read-only)
+  const roleDefaultPerms = expandChildren(roleDefaults).map(key => ({
+    screenKey: key,
+    canCreate: false,
+    canRead: true,
+    canUpdate: false,
+    canDelete: false,
+  }));
+  // Merge user-specific screens (override defaults)
+  const userPerms = await prisma.userScreenAccess.findMany({
+    where: { userId: req.user.userId },
+    select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+  });
+  const userMap = new Map(userPerms.filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete).map(a => [a.screenKey, a]));
+  const merged = new Map<string, { screenKey: string; canCreate: boolean; canRead: boolean; canUpdate: boolean; canDelete: boolean }>();
+  for (const d of roleDefaultPerms) {
+    const u = userMap.get(d.screenKey);
+    merged.set(d.screenKey, u || d);
+    if (u) userMap.delete(d.screenKey);
   }
-  res.json({ allScreens: ALL_SCREENS, userScreens, isSuperAdmin });
+  for (const [, u] of userMap) {
+    merged.set(u.screenKey, u);
+  }
+  userScreens = Array.from(merged.values());
+  res.json({ allScreens: ALL_SCREENS, userScreens, isSuperAdmin, roleDefaults: expandChildren(roleDefaults) });
 });
 
 router.get('/:id/screens', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: any, res) => {
   try {
     const userId = Number(req.params.id);
+    const target = await prisma.user.findUnique({ where: { id: userId }, include: { role: true } });
+    if (!target) return res.status(404).json({ message: 'User not found' });
+
+    const roleDefaults = getRoleDefaultKeys(target.role.name);
     const access = await prisma.userScreenAccess.findMany({
       where: { userId },
       select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     });
-    res.json(access
-      .filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete)
-      .map(a => ({
-        screenKey: a.screenKey,
-        canCreate: a.canCreate,
-        canRead: a.canRead,
-        canUpdate: a.canUpdate,
-        canDelete: a.canDelete,
-      })));
+    const active = access.filter(a => a.canCreate || a.canRead || a.canUpdate || a.canDelete);
+    const userKeys = active.map(a => a.screenKey);
+    const effective = Array.from(new Set([...expandChildren(roleDefaults), ...userKeys]));
+    res.json(effective);
   } catch { res.status(500).json({ message: 'Internal server error' }); }
 });
 
@@ -367,24 +394,16 @@ router.put('/:id/screens', authenticateToken, authorizeRoles('SUPER_ADMIN'), asy
       return res.json({ message: 'Super admin has unrestricted access', screenKeys: ALL_SCREENS.map(s => s.key) });
     }
 
-    await prisma.userScreenAccess.deleteMany({ where: { userId } });
-    if (screenKeys.length > 0) {
-      const expanded = new Set(screenKeys);
-      const knownChildren: Record<string, string[]> = {
-        housekeeping: [
-          'housekeeping-tasks',
-          'housekeeping-allocations',
-          'housekeeping-deep-cleaning',
-          'housekeeping-reports',
-        ],
-      };
-      for (const key of screenKeys) {
-        for (const ck of knownChildren[key] || []) {
-          expanded.add(ck);
-        }
-      }
+    // Role defaults are non-editable — only save screens outside the role default set
+    const roleDefaults = new Set(expandChildren(getRoleDefaultKeys(user.role.name)));
+    const extraKeys = screenKeys.filter(k => !roleDefaults.has(k));
+
+    await prisma.userScreenAccess.deleteMany({
+      where: { userId, screenKey: { notIn: Array.from(roleDefaults) } },
+    });
+    if (extraKeys.length > 0) {
       await prisma.userScreenAccess.createMany({
-        data: Array.from(expanded).map((key: string) => ({ userId, screenKey: key })),
+        data: expandChildren(extraKeys).map((key: string) => ({ userId, screenKey: key })),
       });
     }
 
@@ -398,6 +417,11 @@ router.put('/:id/screens', authenticateToken, authorizeRoles('SUPER_ADMIN'), asy
 router.get('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: any, res) => {
   try {
     const userId = Number(req.params.id);
+    const target = await prisma.user.findUnique({ where: { id: userId }, include: { role: true } });
+    if (!target) return res.status(404).json({ message: 'User not found' });
+
+    const roleDefaults = expandChildren(getRoleDefaultKeys(target.role.name));
+
     const access = await prisma.userScreenAccess.findMany({
       where: { userId },
       select: { screenKey: true, canCreate: true, canRead: true, canUpdate: true, canDelete: true },
@@ -408,7 +432,7 @@ router.get('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
         permMap[a.screenKey] = { canCreate: a.canCreate, canRead: a.canRead, canUpdate: a.canUpdate, canDelete: a.canDelete };
       }
     }
-    res.json({ allScreens: ALL_SCREENS, permissions: permMap });
+    res.json({ allScreens: ALL_SCREENS, permissions: permMap, roleDefaults });
   } catch { res.status(500).json({ message: 'Internal server error' }); }
 });
 
@@ -416,7 +440,6 @@ router.put('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
   try {
     const userId = Number(req.params.id);
     const { screens } = req.body;
-    // screens: { [screenKey: string]: { canCreate, canRead, canUpdate, canDelete } }
     if (!screens || typeof screens !== 'object') {
       return res.status(400).json({ message: 'screens must be an object mapping screenKey to permissions' });
     }
@@ -428,11 +451,17 @@ router.put('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
       return res.json({ message: 'Super admin has unrestricted access' });
     }
 
-    // Delete existing
-    await prisma.userScreenAccess.deleteMany({ where: { userId } });
+    // Role defaults are non-editable — only save non-default screens
+    const roleDefaults = new Set(expandChildren(getRoleDefaultKeys(user.role.name)));
 
-    // Insert new with granular permissions
+    // Delete existing non-default entries
+    await prisma.userScreenAccess.deleteMany({
+      where: { userId, screenKey: { notIn: Array.from(roleDefaults) } },
+    });
+
+    // Insert non-default screens with granular permissions
     const entries = Object.entries(screens)
+      .filter(([key]) => !roleDefaults.has(key))
       .filter(([key, perm]: [string, any]) => {
         if (key.length === 0) return false;
         const crud = [perm.canCreate ?? false, perm.canRead ?? false, perm.canUpdate ?? false, perm.canDelete ?? false];
@@ -445,16 +474,7 @@ router.put('/:id/screens/permissions', authenticateToken, authorizeRoles('SUPER_
           canUpdate: perm.canUpdate ?? false,
           canDelete: perm.canDelete ?? false,
         };
-        // When any permission is given, also auto-grant all child screens (e.g., housekeeping → housekeeping-tasks)
-        const knownChildren: Record<string, string[]> = {
-          housekeeping: [
-            'housekeeping-tasks',
-            'housekeeping-allocations',
-            'housekeeping-deep-cleaning',
-            'housekeeping-reports',
-          ],
-        };
-        const children = knownChildren[key] || [];
+        const children = KNOWN_CHILDREN[key] || [];
         return [
           { userId, screenKey: key, ...crud },
           ...children.map(childKey => ({ userId, screenKey: childKey, ...crud })),

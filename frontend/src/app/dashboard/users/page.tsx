@@ -41,12 +41,14 @@ export default function UserListPage() {
   // Permission modal state
   const [permUser, setPermUser] = useState<User | null>(null);
   const [permData, setPermData] = useState<Record<string, ScreenPermEntry>>({});
+  const [permRoleDefaults, setPermRoleDefaults] = useState<string[]>([]);
   const [savingPerms, setSavingPerms] = useState(false);
 
   // Edit modal state
   const [editUser, setEditUser] = useState<User | null>(null);
   const [editData, setEditData] = useState({ name: '', email: '', password: '', roleId: '' });
   const [editPermData, setEditPermData] = useState<Record<string, ScreenPermEntry>>({});
+  const [editRoleDefaults, setEditRoleDefaults] = useState<string[]>([]);
   const [allScreens, setAllScreens] = useState<ScreenDef[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -141,6 +143,7 @@ export default function UserListPage() {
       ]);
       setAllScreens(screensRes.data.allScreens);
       setPermData(permRes.data.permissions || {});
+      setPermRoleDefaults(permRes.data.roleDefaults || []);
     } catch {
       toast.error('Failed to load permissions');
     }
@@ -197,6 +200,7 @@ export default function UserListPage() {
       setRoles(rolesRes.data);
       setAllScreens(screensRes.data.allScreens);
       setEditPermData(permRes.data.permissions || {});
+      setEditRoleDefaults(permRes.data.roleDefaults || []);
     } catch {
       toast.error('Failed to load roles');
     }
@@ -438,16 +442,22 @@ export default function UserListPage() {
               <div className="border-t border-gray-100 pt-6">
                 <h3 className="text-sm font-bold text-gray-900 mb-1">Granular Screen Permissions</h3>
                 <p className="text-xs text-gray-500 mb-4">
-                  For each screen, toggle Create / Read / Update / Delete access. Unchecking all actions removes screen access entirely.
+                  Role-default screens (marked with *) are always enabled. Toggle additional permissions below.
                 </p>
                 <div className="space-y-2">
                   {allScreens.map((screen) => {
+                    const isDefault = editRoleDefaults.includes(screen.key);
                     const perm = editPermData[screen.key] || { canCreate: false, canRead: false, canUpdate: false, canDelete: false };
                     const anyChecked = perm.canCreate || perm.canRead || perm.canUpdate || perm.canDelete;
                     return (
-                      <div key={screen.key} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all ${anyChecked ? 'border-blue-200 bg-blue-50/50' : 'border-gray-200'}`}>
+                      <div key={screen.key} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all ${anyChecked ? 'border-blue-200 bg-blue-50/50' : 'border-gray-200'} ${isDefault ? 'opacity-90' : ''}`}>
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs font-semibold text-gray-800">{screen.label}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-gray-800">{screen.label}</span>
+                            {isDefault && (
+                              <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider bg-gray-100 px-1.5 py-0.5 rounded">default</span>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-1">
                           {ACTIONS.map(action => {
@@ -457,12 +467,13 @@ export default function UserListPage() {
                               <button
                                 key={action.key}
                                 type="button"
+                                disabled={isDefault && action.key === 'canRead'}
                                 onClick={() => toggleEditPermAction(screen.key, action.key)}
                                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                                   isActive
                                     ? 'bg-blue-600 text-white shadow-sm'
                                     : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                                }`}
+                                } ${isDefault && action.key === 'canRead' ? '!bg-gray-300 !text-gray-500 cursor-not-allowed' : ''}`}
                                 title={`${action.label} ${screen.label}`}
                               >
                                 <Icon size={12} />
@@ -471,15 +482,19 @@ export default function UserListPage() {
                             );
                           })}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setEditAllPermActions(screen.key, !anyChecked)}
-                          className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
-                            anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
-                          }`}
-                        >
-                          {anyChecked ? 'Clear' : 'All'}
-                        </button>
+                        {isDefault ? (
+                          <div className="w-[46px]" />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setEditAllPermActions(screen.key, !anyChecked)}
+                            className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
+                              anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
+                            }`}
+                          >
+                            {anyChecked ? 'Clear' : 'All'}
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -516,18 +531,24 @@ export default function UserListPage() {
                 Assign Create / Read / Update / Delete permissions for <strong>{permUser.name}</strong>
               </p>
               <p className="text-[10px] text-gray-400 mt-1 font-medium">
-                Toggle each action per screen. Unchecking all actions revokes access to that screen.
+                Role-default screens (marked with *) are always enabled and non-editable. Toggle additional screens below.
               </p>
             </div>
             <div className="p-6">
               <div className="space-y-2">
                 {allScreens.map((screen) => {
+                  const isDefault = permRoleDefaults.includes(screen.key);
                   const perm = permData[screen.key] || { canCreate: false, canRead: false, canUpdate: false, canDelete: false };
                   const anyChecked = perm.canCreate || perm.canRead || perm.canUpdate || perm.canDelete;
                   return (
-                    <div key={screen.key} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${anyChecked ? 'border-blue-200 bg-blue-50/50' : 'border-gray-200 hover:border-gray-300'}`}>
+                    <div key={screen.key} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${anyChecked ? 'border-blue-200 bg-blue-50/50' : 'border-gray-200 hover:border-gray-300'} ${isDefault ? 'opacity-90' : ''}`}>
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium text-gray-800">{screen.label}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-medium text-gray-800">{screen.label}</span>
+                          {isDefault && (
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider bg-gray-100 px-1.5 py-0.5 rounded">default</span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         {ACTIONS.map(action => {
@@ -537,12 +558,13 @@ export default function UserListPage() {
                             <button
                               key={action.key}
                               type="button"
+                              disabled={isDefault && action.key === 'canRead'}
                               onClick={() => togglePermAction(screen.key, action.key)}
                               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                                 isActive
                                   ? 'bg-blue-600 text-white shadow-sm'
                                   : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                              }`}
+                              } ${isDefault && action.key === 'canRead' ? '!bg-gray-300 !text-gray-500 cursor-not-allowed' : ''}`}
                               title={`${action.label} ${screen.label}`}
                             >
                               <Icon size={13} />
@@ -551,15 +573,19 @@ export default function UserListPage() {
                           );
                         })}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setAllPermActions(screen.key, !anyChecked)}
-                        className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
-                          anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
-                        }`}
-                      >
-                        {anyChecked ? 'Clear' : 'All'}
-                      </button>
+                      {isDefault ? (
+                        <div className="w-[52px]" />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setAllPermActions(screen.key, !anyChecked)}
+                          className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${
+                            anyChecked ? 'text-red-500 hover:bg-red-50' : 'text-blue-500 hover:bg-blue-50'
+                          }`}
+                        >
+                          {anyChecked ? 'Clear' : 'All'}
+                        </button>
+                      )}
                     </div>
                   );
                 })}

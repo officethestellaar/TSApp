@@ -54,10 +54,10 @@ describe('Screen Permission Endpoints', () => {
 
   describe('GET /api/users/screens', () => {
     it('should return all screens for SUPER_ADMIN', async () => {
+      mockUserScreenAccess.findMany.mockResolvedValue([]);
       const res = await request(app).get('/api/users/screens');
       expect(res.status).toBe(200);
       expect(res.body.allScreens).toBeDefined();
-      expect(res.body.userScreens).toEqual([]);
       expect(res.body.isSuperAdmin).toBe(true);
     });
 
@@ -71,8 +71,9 @@ describe('Screen Permission Endpoints', () => {
 
       const res = await request(app).get('/api/users/screens');
       expect(res.status).toBe(200);
-      expect(res.body.userScreens).toHaveLength(1);
-      expect(res.body.userScreens[0].screenKey).toBe('members');
+      expect(res.body.userScreens.length).toBeGreaterThanOrEqual(1);
+      const found = res.body.userScreens.find((s: any) => s.screenKey === 'members');
+      expect(found).toBeDefined();
       expect(res.body.isSuperAdmin).toBe(false);
     });
 
@@ -87,13 +88,16 @@ describe('Screen Permission Endpoints', () => {
 
       const res = await request(app).get('/api/users/screens');
       expect(res.status).toBe(200);
-      expect(res.body.userScreens).toHaveLength(1);
-      expect(res.body.userScreens[0].screenKey).toBe('members');
+      const memberEntry = res.body.userScreens.find((s: any) => s.screenKey === 'members');
+      expect(memberEntry).toBeDefined();
+      const inventoryEntry = res.body.userScreens.find((s: any) => s.screenKey === 'inventory');
+      expect(inventoryEntry).toBeUndefined();
     });
   });
 
   describe('GET /api/users/:id/screens/permissions', () => {
     it('should return granular permissions for a user', async () => {
+      mockUser.findUnique.mockResolvedValue({ id: 5, role: { name: 'STAFF' } });
       mockUserScreenAccess.findMany.mockResolvedValue([
         { screenKey: 'members', canCreate: true, canRead: true, canUpdate: false, canDelete: false },
         { screenKey: 'billing', canCreate: false, canRead: true, canUpdate: false, canDelete: false },
@@ -109,6 +113,7 @@ describe('Screen Permission Endpoints', () => {
     });
 
     it('should filter out all-false entries from permissions', async () => {
+      mockUser.findUnique.mockResolvedValue({ id: 5, role: { name: 'STAFF' } });
       mockUserScreenAccess.findMany.mockResolvedValue([
         { screenKey: 'members', canCreate: false, canRead: false, canUpdate: false, canDelete: false },
       ]);
@@ -138,7 +143,9 @@ describe('Screen Permission Endpoints', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Granular permissions updated');
-      expect(mockUserScreenAccess.deleteMany).toHaveBeenCalledWith({ where: { userId: 5 } });
+      expect(mockUserScreenAccess.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 5, screenKey: { notIn: expect.any(Array) } },
+      });
       expect(mockUserScreenAccess.createMany).toHaveBeenCalledWith({
         data: [
           { userId: 5, screenKey: 'members', canCreate: true, canRead: true, canUpdate: false, canDelete: false },
@@ -208,14 +215,14 @@ describe('Screen Permission Endpoints', () => {
 
   describe('GET /api/users/:id/screens', () => {
     it('should return filtered screen list', async () => {
+      mockUser.findUnique.mockResolvedValue({ id: 5, role: { name: 'STAFF' } });
       mockUserScreenAccess.findMany.mockResolvedValue([
         { screenKey: 'members', canCreate: false, canRead: true, canUpdate: true, canDelete: false },
       ]);
 
       const res = await request(app).get('/api/users/5/screens');
       expect(res.status).toBe(200);
-      expect(res.body).toHaveLength(1);
-      expect(res.body[0].screenKey).toBe('members');
+      expect(res.body).toContain('members');
     });
   });
 
