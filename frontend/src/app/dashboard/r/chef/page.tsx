@@ -36,9 +36,9 @@ export default function ChefDashboardPage() {
         <StatCard label="Pending Start" value={pendingOrders.length.toString()} icon={AlertCircle} sub="Awaiting" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <QuickAction href="/dashboard/restaurant/kds" icon={ChefHat} label="Kitchen Display" />
-        <QuickAction href="/dashboard/menu/restaurant" icon={BookOpen} label="Restaurant Menu" />
-        <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" />
+        <QuickAction href="/dashboard/restaurant/kds" icon={ChefHat} label="Kitchen Display" screenKey="kitchen-display" />
+        <QuickAction href="/dashboard/menu/restaurant" icon={BookOpen} label="Restaurant Menu" screenKey="restaurant-menu" />
+        <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" screenKey="inventory" />
       </div>
     </div>
   );

@@ -19,14 +19,14 @@ export default function HousekeepingDashboardPage() {
         <StatCard label="Deep Cleaning" value="—" icon={Settings} sub="Schedule" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <QuickAction href="/dashboard/housekeeping" icon={ClipboardCheck} label="Dashboard" />
-        <QuickAction href="/dashboard/housekeeping/tasks" icon={ClipboardList} label="Tasks" />
-        <QuickAction href="/dashboard/housekeeping/allocations" icon={Users} label="Allocations" />
-        <QuickAction href="/dashboard/housekeeping/deep-cleaning" icon={Settings} label="Deep Cleaning" />
-        <QuickAction href="/dashboard/housekeeping/reports" icon={BarChart3} label="Reports" />
-        <QuickAction href="/dashboard/staff/attendance" icon={Clock} label="Staff Attendance" />
-        <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" />
-        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" />
+        <QuickAction href="/dashboard/housekeeping" icon={ClipboardCheck} label="Dashboard" screenKey="housekeeping" />
+        <QuickAction href="/dashboard/housekeeping/tasks" icon={ClipboardList} label="Tasks" screenKey="housekeeping-tasks" />
+        <QuickAction href="/dashboard/housekeeping/allocations" icon={Users} label="Allocations" screenKey="housekeeping-allocations" />
+        <QuickAction href="/dashboard/housekeeping/deep-cleaning" icon={Settings} label="Deep Cleaning" screenKey="housekeeping-deep-cleaning" />
+        <QuickAction href="/dashboard/housekeeping/reports" icon={BarChart3} label="Reports" screenKey="housekeeping-reports" />
+        <QuickAction href="/dashboard/staff/attendance" icon={Clock} label="Staff Attendance" screenKey="staff-attendance" />
+        <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" screenKey="inventory" />
+        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" screenKey="requests" />
       </div>
     </div>
   );

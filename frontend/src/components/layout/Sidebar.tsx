@@ -206,7 +206,8 @@ export default function Sidebar() {
             const visibleItems = section.items.filter((item) => {
               const roleMatch = !item.roles || item.roles.includes(user?.role || '');
               if (!roleMatch) return false;
-              if (item.screenKey && user?.screenKeys) {
+              if (item.screenKey) {
+                if (!user?.screenKeys) return false;
                 if (item.screenKey.endsWith('-billing') && user.screenKeys.includes('billing')) return true;
                 return user.screenKeys.includes(item.screenKey);
               }

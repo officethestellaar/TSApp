@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles, AuthRequest } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 import { clearCachePattern } from '../lib/cache';
 import { createAuditLog } from '../lib/audit';
@@ -35,7 +35,7 @@ router.post('/table-reservation', authenticateToken, async (req: AuthRequest, re
 });
 
 // Admin: Get all pending table reservations
-router.get('/table-reservations/pending', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.get('/table-reservations/pending', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'RESTAURANT_MANAGER'), authorizePermission('restaurant-pos', 'read'), async (req, res) => {
   try {
     const requests = await prisma.tableReservation.findMany({
       where: { status: 'PENDING' },
@@ -111,7 +111,7 @@ router.get('/my-table-reservations', authenticateToken, async (req: AuthRequest,
 });
 
 // Get all tables
-router.get('/tables', authenticateToken, async (req, res) => {
+router.get('/tables', authenticateToken, authorizePermission('restaurant-pos', 'read'), async (req, res) => {
   try {
     const tables = await prisma.restaurantTable.findMany({
 
@@ -274,7 +274,7 @@ router.post('/order', authenticateToken, async (req: AuthRequest, res) => {
 
 // Phase 5: Waiter Verification Loop
 // Get unverified QR orders
-router.get('/unverified', authenticateToken, async (req, res) => {
+router.get('/unverified', authenticateToken, authorizePermission('restaurant-pos', 'read'), async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -478,7 +478,7 @@ router.post('/order/:id/bill', authenticateToken, async (req, res) => {
 });
 
 // Get all active orders for KDS
-router.get('/kds/active', authenticateToken, async (req, res) => {
+router.get('/kds/active', authenticateToken, authorizePermission('kitchen-display', 'read'), async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -505,7 +505,7 @@ router.get('/kds/active', authenticateToken, async (req, res) => {
 });
 
 // Update Order Item status (KDS)
-router.patch('/item/:id/status', authenticateToken, async (req, res) => {
+router.patch('/item/:id/status', authenticateToken, authorizePermission('kitchen-display', 'update'), async (req, res) => {
   try {
     const { status } = req.body;
     const itemId = Number(req.params.id);

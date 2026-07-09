@@ -23,14 +23,14 @@ export default function OperationsManagerDashboardPage() {
         <StatCard label="New Today" value={stats?.members.today.toString() || '0'} icon={UserPlus} sub="Enrolments" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <QuickAction href="/dashboard/housekeeping" icon={ClipboardCheck} label="Housekeeping" />
-        <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" />
-        <QuickAction href="/dashboard/assets" icon={ShieldCheck} label="Assets" />
-        <QuickAction href="/dashboard/staff/attendance" icon={Clock} label="Staff Attendance" />
-        <QuickAction href="/dashboard/activities" icon={Calendar} label="Activities" />
-        <QuickAction href="/dashboard/members" icon={Users} label="Members" />
-        <QuickAction href="/dashboard/reports" icon={BarChart3} label="Reports" />
-        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" />
+        <QuickAction href="/dashboard/housekeeping" icon={ClipboardCheck} label="Housekeeping" screenKey="housekeeping" />
+        <QuickAction href="/dashboard/inventory" icon={Package} label="Inventory" screenKey="inventory" />
+        <QuickAction href="/dashboard/assets" icon={ShieldCheck} label="Assets" screenKey="assets" />
+        <QuickAction href="/dashboard/staff/attendance" icon={Clock} label="Staff Attendance" screenKey="staff-attendance" />
+        <QuickAction href="/dashboard/activities" icon={Calendar} label="Activities" screenKey="activities" />
+        <QuickAction href="/dashboard/members" icon={Users} label="Members" screenKey="members" />
+        <QuickAction href="/dashboard/reports" icon={BarChart3} label="Reports" screenKey="reports" />
+        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" screenKey="requests" />
       </div>
     </div>
   );

@@ -33,10 +33,10 @@ export default function RestaurantManagerDashboardPage() {
         <StatCard label="Today's Revenue" value={`₹${(stats?.revenue.today || 0).toLocaleString()}`} icon={CreditCard} sub="Collections" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <QuickAction href="/dashboard/restaurant" icon={Utensils} label="Table POS" />
-        <QuickAction href="/dashboard/restaurant/kds" icon={ChefHat} label="Kitchen Display" />
-        <QuickAction href="/dashboard/menu/restaurant" icon={BookOpen} label="Restaurant Menu" />
-        <QuickAction href="/dashboard/billing/new?department=RESTAURANT" icon={Receipt} label="Restaurant Billing" />
+        <QuickAction href="/dashboard/restaurant" icon={Utensils} label="Table POS" screenKey="restaurant-pos" />
+        <QuickAction href="/dashboard/restaurant/kds" icon={ChefHat} label="Kitchen Display" screenKey="kitchen-display" />
+        <QuickAction href="/dashboard/menu/restaurant" icon={BookOpen} label="Restaurant Menu" screenKey="restaurant-menu" />
+        <QuickAction href="/dashboard/billing/new?department=RESTAURANT" icon={Receipt} label="Restaurant Billing" screenKey="billing" />
       </div>
       {activeOrders.length > 0 && (
         <div className="bg-white rounded-2xl p-6 border border-navy/5">

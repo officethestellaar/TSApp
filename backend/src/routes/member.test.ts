@@ -12,6 +12,7 @@ vi.mock('../middleware/auth', () => ({
     next();
   },
   authorizeRoles: () => (req: any, res: any, next: any) => next(),
+  authorizePermission: () => (req: any, res: any, next: any) => next(),
 }));
 
 // Mock Prisma

@@ -1,13 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
-import { authenticateToken, authorizeRoles, AuthRequest } from './auth';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from './auth';
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 vi.mock('jsonwebtoken');
+const mockUserFindUnique = vi.hoisted(() => vi.fn().mockResolvedValue({ locked: false }));
+const mockScreenFindUnique = vi.hoisted(() => vi.fn());
 vi.mock('../lib/prisma', () => ({
   default: {
     user: {
-      findUnique: vi.fn().mockResolvedValue({ locked: false }),
+      findUnique: mockUserFindUnique,
+    },
+    userScreenAccess: {
+      findUnique: mockScreenFindUnique,
     },
   },
 }));
@@ -21,6 +26,10 @@ describe('Auth Middleware', () => {
   };
 
   const mockNext: NextFunction = vi.fn();
+
+  beforeEach(() => {
+    vi.mocked(mockNext).mockReset();
+  });
 
   describe('authenticateToken', () => {
     it('should return 401 if no authorization header is present', () => {
@@ -84,6 +93,57 @@ describe('Auth Middleware', () => {
       const middleware = authorizeRoles('ADMIN', 'SUPER_ADMIN');
 
       middleware(req, res, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+    });
+  });
+
+  describe('authorizePermission', () => {
+    beforeEach(() => {
+      mockScreenFindUnique.mockReset();
+    });
+
+    it('should bypass and call next for SUPER_ADMIN', async () => {
+      const req = { user: { role: 'SUPER_ADMIN' } } as AuthRequest;
+      const res = mockResponse();
+      const middleware = authorizePermission('members', 'read');
+
+      await middleware(req, res, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should return 403 if user has no screen access record', async () => {
+      mockScreenFindUnique.mockResolvedValue(null);
+      const req = { user: { role: 'STAFF', userId: 2 } } as AuthRequest;
+      const res = mockResponse();
+      const middleware = authorizePermission('members', 'read');
+
+      await middleware(req, res, mockNext);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({ message: 'You don\'t have read permission on members' });
+    });
+
+    it('should return 403 if the specific action is not granted', async () => {
+      mockScreenFindUnique.mockResolvedValue({ canRead: false });
+      const req = { user: { role: 'STAFF', userId: 2 } } as AuthRequest;
+      const res = mockResponse();
+      const middleware = authorizePermission('members', 'read');
+
+      await middleware(req, res, mockNext);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({ message: 'You don\'t have read permission on members' });
+    });
+
+    it('should call next if action is granted', async () => {
+      mockScreenFindUnique.mockResolvedValue({ canRead: true });
+      const req = { user: { role: 'STAFF', userId: 2 } } as AuthRequest;
+      const res = mockResponse();
+      const middleware = authorizePermission('members', 'read');
+
+      await middleware(req, res, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
     });

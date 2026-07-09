@@ -1,10 +1,10 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles, AuthRequest } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, authorizePermission('menu-hub', 'read'), async (req, res) => {
   try {
     const { department } = req.query;
     const where: any = {};

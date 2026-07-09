@@ -23,14 +23,14 @@ export default function AccountantDashboardPage() {
         <StatCard label="Yesterday" value={`₹${(stats?.revenue.yesterday || 0).toLocaleString()}`} icon={PiggyBank} sub="Previous Day" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <QuickAction href="/dashboard/billing" icon={Receipt} label="Billing" />
-        <QuickAction href="/dashboard/billing/new" icon={CreditCard} label="New Invoice" />
-        <QuickAction href="/dashboard/ledger" icon={BookOpen} label="Ledger" />
-        <QuickAction href="/dashboard/amc-approvals" icon={AlertCircle} label="AMC Approvals" />
-        <QuickAction href="/dashboard/reports" icon={BarChart3} label="Reports" />
-        <QuickAction href="/dashboard/billing/new?department=RESTAURANT" icon={Utensils} label="Restaurant Bill" />
-        <QuickAction href="/dashboard/billing/new?department=SALON" icon={Scissors} label="Salon Bill" />
-        <QuickAction href="/dashboard/billing/new?department=GYM" icon={Dumbbell} label="Gym Bill" />
+        <QuickAction href="/dashboard/billing" icon={Receipt} label="Billing" screenKey="billing" />
+        <QuickAction href="/dashboard/billing/new" icon={CreditCard} label="New Invoice" screenKey="billing" />
+        <QuickAction href="/dashboard/ledger" icon={BookOpen} label="Ledger" screenKey="ledger" />
+        <QuickAction href="/dashboard/amc-approvals" icon={AlertCircle} label="AMC Approvals" screenKey="amc-approvals" />
+        <QuickAction href="/dashboard/reports" icon={BarChart3} label="Reports" screenKey="reports" />
+        <QuickAction href="/dashboard/billing/new?department=RESTAURANT" icon={Utensils} label="Restaurant Bill" screenKey="billing" />
+        <QuickAction href="/dashboard/billing/new?department=SALON" icon={Scissors} label="Salon Bill" screenKey="billing" />
+        <QuickAction href="/dashboard/billing/new?department=GYM" icon={Dumbbell} label="Gym Bill" screenKey="billing" />
       </div>
     </div>
   );

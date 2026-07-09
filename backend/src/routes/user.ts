@@ -1,13 +1,13 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 
 const router = express.Router();
 
 // Get all staff users
-router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), authorizePermission('users', 'read'), async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       include: { role: true, staffProfile: true },

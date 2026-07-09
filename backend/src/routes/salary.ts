@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ router.get('/my', authenticateToken, async (req: any, res) => {
   } catch { res.status(500).json({ message: 'Internal server error' }); }
 });
 
-router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), async (req: any, res) => {
+router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), authorizePermission('staff-salary', 'read'), async (req: any, res) => {
   try {
     const { userId, month, year } = req.query;
     const where: any = {};

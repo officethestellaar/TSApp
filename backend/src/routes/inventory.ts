@@ -1,12 +1,12 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 
 const router = express.Router();
 
 // Get all inventory items
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, authorizePermission('inventory', 'read'), async (req, res) => {
   try {
     const { category } = req.query;
     const where: any = {};

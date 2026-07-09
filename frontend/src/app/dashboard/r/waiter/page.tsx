@@ -65,8 +65,8 @@ export default function WaiterDashboardPage() {
         </div>
       )}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <QuickAction href="/dashboard/restaurant" icon={Utensils} label="All Tables" />
-        <QuickAction href="/dashboard/billing/new?department=RESTAURANT" icon={Receipt} label="Restaurant Billing" />
+        <QuickAction href="/dashboard/restaurant" icon={Utensils} label="All Tables" screenKey="restaurant-pos" />
+        <QuickAction href="/dashboard/billing/new?department=RESTAURANT" icon={Receipt} label="Restaurant Billing" screenKey="billing" />
       </div>
     </div>
   );

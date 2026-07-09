@@ -23,9 +23,9 @@ export default function SalonManagerDashboardPage() {
         <StatCard label="Total Members" value={stats?.totalMembers.toLocaleString() || '—'} icon={Users} sub="Registry" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <QuickAction href="/dashboard/menu/salon" icon={Scissors} label="Salon Menu" />
-        <QuickAction href="/dashboard/billing/new?department=SALON" icon={Receipt} label="Salon Billing" />
-        <QuickAction href="/dashboard/billing" icon={CreditCard} label="Billing History" />
+        <QuickAction href="/dashboard/menu/salon" icon={Scissors} label="Salon Menu" screenKey="salon-menu" />
+        <QuickAction href="/dashboard/billing/new?department=SALON" icon={Receipt} label="Salon Billing" screenKey="billing" />
+        <QuickAction href="/dashboard/billing" icon={CreditCard} label="Billing History" screenKey="billing" />
       </div>
     </div>
   );

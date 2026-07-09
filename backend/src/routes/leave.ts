@@ -1,13 +1,13 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 
 const router = express.Router();
 
 const ALL_ADMINS = ['SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'DATA_OPERATOR', 'SALES_EXECUTIVE', 'ACCOUNTANT', 'HOUSEKEEPING_SUPERVISOR', 'SALON_MANAGER', 'RESTAURANT_MANAGER', 'RECEPTIONIST'];
 
-router.get('/', authenticateToken, authorizeRoles(...ALL_ADMINS), async (req: any, res) => {
+router.get('/', authenticateToken, authorizeRoles(...ALL_ADMINS), authorizePermission('leave', 'read'), async (req: any, res) => {
   try {
     const leaves = await prisma.staffLeave.findMany({
       include: {
@@ -85,7 +85,7 @@ router.post('/', authenticateToken, async (req: any, res) => {
   }
 });
 
-router.patch('/:id/review', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), async (req: any, res) => {
+router.patch('/:id/review', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), authorizePermission('leave', 'update'), async (req: any, res) => {
   try {
     const leaveId = Number(req.params.id);
     const { status, reviewNotes } = req.body;
@@ -117,7 +117,7 @@ router.patch('/:id/review', authenticateToken, authorizeRoles('SUPER_ADMIN', 'AD
   }
 });
 
-router.get('/balances/all', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), async (req: any, res) => {
+router.get('/balances/all', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), authorizePermission('leave', 'read'), async (req: any, res) => {
   try {
     const balances = await prisma.leaveBalance.findMany({
       include: {

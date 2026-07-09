@@ -29,14 +29,14 @@ export default function ClubManagerDashboardPage() {
         <StatCard label="Active Restaurant Tables" value={activeOrders.toString()} icon={Utensils} sub="With Orders" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <QuickAction href="/dashboard/members" icon={Users} label="Members" />
-        <QuickAction href="/dashboard/billing" icon={Receipt} label="Billing" />
-        <QuickAction href="/dashboard/restaurant" icon={Utensils} label="Restaurant POS" />
-        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" />
-        <QuickAction href="/dashboard/activities" icon={Calendar} label="Activities" />
-        <QuickAction href="/dashboard/reports" icon={BarChart3} label="Reports" />
-        <QuickAction href="/dashboard/menu" icon={BookOpen} label="Menus" />
-        <QuickAction href="/dashboard/complaints" icon={MessageSquare} label="Concierge" />
+        <QuickAction href="/dashboard/members" icon={Users} label="Members" screenKey="members" />
+        <QuickAction href="/dashboard/billing" icon={Receipt} label="Billing" screenKey="billing" />
+        <QuickAction href="/dashboard/restaurant" icon={Utensils} label="Restaurant POS" screenKey="restaurant-pos" />
+        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" screenKey="requests" />
+        <QuickAction href="/dashboard/activities" icon={Calendar} label="Activities" screenKey="activities" />
+        <QuickAction href="/dashboard/reports" icon={BarChart3} label="Reports" screenKey="reports" />
+        <QuickAction href="/dashboard/menu" icon={BookOpen} label="Menus" screenKey="menu-hub" />
+        <QuickAction href="/dashboard/complaints" icon={MessageSquare} label="Concierge" screenKey="concierge" />
       </div>
     </div>
   );

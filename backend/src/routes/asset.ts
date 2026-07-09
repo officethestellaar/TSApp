@@ -1,11 +1,11 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles, AuthRequest } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
 // Get all assets
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, authorizePermission('assets', 'read'), async (req, res) => {
   try {
     const { category, status } = req.query;
     const where: any = {};
@@ -28,7 +28,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get asset stats
-router.get('/stats', authenticateToken, async (req, res) => {
+router.get('/stats', authenticateToken, authorizePermission('assets', 'read'), async (req, res) => {
   try {
     const [totalAssets, maintenanceCount, retiredCount, totalCost] = await Promise.all([
       prisma.asset.count(),

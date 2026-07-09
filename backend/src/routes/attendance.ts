@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 
 const router = express.Router();
@@ -17,7 +17,7 @@ function determineStatus(actualTime: Date, defaultCheckIn: string) {
   return 'PRESENT';
 }
 
-router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'ACCOUNTANT', 'HOUSEKEEPING_SUPERVISOR', 'SALON_MANAGER', 'RESTAURANT_MANAGER', 'RECEPTIONIST'), async (req: any, res) => {
+router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'ACCOUNTANT', 'HOUSEKEEPING_SUPERVISOR', 'SALON_MANAGER', 'RESTAURANT_MANAGER', 'RECEPTIONIST'), authorizePermission('staff-attendance', 'read'), async (req: any, res) => {
   try {
     const { userId, month, year, date } = req.query;
     const where: any = {};

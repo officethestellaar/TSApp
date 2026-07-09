@@ -23,14 +23,14 @@ export default function ReceptionistDashboardPage() {
         <StatCard label="Today's Revenue" value={`₹${(stats?.revenue.today || 0).toLocaleString()}`} icon={CreditCard} sub="Collections" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <QuickAction href="/dashboard/members" icon={Search} label="Find Member" />
-        <QuickAction href="/dashboard/members/new" icon={UserPlus} label="New Registration" />
-        <QuickAction href="/dashboard/billing/new" icon={Receipt} label="Create Invoice" />
-        <QuickAction href="/dashboard/activities" icon={Calendar} label="Activities" />
-        <QuickAction href="/dashboard/complaints" icon={MessageSquare} label="Concierge" />
-        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" />
-        <QuickAction href="/dashboard/announcements" icon={Bell} label="Notices" />
-        <QuickAction href="/dashboard/records" icon={FileText} label="Records" />
+        <QuickAction href="/dashboard/members" icon={Search} label="Find Member" screenKey="members" />
+        <QuickAction href="/dashboard/members/new" icon={UserPlus} label="New Registration" screenKey="members" />
+        <QuickAction href="/dashboard/billing/new" icon={Receipt} label="Create Invoice" screenKey="billing" />
+        <QuickAction href="/dashboard/activities" icon={Calendar} label="Activities" screenKey="activities" />
+        <QuickAction href="/dashboard/complaints" icon={MessageSquare} label="Concierge" screenKey="concierge" />
+        <QuickAction href="/dashboard/requests" icon={Inbox} label="Requests" screenKey="requests" />
+        <QuickAction href="/dashboard/announcements" icon={Bell} label="Notices" screenKey="notices" />
+        <QuickAction href="/dashboard/records" icon={FileText} label="Records" screenKey="records" />
       </div>
     </div>
   );

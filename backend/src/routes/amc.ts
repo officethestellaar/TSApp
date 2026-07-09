@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles, AuthRequest } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from '../middleware/auth';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -88,7 +88,7 @@ router.post('/submit', authenticateToken, upload.single('proof'), async (req: Au
 });
 
 // Admin: List all pending AMC requests
-router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), async (req, res) => {
+router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), authorizePermission('amc-approvals', 'read'), async (req, res) => {
   try {
     const requests = await prisma.aMCPaymentRequest.findMany({
       where: { status: 'PENDING' },
@@ -102,7 +102,7 @@ router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN',
 });
 
 // Admin: Approve/Reject AMC request
-router.patch('/:id/process', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), async (req: AuthRequest, res) => {
+router.patch('/:id/process', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), authorizePermission('amc-approvals', 'update'), async (req: AuthRequest, res) => {
   try {
     const requestId = Number(req.params.id);
     const { status, rejectionReason } = req.body; // status: APPROVED or REJECTED

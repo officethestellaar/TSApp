@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export interface MetricSummary { today: number; yesterday: number; month: number; lastMonth: number; year: number; lastYear: number; growth: { day: number; month: number; year: number; }; }
 export interface DashboardStats { totalMembers: number; revenue: MetricSummary; members: MetricSummary; }
@@ -26,7 +27,11 @@ export function DashHeader({ user, currentTime, subtitle }: { user: any; current
   );
 }
 
-export function QuickAction({ href, icon: Icon, label, color }: { href: string; icon: any; label: string; color?: string }) {
+export function QuickAction({ href, icon: Icon, label, color, screenKey }: { href: string; icon: any; label: string; color?: string; screenKey?: string }) {
+  const { user } = useAuth();
+  if (screenKey && user?.screenKeys && !user.screenKeys.includes(screenKey) && user.role !== 'SUPER_ADMIN') {
+    return null;
+  }
   return (
     <Link href={href} className="flex items-center gap-3 px-5 py-4 bg-white rounded-2xl border border-navy/5 hover:border-gold/40 hover:shadow-lg hover:-translate-y-0.5 transition-all">
       <div className={`p-2.5 rounded-xl ${color || 'bg-navy/5'}`}>

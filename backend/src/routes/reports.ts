@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 import cache from '../lib/cache';
 import multer from 'multer';
 import * as xlsx from 'xlsx';
@@ -105,7 +105,7 @@ router.post('/import/revenue', authenticateToken, authorizeRoles('SUPER_ADMIN', 
 });
 
 // Get overall stats and Multi-Period Comparisons
-router.get('/stats', authenticateToken, async (req, res) => {
+router.get('/stats', authenticateToken, authorizePermission('reports', 'read'), async (req, res) => {
   try {
     const cached = cache.get('report_stats');
     if (cached) return res.json(cached);
@@ -231,7 +231,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
 });
 
 // Get revenue data for charts (last 6 months)
-router.get('/revenue-chart', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/revenue-chart', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), authorizePermission('reports', 'read'), async (req, res) => {
   try {
     const cached = cache.get('report_revenue_chart');
     if (cached) return res.json(cached);
@@ -285,7 +285,7 @@ router.get('/revenue-chart', authenticateToken, authorizeRoles('SUPER_ADMIN', 'A
 });
 
 // Get membership distribution
-router.get('/membership-distribution', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/membership-distribution', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), authorizePermission('reports', 'read'), async (req, res) => {
   try {
     const cached = cache.get('report_member_dist');
     if (cached) return res.json(cached);
@@ -311,7 +311,7 @@ router.get('/membership-distribution', authenticateToken, authorizeRoles('SUPER_
 });
 
 // Daily Sales Summary (Last 24h)
-router.get('/daily-summary', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/daily-summary', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), authorizePermission('reports', 'read'), async (req, res) => {
   try {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -339,7 +339,7 @@ router.get('/daily-summary', authenticateToken, authorizeRoles('SUPER_ADMIN', 'A
 });
 
 // AMC Defaulter List
-router.get('/amc-defaulters', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/amc-defaulters', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), authorizePermission('reports', 'read'), async (req, res) => {
   try {
     const defaulters = await prisma.member.findMany({
       where: {
@@ -363,7 +363,7 @@ router.get('/amc-defaulters', authenticateToken, authorizeRoles('SUPER_ADMIN', '
 });
 
 // GST Filing Helper (Tax Summary)
-router.get('/gst-summary', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/gst-summary', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), authorizePermission('reports', 'read'), async (req, res) => {
   try {
     const cached = cache.get('report_gst_summary');
     if (cached) return res.json(cached);
@@ -395,7 +395,7 @@ router.get('/gst-summary', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADM
 });
 
 // Table Turnaround Report
-router.get('/table-turnaround', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/table-turnaround', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), authorizePermission('reports', 'read'), async (req, res) => {
   try {
     const cached = cache.get('report_table_turnaround');
     if (cached) return res.json(cached);

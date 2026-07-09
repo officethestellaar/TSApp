@@ -1,11 +1,11 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 
 const router = express.Router();
 
 // Get audit logs
-router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), authorizePermission('audit-logs', 'read'), async (req, res) => {
   try {
     const { action, entityType, search, limit = 50 } = req.query;
     

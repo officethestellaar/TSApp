@@ -4,10 +4,12 @@ import React, { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AttendanceGuard from '@/components/attendance/AttendanceGuard';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import Sidebar from '@/components/layout/Sidebar';
 import TopBar from '@/components/layout/TopBar';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
+import toast from 'react-hot-toast';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +88,7 @@ function ScreenGuard({ children }: { children: React.ReactNode }) {
       hasAccess = userKeys.some((k: string) => k.endsWith('-billing'));
     }
     if (!hasAccess) {
+      toast.error('You don\'t have permission to access this screen.', { duration: 4000 });
       router.replace('/dashboard');
     }
   }, [pathname, user, loading, router]);
@@ -107,7 +110,9 @@ export default function DashboardLayout({
             <div className="flex-1 ml-64 flex flex-col min-h-screen">
               <TopBar />
               <main className="flex-1 p-8">
-                {children}
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
               </main>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 
 const router = express.Router();
@@ -9,7 +9,7 @@ const SUPERVISOR_ROLES = ['SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MA
 
 // ─── TASK MASTER ───────────────────────────────────────────────
 
-router.get('/tasks', authenticateToken, async (req, res) => {
+router.get('/tasks', authenticateToken, authorizePermission('housekeeping-tasks', 'read'), async (req, res) => {
   try {
     const { category, isDeepClean } = req.query;
     const where: any = {};

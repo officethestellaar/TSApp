@@ -23,9 +23,9 @@ export default function SalesExecutiveDashboardPage() {
         <StatCard label="Total Members" value={stats?.totalMembers.toLocaleString() || '—'} icon={Users} sub="Registry" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <QuickAction href="/dashboard/members/new" icon={UserPlus} label="Register Member" />
-        <QuickAction href="/dashboard/members" icon={Users} label="All Members" />
-        <QuickAction href="/dashboard/billing" icon={Receipt} label="Billing" />
+        <QuickAction href="/dashboard/members/new" icon={UserPlus} label="Register Member" screenKey="members" />
+        <QuickAction href="/dashboard/members" icon={Users} label="All Members" screenKey="members" />
+        <QuickAction href="/dashboard/billing" icon={Receipt} label="Billing" screenKey="billing" />
       </div>
     </div>
   );

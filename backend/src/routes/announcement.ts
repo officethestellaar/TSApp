@@ -1,13 +1,13 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles, AuthRequest } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 import { broadcastPush } from '../lib/push';
 
 const router = express.Router();
 
 // Get announcements
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, authorizePermission('notices', 'read'), async (req, res) => {
   try {
     const announcements = await prisma.announcement.findMany({
       where: { isActive: true },
