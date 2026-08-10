@@ -226,6 +226,7 @@ router.post('/invoice', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'
     let discount = 0;
 
     if (isMember === false) {
+      discount = Math.min(Number(req.body.discount) || 0, subtotal);
       if (req.body.guestName) {
         const existing = await prisma.walkInGuest.findFirst({
           where: { name: { equals: req.body.guestName, mode: 'insensitive' } },
@@ -588,35 +589,82 @@ router.post('/payment/:id/reject', authenticateToken, authorizeRoles('SUPER_ADMI
   }
 });
 
-// Edit invoice (SUPER_ADMIN ONLY)
+// Edit invoice (SUPER_ADMIN ONLY) — amount, discount, gst, total, status, items
 router.patch('/invoice/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), authorizePermission('billing', 'update'), async (req: AuthRequest, res) => {
   try {
     const id = Number(req.params.id);
-    const { amount, discount, gst, total, status } = req.body;
-    
-    const oldInvoice = await prisma.invoice.findUnique({ where: { id } });
-    
-    const invoice = await prisma.invoice.update({
+    const { amount, discount, gst, total, status, items } = req.body;
+
+    const oldInvoice = await prisma.invoice.findUnique({
       where: { id },
-      data: {
-        amount: amount ? Number(amount) : undefined,
-        discount: discount ? Number(discount) : undefined,
-        gst: gst ? Number(gst) : undefined,
-        total: total ? Number(total) : undefined,
-        status: status || undefined
-      }
+      include: { items: true, member: true, walkInGuest: true },
     });
-    
-    const user = req.user!;
-    const fieldLabels: Record<string, string> = { amount: 'Amount', discount: 'Discount', gst: 'GST', total: 'Total', status: 'Status' };
-    const changes: string[] = [];
-    if (oldInvoice) {
-      for (const [key, label] of Object.entries(fieldLabels)) {
-        const oldVal = (oldInvoice as any)[key];
-        const newVal = (invoice as any)[key];
-        if (String(oldVal) !== String(newVal)) {
-          changes.push(`${label}: ${oldVal ?? 'empty'} → ${newVal ?? 'empty'}`);
+    if (!oldInvoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    // When items are provided, recompute the bill from scratch (superadmin convenience).
+    const hasItems = Array.isArray(items) && items.length > 0;
+    let newAmount = hasItems
+      ? items.reduce((sum: number, item: any) => sum + (Number(item.unitPrice) * Number(item.quantity)), 0)
+      : amount !== undefined && amount !== '' ? Number(amount) : oldInvoice.amount;
+    let newDiscount = discount !== undefined && discount !== '' ? Number(discount) : oldInvoice.discount;
+    let newGst = hasItems ? 0 : gst !== undefined && gst !== '' ? Number(gst) : oldInvoice.gst;
+    let newRoundOff = oldInvoice.roundOff;
+    let newTotal = hasItems ? 0 : total !== undefined && total !== '' ? Number(total) : oldInvoice.total;
+
+    if (hasItems) {
+      newDiscount = Math.min(Math.max(newDiscount, 0), newAmount);
+      const gstRate = (oldInvoice.department === 'RESTAURANT' || oldInvoice.department === 'BANQUET') ? 0.05 : 0.18;
+      const taxableAmount = newAmount - newDiscount;
+      newGst = taxableAmount * gstRate;
+      const rawTotal = taxableAmount + newGst;
+      newTotal = Math.round(rawTotal);
+      newRoundOff = Number((newTotal - rawTotal).toFixed(2));
+    }
+
+    const invoice = await prisma.$transaction(async (tx) => {
+      if (Array.isArray(items)) {
+        await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
+        if (items.length > 0) {
+          await tx.invoiceItem.createMany({
+            data: items.map((item: any) => ({
+              invoiceId: id,
+              description: item.description || 'Item',
+              quantity: Number(item.quantity) || 1,
+              unitPrice: Number(item.unitPrice) || 0,
+              amount: (Number(item.unitPrice) || 0) * (Number(item.quantity) || 1),
+            })),
+          });
         }
+      }
+
+      return tx.invoice.update({
+        where: { id },
+        data: {
+          amount: Number(newAmount),
+          discount: Number(newDiscount),
+          gst: Number(newGst),
+          roundOff: Number(newRoundOff),
+          total: Number(newTotal),
+          status: status || oldInvoice.status,
+        },
+        include: { items: true, member: true, walkInGuest: true },
+      });
+    });
+
+    const user = req.user!;
+    const fieldLabels: Record<string, string> = { amount: 'Amount', discount: 'Discount', gst: 'GST', total: 'Total', status: 'Status', roundOff: 'Round Off', items: 'Items' };
+    const changes: string[] = [];
+    for (const [key, label] of Object.entries(fieldLabels)) {
+      if (key === 'items') {
+        const oldCount = oldInvoice.items?.length || 0;
+        const newCount = invoice.items?.length || 0;
+        if (oldCount !== newCount) changes.push(`${label}: ${oldCount} → ${newCount}`);
+        continue;
+      }
+      const oldVal = (oldInvoice as any)[key];
+      const newVal = (invoice as any)[key];
+      if (String(oldVal) !== String(newVal)) {
+        changes.push(`${label}: ${oldVal ?? 'empty'} → ${newVal ?? 'empty'}`);
       }
     }
     await createAuditLog({
@@ -628,7 +676,7 @@ router.patch('/invoice/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), a
       newData: invoice,
       user: { userId: user.userId, name: user.name, role: user.role }
     });
-    
+
     clearCachePattern('report_');
     res.json(invoice);
   } catch (error: any) {

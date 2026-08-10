@@ -3,14 +3,17 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
-import { Search, Plus, CreditCard, CheckCircle, Clock, Download, ShieldCheck, XCircle, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, CreditCard, CheckCircle, Clock, Download, ShieldCheck, XCircle, Loader2, Image as ImageIcon, Pencil } from 'lucide-react';
 import { Invoice } from '@/types';
 import { useSocket } from '@/context/SocketContext';
 import toast from 'react-hot-toast';
 import { usePermission } from '@/hooks/usePermission';
+import { useAuth } from '@/context/AuthContext';
 import ExportButton from '@/components/ui/ExportButton';
 
 export default function BillingDashboard() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
   const canCreate = usePermission('billing', 'create');
   const canUpdate = usePermission('billing', 'update');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -383,7 +386,7 @@ export default function BillingDashboard() {
                             {invoice.status.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="px-8 py-5 text-right">
+                         <td className="px-8 py-5 text-right">
                           <div className="flex justify-end gap-3">
                              {invoice.status === 'UNPAID' && (
                                <button 
@@ -392,6 +395,14 @@ export default function BillingDashboard() {
                                >
                                  Record Settle
                                </button>
+                             )}
+                             {isSuperAdmin && (
+                               <Link
+                                 href={`/dashboard/billing/edit/${invoice.id}`}
+                                 className="px-4 py-1.5 bg-gold/10 text-gold border border-gold/20 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gold hover:text-navy transition-all flex items-center gap-1"
+                               >
+                                 <Pencil size={12} /> Edit Bill
+                               </Link>
                              )}
                              <button className="text-slate/40 hover:text-navy transition-colors p-2 hover:bg-navy/5 rounded-lg">
                                <Download size={18} />
