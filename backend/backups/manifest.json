@@ -1,6 +1,21 @@
 {
   "backups": [
     {
+      "filename": "recovery-node-2026-08-14T09-00-00-037Z.db",
+      "timestamp": "2026-08-14T09:00:00.037Z",
+      "sizeBytes": 364544
+    },
+    {
+      "filename": "recovery-node-2026-08-14T08-45-11-058Z.db",
+      "timestamp": "2026-08-14T08:45:11.058Z",
+      "sizeBytes": 364544
+    },
+    {
+      "filename": "recovery-node-2026-08-14T08-45-04-711Z.db",
+      "timestamp": "2026-08-14T08:45:04.711Z",
+      "sizeBytes": 364544
+    },
+    {
       "filename": "recovery-node-2026-08-14T08-30-00-018Z.db",
       "timestamp": "2026-08-14T08:30:00.018Z",
       "sizeBytes": 364544
@@ -34,24 +49,9 @@
       "filename": "recovery-node-2026-08-14T08-03-54-686Z.db",
       "timestamp": "2026-08-14T08:03:54.686Z",
       "sizeBytes": 348160
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-02-50-970Z.db",
-      "timestamp": "2026-08-14T08:02:50.970Z",
-      "sizeBytes": 348160
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-02-43-650Z.db",
-      "timestamp": "2026-08-14T08:02:43.650Z",
-      "sizeBytes": 348160
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-02-40-849Z.db",
-      "timestamp": "2026-08-14T08:02:40.849Z",
-      "sizeBytes": 348160
     }
   ],
-  "lastBackupAt": "2026-08-14T08:30:00.018Z",
+  "lastBackupAt": "2026-08-14T09:00:00.037Z",
   "totalBackups": 10,
-  "totalSizeBytes": 3551232
+  "totalSizeBytes": 3600384
 }

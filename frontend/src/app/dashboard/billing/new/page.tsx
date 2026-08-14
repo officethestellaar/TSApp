@@ -35,6 +35,7 @@ function CreateInvoiceForm() {
   const [lockedDepartment, setLockedDepartment] = useState(false);
   const [items, setItems] = useState<InvoiceItem[]>([{ description: '', quantity: 1, unitPrice: 0 }]);
   const [discount, setDiscount] = useState(0);
+  const [discountTouched, setDiscountTouched] = useState(false);
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,16 +138,22 @@ function CreateInvoiceForm() {
     setItems(newItems);
   };
 
+  // Reset discount tracking when the customer/member changes
+  useEffect(() => {
+    setDiscountTouched(false);
+  }, [memberId, isMember]);
+
+  // Auto-fill the 30% member benefit, but never override a custom discount
   useEffect(() => {
     if (!isMember) { setDiscount(0); return; }
     const selectedMember = allMembers.find(m => m.id.toString() === memberId);
     if (selectedMember && selectedMember.membershipNumber !== 'GUEST-001') {
       const subtotal = items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-      setDiscount(subtotal * 0.30);
+      if (!discountTouched) setDiscount(subtotal * 0.30);
     } else {
       setDiscount(0);
     }
-  }, [isMember, memberId, items, allMembers]);
+  }, [isMember, memberId, items, allMembers, discountTouched]);
 
   const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
   const gstRate = (department === 'RESTAURANT' || department === 'BANQUET') ? 0.05 : 0.18;
@@ -200,9 +207,9 @@ function CreateInvoiceForm() {
     if (!contact) return toast.error('No contact number available');
     const line = (s: string) => s + '\n';
     let msg = '';
-    msg += line('🧾 *THE STELLAAR - INVOICE*');
-    msg += line(`📋 ${inv.invoiceNumber}`);
-    msg += line(`👤 ${isMember ? inv.member?.nameAsAadhaar || 'Member' : guestName || 'Guest'}`);
+    msg += line('*THE STELLAAR - INVOICE*');
+    msg += line(`Invoice: ${inv.invoiceNumber}`);
+    msg += line(`Customer: ${isMember ? inv.member?.nameAsAadhaar || 'Member' : guestName || 'Guest'}`);
     msg += line('──────────────────');
     inv.items?.forEach((item: any) => {
       msg += line(`${item.description} x${item.quantity}  ₹${Number(item.unitPrice).toLocaleString()}`);
@@ -334,7 +341,7 @@ function CreateInvoiceForm() {
               </div>
             </div>
             <div className="flex gap-3 p-6 bg-gray-50 border-t">
-              <button onClick={() => { setCreatedInvoice(null); setItems([{ description: '', quantity: 1, unitPrice: 0 }]); setDiscount(0); }} className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl text-xs uppercase tracking-widest hover:bg-gray-100 transition-all">
+              <button onClick={() => { setCreatedInvoice(null); setItems([{ description: '', quantity: 1, unitPrice: 0 }]); setDiscount(0); setDiscountTouched(false); }} className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl text-xs uppercase tracking-widest hover:bg-gray-100 transition-all">
                 New Invoice
               </button>
               <button onClick={printInvoice} className="flex-1 py-2.5 bg-navy text-white font-bold rounded-xl text-xs uppercase tracking-widest hover:bg-blue-900 transition-all flex items-center justify-center gap-2">
@@ -635,7 +642,7 @@ function CreateInvoiceForm() {
               </div>
               <div className="flex justify-between text-sm items-center">
                 <span className="text-gray-500">
-                  Discount {isMember && discount > 0 ? '(30% Member Benefit)' : ''}
+                  Discount {isMember && !discountTouched && discount > 0 ? '(30% Member Benefit)' : ''}
                 </span>
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-bold text-navy/40">₹</span>
@@ -643,7 +650,7 @@ function CreateInvoiceForm() {
                     type="number"
                     className="w-24 p-1 border rounded text-right text-sm font-bold text-green-600"
                     value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
+                    onChange={(e) => { setDiscount(Number(e.target.value)); setDiscountTouched(true); }}
                   />
                 </div>
               </div>

@@ -254,7 +254,14 @@ router.post('/invoice', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'
       resolvedMemberId = Number(memberId);
       const member = await prisma.member.findUnique({ where: { id: resolvedMemberId } });
       customerName = member?.nameAsAadhaar || 'Member';
-      if (member && member.membershipNumber !== 'GUEST-001') {
+      // Honor an explicitly provided custom discount; only fall back to the
+      // in-built 30% member benefit when no discount value was sent.
+      const customDiscount = req.body.discount !== undefined && req.body.discount !== ''
+        ? Number(req.body.discount)
+        : null;
+      if (customDiscount !== null && !Number.isNaN(customDiscount)) {
+        discount = Math.min(Math.max(customDiscount, 0), subtotal);
+      } else if (member && member.membershipNumber !== 'GUEST-001') {
         discount = subtotal * 0.30;
       }
     }
