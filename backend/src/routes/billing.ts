@@ -601,6 +601,11 @@ router.patch('/invoice/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), a
     });
     if (!oldInvoice) return res.status(404).json({ message: 'Invoice not found' });
 
+    // Settled invoices are locked — no edits allowed once paid
+    if (oldInvoice.status === 'PAID' || oldInvoice.status === 'PENDING_APPROVAL') {
+      return res.status(400).json({ message: 'This invoice is settled and locked. Editing is not allowed.' });
+    }
+
     // When items are provided, recompute the bill from scratch (superadmin convenience).
     const hasItems = Array.isArray(items) && items.length > 0;
     let newAmount = hasItems

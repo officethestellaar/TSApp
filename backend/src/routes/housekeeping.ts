@@ -71,10 +71,19 @@ router.get('/allocations', authenticateToken, async (req: any, res) => {
 
     const allocations = await prisma.housekeepingAllocation.findMany({
       where,
-      include: { employee: { select: { id: true, name: true } }, instances: { include: { task: true } } },
+      include: { instances: { include: { task: true } } },
       orderBy: { date: 'desc' },
     });
-    res.json(allocations);
+    const userIds = [...new Set(allocations.map(a => a.employeeId))];
+    const users = userIds.length
+      ? await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } })
+      : [];
+    const userMap = new Map(users.map(u => [u.id, u]));
+    const enriched = allocations.map(a => ({
+      ...a,
+      employee: userMap.get(a.employeeId) || null,
+    }));
+    res.json(enriched);
   } catch { res.status(500).json({ message: 'Internal server error' }); }
 });
 

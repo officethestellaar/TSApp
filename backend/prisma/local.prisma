@@ -44,6 +44,8 @@ model User {
   leaveBalances         LeaveBalance[]
   housekeepingAllocations HousekeepingAllocation[]
   housekeepingInstances   HousekeepingTaskInstance[]
+  attendanceRecords     StaffAttendance[]
+  salaryRecords         StaffSalary[]
 }
 
 model staff {
@@ -522,6 +524,55 @@ model StaffLeave {
   updatedAt     DateTime  @updatedAt
   user          User      @relation("StaffLeave_user", fields: [userId], references: [id])
   reviewedBy    User?     @relation("StaffLeave_reviewer", fields: [reviewedById], references: [id])
+}
+
+model StaffAttendance {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  date          DateTime
+  checkIn       DateTime?
+  checkOut      DateTime?
+  status        String   @default("PRESENT")
+  overtimeHours Float    @default(0)
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model StaffSalary {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  month         Int
+  year          Int
+  basicPay      Float    @default(0)
+  hra           Float    @default(0)
+  conveyance    Float    @default(0)
+  medicalAllowance Float @default(0)
+  specialAllowance Float @default(0)
+  otherAllowances Float  @default(0)
+  grossPay      Float    @default(0)
+  pf            Float    @default(0)
+  esi           Float    @default(0)
+  professionalTax Float  @default(0)
+  tds           Float    @default(0)
+  otherDeductions Float  @default(0)
+  netPay        Float    @default(0)
+  bonus         Float    @default(0)
+  reduction     Float    @default(0)
+  invoiceNumber String?
+  attendanceDays Int     @default(0)
+  paidDays      Int      @default(0)
+  status        String   @default("PENDING")
+  paymentDate   DateTime?
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month, year])
 }
 
 model LeaveBalance {

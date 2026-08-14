@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "token": "test-push-token-abc123",
+    "userId": 1,
+    "platform": "web",
+    "createdAt": "2026-08-14T08:16:35.700Z"
+  }
+]

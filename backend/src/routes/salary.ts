@@ -41,10 +41,24 @@ router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'), autho
     if (year) where.year = Number(year);
     const records = await prisma.staffSalary.findMany({
       where,
-      include: { user: { select: { id: true, name: true, email: true, role: { select: { name: true } } } } },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
-    res.json(records);
+    const userIds = [...new Set(records.map(r => r.userId))];
+    const users = userIds.length
+      ? await prisma.user.findMany({
+          where: { id: { in: userIds } },
+          include: { role: { select: { name: true } } },
+        })
+      : [];
+    const userMap = new Map(users.map(u => [u.id, u]));
+    const enriched = records.map(r => {
+      const u = userMap.get(r.userId);
+      return {
+        ...r,
+        user: u ? { id: u.id, name: u.name, email: u.email, role: u.role } : null,
+      };
+    });
+    res.json(enriched);
   } catch { res.status(500).json({ message: 'Internal server error' }); }
 });
 

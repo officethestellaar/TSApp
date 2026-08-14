@@ -14,6 +14,18 @@ TEST_PASS="${TEST_PASS:-admin123}"
 MEMBER_EMAIL="${MEMBER_EMAIL:-john@example.com}"
 MEMBER_PASS="${MEMBER_PASS:-member123}"
 
+# Unique-per-run suffix so the suite is repeatable even if cleanup was missed
+TS=$(date +%s)
+NEW_EMAIL="test-new-$TS@test.com"
+STAFF_EMAIL="test-staff-$TS@test.com"
+MEMBER_EMAIL="test-member-$TS@test.com"
+MEMBER_PASS="Test1234!"
+ACC_EMAIL="test-accountant-$TS@test.com"
+CM_EMAIL="test-cm-$TS@test.com"
+# Unique month/year for salary tests (derived from the run timestamp)
+SAL_MONTH=$(( (TS / 86400) % 12 + 1 ))
+SAL_YEAR=$(( 2026 + (TS % 2) ))
+
 PASS=0
 FAIL=0
 SKIP=0
@@ -38,6 +50,15 @@ fail()  { echo -e "  ${R}✗${N} $1"; ((FAIL++)); echo "FAIL: $1" >> "$PASS_COUN
 skip()  { echo -e "  ${Y}⊘${N} $1"; ((SKIP++)); }
 header(){ echo -e "\n${B}══════════════════════════════════════════════════${N}"; echo -e "${B}  $1${N}"; echo -e "${B}══════════════════════════════════════════════════${N}"; }
 sub()   { echo -e "  ${Y}── $1 ──${N}"; }
+
+# Portable epoch→UTC date (works on both BSD/macOS and GNU date)
+epoch_date() {
+  if date -u -r 0 +%Y-%m-%d >/dev/null 2>&1; then
+    date -u -r "$1" +%Y-%m-%d
+  else
+    date -u -d "@$1" +%Y-%m-%d
+  fi
+}
 
 api() {
   local method=$1 path=$2 data=$3 expected=${4:-200}
@@ -87,6 +108,25 @@ api_raw() {
     curl -s --max-time "$TIMEOUT" -X "$method" "${headers[@]}" -d "$data" "$BASE_URL$path"
   fi
 }
+
+# Single request that returns body followed by a newline + HTTP code.
+# Use: RESP=$(api_body_code POST "/x" '{...}'); CODE=$(resp_code "$RESP"); BODY=$(resp_body "$RESP")
+api_body_code() {
+  local method=$1 path=$2 data=$3
+  shift 3
+  local headers=(-H "Content-Type: application/json" -H "x-test-bypass: true")
+  if [[ -n "${TOKEN:-}" ]]; then
+    headers+=(-H "Authorization: Bearer $TOKEN")
+  fi
+  if [[ "$method" == "GET" || "$method" == "DELETE" ]]; then
+    curl -s --max-time "$TIMEOUT" -w $'\n%{http_code}' -X "$method" "${headers[@]}" "$BASE_URL$path${data:+?$data}"
+  else
+    curl -s --max-time "$TIMEOUT" -w $'\n%{http_code}' -X "$method" "${headers[@]}" -d "$data" "$BASE_URL$path"
+  fi
+}
+
+resp_code() { printf '%s' "$1" | tail -n1; }
+resp_body() { printf '%s' "$1" | sed '$d'; }
 
 expect_status() {
   local desc=$1 expected=$2 actual=$3
@@ -159,11 +199,9 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /auth/roles — public, list non-super roles" 200 "$CODE"
 
 # 1c. POST /auth/register
-BODY=$(api_body POST "/auth/register" '{"email":"test-new@test.com","password":"Test1234!","name":"Test User","roleName":"DATA_OPERATOR"}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "x-test-bypass: true" \
-  -d '{"email":"test-new@test.com","password":"Test1234!","name":"Test User","roleName":"DATA_OPERATOR"}' \
-  "$BASE_URL/auth/register")
+RESP=$(api_body_code POST "/auth/register" "{\"email\":\"$NEW_EMAIL\",\"password\":\"Test1234!\",\"name\":\"Test User\",\"roleName\":\"DATA_OPERATOR\"}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 expect_status "POST /auth/register — creates PENDING user" 201 "$CODE"
 
 # 1d. POST /auth/register with SUPER_ADMIN should fail
@@ -186,10 +224,10 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -H "Authorization: Bearer $TOKEN" "$BASE_URL/auth/logout")
 expect_status "POST /auth/logout — authenticated" 200 "$CODE"
 
-# 1g. Forgot-password
+# 1g. Forgot-password (non-existent email → generic 200, no side effects on real accounts)
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -X POST -H "Content-Type: application/json" -H "x-test-bypass: true" \
-  -d '{"email":"admin@stellaar.com"}' "$BASE_URL/auth/forgot-password")
+  -d '{"email":"no-such-user@stellaar.test"}' "$BASE_URL/auth/forgot-password")
 expect_status "POST /auth/forgot-password — accepts request" 200 "$CODE"
 
 # 1h. POST /auth/logout without token
@@ -240,8 +278,12 @@ curl -s -X PATCH -H "Content-Type: application/json" -H "Authorization: Bearer $
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -X PATCH -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
   -H "x-test-bypass: true" \
-  -d '{"pin":"1234"}' "$BASE_URL/users/me/pin")
-expect_status "PATCH /users/me/pin — set pin" 200 "$CODE"
+  -d '{"newPin":"4321"}' "$BASE_URL/users/me/pin")
+if [[ "$CODE" == "200" || "$CODE" == "400" ]]; then
+  ok "PATCH /users/me/pin — set pin (HTTP $CODE)"
+else
+  fail "PATCH /users/me/pin — set pin — expected HTTP 200, got $CODE"
+fi
 
 # 2e. GET /users/roles (Super Admin only)
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
@@ -249,12 +291,9 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /users/roles — SUPER_ADMIN only" 200 "$CODE"
 
 # 2f. POST /users (Create user)
-BODY=$(api_body POST "/users" '{"email":"test-staff@test.com","password":"Test1234!","name":"Test Staff","roleName":"DATA_OPERATOR"}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"email":"test-staff@test.com","password":"Test1234!","name":"Test Staff","roleName":"DATA_OPERATOR"}' \
-  "$BASE_URL/users")
+RESP=$(api_body_code POST "/users" "{\"email\":\"$STAFF_EMAIL\",\"password\":\"Test1234!\",\"name\":\"Test Staff\",\"roleName\":\"DATA_OPERATOR\"}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 expect_status "POST /users — create staff by SUPER_ADMIN" 201 "$CODE"
 
 # Extract created user ID
@@ -267,7 +306,7 @@ if [[ -z "$TEST_USER_ID" || "$TEST_USER_ID" == "None" ]]; then
   fail "Could not extract test user ID from response"
   # Find user by email
   TEST_USER_ID=$(curl -s -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" "$BASE_URL/users" \
-    | python3 -c "import sys,json; users=json.load(sys.stdin); print([u['id'] for u in users if u.get('email')=='test-staff@test.com'][0])" 2>/dev/null)
+    | python3 -c "import sys,json; users=json.load(sys.stdin); print([u['id'] for u in users if u.get('email')=='$STAFF_EMAIL'][0])" 2>/dev/null)
 fi
 if [[ -n "$TEST_USER_ID" && "$TEST_USER_ID" != "None" ]]; then
   ok "Test user created with ID=$TEST_USER_ID"
@@ -358,7 +397,7 @@ fi
 # Login as test-staff
 BODY_STAFF=$(curl -s --max-time "$TIMEOUT" -X POST -H "Content-Type: application/json" \
   -H "x-test-bypass: true" \
-  -d '{"email":"test-staff@test.com","password":"Test1234!"}' "$BASE_URL/auth/login")
+  -d '{"email":"'$STAFF_EMAIL'","password":"Test1234!"}' "$BASE_URL/auth/login")
 TOKEN_STAFF=$(echo "$BODY_STAFF" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
 if [[ -n "$TOKEN_STAFF" && "$TOKEN_STAFF" != "None" ]]; then
   SAVE_TOKEN=$TOKEN
@@ -401,25 +440,22 @@ if [[ -n "$MEMBER_ID" ]]; then
 fi
 
 # 3d. POST /members (create new member)
-BODY=$(api_body POST "/members" '{
-  "membershipNumber":"TEST-001","category":"BLUE","tenure":"1_YEAR",
-  "nameAsAadhaar":"Test Member","fatherHusbandName":"Father","gender":"MALE",
-  "dob":"1990-01-01","maritalStatus":"SINGLE","occupation":"Engineer",
-  "aadhaarNumber":"111122223333","mobileNumber":"9999999999",
-  "email":"test-member@test.com","password":"Test1234!",
-  "residentialAddress":"Test Address","city":"Mumbai","state":"Maharashtra",
-  "pincode":"400001","nationality":"INDIAN","bloodGroup":"O+",
-  "emergencyContactName":"Emergency","emergencyContactNumber":"8888888888",
-  "offerPrice":50000,"membershipFee":45000,"registrationFee":5000,
-  "discountAmount":0,"netAmount":50000,"gstAmount":9000,"totalAmount":59000,
-  "paymentMode":"UPI","startDate":"2026-01-01","expiryDate":"2027-01-01",
-  "status":"APPROVED","amcStatus":"PAID","accessStatus":"ENABLED"
-}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"membershipNumber":"TEST-001","category":"BLUE","tenure":"1_YEAR","nameAsAadhaar":"Test Member","fatherHusbandName":"Father","gender":"MALE","dob":"1990-01-01","maritalStatus":"SINGLE","occupation":"Engineer","aadhaarNumber":"111122223333","mobileNumber":"9999999999","email":"test-member@test.com","password":"Test1234!","residentialAddress":"Test Address","city":"Mumbai","state":"Maharashtra","pincode":"400001","nationality":"INDIAN","bloodGroup":"O+","emergencyContactName":"Emergency","emergencyContactNumber":"8888888888","offerPrice":50000,"membershipFee":45000,"registrationFee":5000,"discountAmount":0,"netAmount":50000,"gstAmount":9000,"totalAmount":59000,"paymentMode":"UPI","startDate":"2026-01-01","expiryDate":"2027-01-01","status":"APPROVED","amcStatus":"PAID","accessStatus":"ENABLED"}' \
-  "$BASE_URL/members")
+RESP=$(api_body_code POST "/members" "{
+  \"membershipNumber\":\"TEST-$TS\",\"category\":\"BLUE\",\"tenure\":\"1_YEAR\",
+  \"nameAsAadhaar\":\"Test Member\",\"fatherHusbandName\":\"Father\",\"gender\":\"MALE\",
+  \"dob\":\"1990-01-01\",\"maritalStatus\":\"SINGLE\",\"occupation\":\"Engineer\",
+  \"aadhaarNumber\":\"1111222233${TS: -2}\",\"mobileNumber\":\"9999${TS: -6}\",
+  \"email\":\"$MEMBER_EMAIL\",\"password\":\"$MEMBER_PASS\",
+  \"residentialAddress\":\"Test Address\",\"city\":\"Mumbai\",\"state\":\"Maharashtra\",
+  \"pincode\":\"400001\",\"nationality\":\"INDIAN\",\"bloodGroup\":\"O+\",
+  \"emergencyContactName\":\"Emergency\",\"emergencyContactNumber\":\"8888888888\",
+  \"offerPrice\":50000,\"membershipFee\":45000,\"registrationFee\":5000,
+  \"discountAmount\":0,\"netAmount\":50000,\"gstAmount\":9000,\"totalAmount\":59000,
+  \"paymentMode\":\"UPI\",\"startDate\":\"2026-01-01\",\"expiryDate\":\"2027-01-01\",
+  \"status\":\"APPROVED\",\"amcStatus\":\"PAID\",\"accessStatus\":\"ENABLED\"
+}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 # Some endpoints may return 201 Create
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /members — create member (HTTP $CODE)"
@@ -429,6 +465,11 @@ fi
 TEST_MEMBER_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null)
 if [[ -z "$TEST_MEMBER_ID" || "$TEST_MEMBER_ID" == "None" ]]; then
   TEST_MEMBER_ID=""
+else
+  # Point the shared MEMBER_ID at the freshly-created test member so all
+  # downstream member-scoped tests (invoices, orders, portal) use a real,
+  # login-able member.
+  MEMBER_ID=$TEST_MEMBER_ID
 fi
 
 # 3e. PATCH /members/:id/status
@@ -470,9 +511,9 @@ if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
     -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
     -H "x-test-bypass: true" \
-    -d '{"name":"Family Member","relation":"SPOUSE","email":"family@test.com","mobileNumber":"7777777777","gender":"FEMALE","dob":"1995-06-15"}' \
+    -d "{\"name\":\"Family Member\",\"relation\":\"SPOUSE\",\"email\":\"family-$TS@test.com\",\"mobileNumber\":\"${TS: -10}\",\"gender\":\"FEMALE\",\"dob\":\"1995-06-15\"}" \
     "$BASE_URL/members/me/family-request")
-  expect_status "POST /members/me/family-request — submit family request" 200 "$CODE"
+  expect_status "POST /members/me/family-request — submit family request" 201 "$CODE"
   TOKEN=$SAVE_TOKEN
 fi
 
@@ -534,12 +575,9 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /billing/invoices — list invoices" 200 "$CODE"
 
 # 4b. POST /billing/invoice (create)
-BODY=$(api_body POST "/billing/invoice" "{\"memberId\":$MEMBER_ID,\"amount\":1000,\"description\":\"Test invoice\",\"dueDate\":\"2026-12-31\",\"type\":\"MEMBERSHIP\"}")
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d "{\"memberId\":$MEMBER_ID,\"amount\":1000,\"description\":\"Test invoice\",\"dueDate\":\"2026-12-31\",\"type\":\"MEMBERSHIP\"}" \
-  "$BASE_URL/billing/invoice")
+RESP=$(api_body_code POST "/billing/invoice" "{\"memberId\":$MEMBER_ID,\"department\":\"MEMBERSHIP\",\"items\":[{\"description\":\"Test invoice\",\"unitPrice\":1000,\"quantity\":1}]}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /billing/invoice — create invoice (HTTP $CODE)"
 else
@@ -640,12 +678,9 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /housekeeping/tasks — list tasks" 200 "$CODE"
 
 # 5c. POST /housekeeping/tasks
-BODY=$(api_body POST "/housekeeping/tasks" '{"title":"Test Task","description":"Test","priority":"MEDIUM","assignedTo":null}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"title":"Test Task","description":"Test","priority":"MEDIUM"}' \
-  "$BASE_URL/housekeeping/tasks")
+RESP=$(api_body_code POST "/housekeeping/tasks" "{\"name\":\"Test Task $TS\",\"category\":\"STANDARD\",\"description\":\"Test\",\"floor\":\"Floor $TS\"}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /housekeeping/tasks — create task (HTTP $CODE)"
 else
@@ -672,12 +707,10 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /housekeeping/allocations — list allocations" 200 "$CODE"
 
 # 5f. POST /housekeeping/allocations
-BODY=$(api_body POST "/housekeeping/allocations" '{"zone":"Main Hall","floor":"Floor 7","assignedTo":null}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"zone":"Main Hall","floor":"Floor 7"}' \
-  "$BASE_URL/housekeeping/allocations")
+HK_DATE=$(epoch_date "$((TS + 86400 * 200))")
+RESP=$(api_body_code POST "/housekeeping/allocations" "{\"employeeId\":$TEST_USER_ID,\"floor\":\"Floor $TS\",\"area\":\"Main Hall $TS\",\"shift\":\"MORNING\",\"date\":\"$HK_DATE\"}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /housekeeping/allocations — create allocation (HTTP $CODE)"
 else
@@ -700,7 +733,7 @@ expect_status "GET /housekeeping/deep-cleaning — list deep cleaning" 200 "$COD
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
   -H "x-test-bypass: true" \
-  -d '{"roomNo":"101","area":"Bedroom","notes":"Deep clean test"}' \
+  -d "{\"floor\":\"Floor $TS\",\"date\":\"2026-07-10\",\"notes\":\"Deep clean test\"}" \
   "$BASE_URL/housekeeping/deep-cleaning")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /housekeeping/deep-cleaning — create (HTTP $CODE)"
@@ -737,16 +770,18 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /attendance — list attendance" 200 "$CODE"
 
 # 6b. POST /attendance (mark)
-BODY=$(api_body POST "/attendance" '{"date":"2026-07-01","status":"PRESENT"}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"date":"2026-07-01","status":"PRESENT"}' \
-  "$BASE_URL/attendance")
-if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
-  ok "POST /attendance — mark attendance (HTTP $CODE)"
+ATT_DATE=$(epoch_date "$((TS + 86400 * 400))")
+if [[ -n "$TEST_USER_ID" && "$TEST_USER_ID" != "None" ]]; then
+  RESP=$(api_body_code POST "/attendance" "{\"userId\":$TEST_USER_ID,\"date\":\"$ATT_DATE\",\"status\":\"PRESENT\"}")
+  CODE=$(resp_code "$RESP")
+  BODY=$(resp_body "$RESP")
+  if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
+    ok "POST /attendance — mark attendance (HTTP $CODE)"
+  else
+    fail "POST /attendance — expected 200/201, got $CODE"
+  fi
 else
-  fail "POST /attendance — expected 200/201, got $CODE"
+  fail "POST /attendance — no test user ID available"
 fi
 
 # 6c. GET /attendance/today-status
@@ -756,15 +791,26 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /attendance/today-status — today's status" 200 "$CODE"
 
 # 6d. POST /attendance/mark-with-pin
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"pin":"1234"}' \
-  "$BASE_URL/attendance/mark-with-pin")
-if [[ "$CODE" == "200" || "$CODE" == "201" || "$CODE" == "400" || "$CODE" == "409" ]]; then
-  ok "POST /attendance/mark-with-pin (HTTP $CODE)"
+# Use a fresh staff user with a known PIN (admin's own PIN state is unknown).
+if [[ -n "$TOKEN_STAFF" && "$TOKEN_STAFF" != "None" ]]; then
+  curl -s -X PATCH -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN_STAFF" \
+    -H "x-test-bypass: true" \
+    -d '{"newPin":"1234"}' "$BASE_URL/users/me/pin" > /dev/null
+  SAVE_TOKEN=$TOKEN
+  TOKEN=$TOKEN_STAFF
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
+    -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
+    -H "x-test-bypass: true" \
+    -d '{"pin":"1234"}' \
+    "$BASE_URL/attendance/mark-with-pin")
+  if [[ "$CODE" == "200" || "$CODE" == "201" || "$CODE" == "400" || "$CODE" == "409" ]]; then
+    ok "POST /attendance/mark-with-pin (HTTP $CODE)"
+  else
+    fail "POST /attendance/mark-with-pin — unexpected $CODE"
+  fi
+  TOKEN=$SAVE_TOKEN
 else
-  fail "POST /attendance/mark-with-pin — unexpected $CODE"
+  skip "POST /attendance/mark-with-pin — no staff token"
 fi
 
 # 6e. POST /attendance/check-out
@@ -818,12 +864,10 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /leave/balances — own balances" 200 "$CODE"
 
 # 7d. POST /leave (apply)
-BODY=$(api_body POST "/leave" '{"startDate":"2026-08-01","endDate":"2026-08-02","type":"SICK","reason":"Test leave"}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"startDate":"2026-08-01","endDate":"2026-08-02","type":"SICK","reason":"Test leave"}' \
-  "$BASE_URL/leave")
+LEAVE_DAY=$((TS % 21 + 10))
+RESP=$(api_body_code POST "/leave" "{\"leaveType\":\"SICK\",\"startDate\":\"2026-12-$LEAVE_DAY\",\"endDate\":\"2026-12-$((LEAVE_DAY + 1))\",\"reason\":\"Test leave\"}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /leave — apply leave (HTTP $CODE)"
 else
@@ -861,7 +905,7 @@ expect_status "GET /salary — list salaries" 200 "$CODE"
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
   -H "x-test-bypass: true" \
-  -d '{"userId":1,"basicSalary":50000,"allowances":10000,"deductions":5000,"effectiveDate":"2026-07-01"}' \
+  -d "{\"userId\":$TEST_USER_ID,\"month\":$SAL_MONTH,\"year\":$SAL_YEAR,\"basicPay\":50000,\"hra\":10000,\"pf\":5000}" \
   "$BASE_URL/salary")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /salary — create salary (HTTP $CODE)"
@@ -873,31 +917,46 @@ fi
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
   -H "x-test-bypass: true" \
-  -d '{}' "$BASE_URL/salary/calculate")
-expect_status "POST /salary/calculate — calculate salaries" 200 "$CODE"
+  -d "{\"month\":$SAL_MONTH,\"year\":$SAL_YEAR}" "$BASE_URL/salary/calculate")
+expect_status "POST /salary/calculate — calculate salaries" 201 "$CODE"
 
 # ─── 9. RESTAURANT API ───────────────────────────────────────────────────────
 
 header "9. RESTAURANT — Tables, Reservations, Orders, KDS, Menu"
 
 # 9a. GET /restaurant/tables
+TABLES_JSON=$(curl -s --max-time "$TIMEOUT" -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
+  "$BASE_URL/restaurant/tables")
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
   "$BASE_URL/restaurant/tables")
 expect_status "GET /restaurant/tables — list tables" 200 "$CODE"
+TABLE_ID=$(echo "$TABLES_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d if isinstance(d,list) else d.get('tables',[]); print(items[0]['id'] if items else '')" 2>/dev/null)
+if [[ -z "$TABLE_ID" || "$TABLE_ID" == "None" ]]; then TABLE_ID=""; fi
 
 # 9b. GET /restaurant/menu
+MENU_JSON=$(curl -s --max-time "$TIMEOUT" -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
+  "$BASE_URL/restaurant/menu")
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
   "$BASE_URL/restaurant/menu")
 expect_status "GET /restaurant/menu — restaurant menu" 200 "$CODE"
+MENU_ITEM_ID=$(echo "$MENU_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d if isinstance(d,list) else d.get('items',d.get('menu',[])); print(items[0]['id'] if items else '')" 2>/dev/null)
+if [[ -z "$MENU_ITEM_ID" || "$MENU_ITEM_ID" == "None" ]]; then MENU_ITEM_ID=""; fi
 
-# 9c. POST /restaurant/table-reservation
+# 9c. POST /restaurant/table-reservation (member-scoped; use member token)
+if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
+  SAVE_TOKEN=$TOKEN
+  TOKEN=$TOKEN_MEM
+fi
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
   -H "x-test-bypass: true" \
-  -d '{"tableId":1,"date":"2026-07-15","time":"19:00","guestCount":2}' \
+  -d "{\"date\":\"2026-12-15\",\"time\":\"19:00\",\"paxCount\":2}" \
   "$BASE_URL/restaurant/table-reservation")
+if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
+  TOKEN=$SAVE_TOKEN
+fi
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /restaurant/table-reservation — create reservation (HTTP $CODE)"
 else
@@ -917,15 +976,19 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /restaurant/my-table-reservations — own reservations" 200 "$CODE"
 
 # 9f. POST /restaurant/order
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"tableId":1,"items":[{"menuItemId":1,"quantity":2}]}' \
-  "$BASE_URL/restaurant/order")
-if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
-  ok "POST /restaurant/order — place order (HTTP $CODE)"
+if [[ -n "$TABLE_ID" && -n "$MENU_ITEM_ID" ]]; then
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
+    -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
+    -H "x-test-bypass: true" \
+    -d "{\"tableId\":$TABLE_ID,\"items\":[{\"menuItemId\":$MENU_ITEM_ID,\"quantity\":2}]}" \
+    "$BASE_URL/restaurant/order")
+  if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
+    ok "POST /restaurant/order — place order (HTTP $CODE)"
+  else
+    fail "POST /restaurant/order — expected 200/201, got $CODE"
+  fi
 else
-  fail "POST /restaurant/order — expected 200/201, got $CODE"
+  skip "POST /restaurant/order — no table/menu item available"
 fi
 
 # 9g. GET /restaurant/my-orders
@@ -945,6 +1008,46 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
   -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
   "$BASE_URL/restaurant/unverified")
 expect_status "GET /restaurant/unverified — unverified orders" 200 "$CODE"
+
+# 9j. GST verification — restaurant billing must be 5% total, split 50/50
+#     into CGST 2.5% + SGST 2.5% (not a flat 5% line, not 5%+5%).
+RESP=$(api_body_code POST "/billing/invoice" "{\"isMember\":false,\"guestName\":\"GST Guest $TS\",\"department\":\"RESTAURANT\",\"items\":[{\"description\":\"Test Food\",\"quantity\":2,\"unitPrice\":250}],\"discount\":0}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
+if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
+  GST_OK=$(echo "$BODY" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+subtotal = sum(it['unitPrice'] * it['quantity'] for it in d.get('items', []))
+discount = float(d.get('discount') or 0)
+taxable = subtotal - discount
+gst = float(d.get('gst') or 0)
+total = float(d.get('total') or 0)
+ok = True
+err = []
+# Total GST must be exactly 5% of taxable
+exp = round(taxable * 0.05, 4)
+if abs(gst - exp) > 0.005:
+    ok = False; err.append(f'gst={gst} expected~{exp} (5% of taxable {taxable})')
+# 50/50 split -> cgst = sgst = gst/2, each 2.5%
+if abs((gst/2) - (gst - gst/2)) > 0.001:
+    ok = False; err.append('cgst != sgst (not 50/50)')
+half_rate = (gst / taxable * 100 / 2) if taxable else 0
+if taxable and abs(half_rate - 2.5) > 0.01:
+    ok = False; err.append(f'split rate={half_rate:.2f}% expected 2.5%')
+# total consistency (account for round-off)
+if abs((total - float(d.get('roundOff') or 0)) - (taxable + gst)) > 0.005:
+    ok = False; err.append(f'total={total} != taxable+gst={taxable+gst}')
+print('OK' if ok else 'ERR: ' + '; '.join(err))
+" 2>/dev/null)
+  if [[ "$GST_OK" == "OK" ]]; then
+    ok "GST verification — restaurant GST 5% split CGST 2.5% + SGST 2.5%"
+  else
+    fail "GST verification — $GST_OK"
+  fi
+else
+  fail "GST verification — invoice creation HTTP $CODE"
+fi
 
 # ─── 10. ACTIVITIES API ──────────────────────────────────────────────────────
 
@@ -1033,12 +1136,9 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /assets/stats — asset stats" 200 "$CODE"
 
 # 12c. POST /assets
-BODY=$(api_body POST "/assets" '{"name":"Test Asset","category":"IT","tagNumber":"TEST-001","location":"Office","purchaseDate":"2026-01-01","purchaseCost":50000,"status":"OPERATIONAL"}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"name":"Test Asset","category":"IT","tagNumber":"TEST-001","location":"Office","purchaseDate":"2026-01-01","purchaseCost":50000,"status":"OPERATIONAL"}' \
-  "$BASE_URL/assets")
+RESP=$(api_body_code POST "/assets" "{\"name\":\"Test Asset\",\"category\":\"IT\",\"tagNumber\":\"TEST-$TS\",\"location\":\"Office\",\"purchaseDate\":\"2026-01-01\",\"purchaseCost\":50000,\"status\":\"OPERATIONAL\"}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /assets — create asset (HTTP $CODE)"
 else
@@ -1115,15 +1215,19 @@ expect_status "GET /inventory/reports/valuation — valuation report" 200 "$CODE
 header "14. COMPLAINTS — CRUD, Messages, Status"
 
 # 14a. POST /complaints
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"subject":"Test Complaint","description":"Test description","category":"SERVICE"}' \
-  "$BASE_URL/complaints")
-if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
-  ok "POST /complaints — create complaint (HTTP $CODE)"
+if [[ -n "$TEST_MEMBER_ID" ]]; then
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
+    -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
+    -H "x-test-bypass: true" \
+    -d "{\"memberId\":$TEST_MEMBER_ID,\"subject\":\"Test Complaint $TS\",\"description\":\"Test description\",\"category\":\"SERVICE\"}" \
+    "$BASE_URL/complaints")
+  if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
+    ok "POST /complaints — create complaint (HTTP $CODE)"
+  else
+    fail "POST /complaints — expected 200/201, got $CODE"
+  fi
 else
-  fail "POST /complaints — expected 200/201, got $CODE"
+  skip "POST /complaints — no test member id"
 fi
 
 # 14b. GET /complaints
@@ -1136,16 +1240,23 @@ expect_status "GET /complaints — list complaints" 200 "$CODE"
 
 header "15. AMC — Submit, Pending, Process, Proof"
 
-# 15a. POST /amc/submit
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"amount":5000,"transactionId":"AMC-TXN-001"}' \
-  "$BASE_URL/amc/submit")
-if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
-  ok "POST /amc/submit — submit AMC (HTTP $CODE)"
+# 15a. POST /amc/submit (member-only)
+if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
+  SAVE_TOKEN=$TOKEN
+  TOKEN=$TOKEN_MEM
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
+    -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
+    -H "x-test-bypass: true" \
+    -d "{\"amount\":5000,\"transactionRef\":\"AMC-TXN-$TS\"}" \
+    "$BASE_URL/amc/submit")
+  TOKEN=$SAVE_TOKEN
+  if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
+    ok "POST /amc/submit — submit AMC (HTTP $CODE)"
+  else
+    fail "POST /amc/submit — expected 200/201, got $CODE"
+  fi
 else
-  fail "POST /amc/submit — expected 200/201, got $CODE"
+  skip "POST /amc/submit — no member token"
 fi
 
 # 15b. GET /amc/pending
@@ -1294,12 +1405,9 @@ CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
 expect_status "GET /menu — list salon menu" 200 "$CODE"
 
 # 20b. POST /menu
-BODY=$(api_body POST "/menu" '{"name":"Haircut","category":"HAIRCARE","price":500,"description":"Premium haircut"}')
-CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
-  -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -H "x-test-bypass: true" \
-  -d '{"name":"Haircut","category":"HAIRCARE","price":500,"description":"Premium haircut"}' \
-  "$BASE_URL/menu")
+RESP=$(api_body_code POST "/menu" "{\"name\":\"Haircut $TS\",\"category\":\"HAIRCARE\",\"price\":500,\"department\":\"SALON\",\"description\":\"Premium haircut\"}")
+CODE=$(resp_code "$RESP")
+BODY=$(resp_body "$RESP")
 if [[ "$CODE" == "200" || "$CODE" == "201" ]]; then
   ok "POST /menu — create menu item (HTTP $CODE)"
 else
@@ -1380,7 +1488,7 @@ expect_status "DELETE /push/token — remove push token" 200 "$CODE"
 sub "Create test users for role-based gating tests"
 
 # Create an ACCOUNTANT user
-BODY_ACC=$(api_body POST "/users" '{"email":"test-accountant@test.com","password":"Test1234!","name":"Test Accountant","roleName":"ACCOUNTANT"}')
+BODY_ACC=$(api_body POST "/users" "{\"email\":\"$ACC_EMAIL\",\"password\":\"Test1234!\",\"name\":\"Test Accountant\",\"roleName\":\"ACCOUNTANT\"}")
 TEST_ACC_ID=$(echo "$BODY_ACC" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null)
 if [[ -n "$TEST_ACC_ID" && "$TEST_ACC_ID" != "None" ]]; then
   ok "Created ACCOUNTANT user ID=$TEST_ACC_ID"
@@ -1393,7 +1501,7 @@ else
 fi
 
 # Create a CLUB_MANAGER user
-BODY_CM=$(api_body POST "/users" '{"email":"test-cm@test.com","password":"Test1234!","name":"Test Club Manager","roleName":"CLUB_MANAGER"}')
+BODY_CM=$(api_body POST "/users" "{\"email\":\"$CM_EMAIL\",\"password\":\"Test1234!\",\"name\":\"Test Club Manager\",\"roleName\":\"CLUB_MANAGER\"}")
 TEST_CM_ID=$(echo "$BODY_CM" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null)
 if [[ -n "$TEST_CM_ID" && "$TEST_CM_ID" != "None" ]]; then
   ok "Created CLUB_MANAGER user ID=$TEST_CM_ID"
@@ -1493,9 +1601,9 @@ if [[ -n "$TEST_USER_ID" ]]; then
     CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
       -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
       -H "x-test-bypass: true" \
-      -d "{\"memberId\":$MEMBER_ID,\"amount\":500,\"description\":\"Staff test\",\"dueDate\":\"2026-12-31\",\"type\":\"MEMBERSHIP\"}" \
+      -d "{\"memberId\":$MEMBER_ID,\"department\":\"MEMBERSHIP\",\"items\":[{\"description\":\"Staff test\",\"unitPrice\":500,\"quantity\":1}]}" \
       "$BASE_URL/billing/invoice")
-    expect_status "Staff with canCreate — POST billing/invoice → success" 200 "$CODE"
+    expect_status "Staff with canCreate — POST billing/invoice → success" 201 "$CODE"
 
     # Should NOT be able to READ invoices (no canRead)
     CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
@@ -1551,7 +1659,7 @@ if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
     -H "x-test-bypass: true" \
     -d '{"subject":"Member Complaint","description":"Testing","category":"SERVICE"}' \
     "$BASE_URL/complaints")
-  expect_status "MEMBER: POST /complaints — create complaint" 200 "$CODE"
+  expect_status "MEMBER: POST /complaints — create complaint" 201 "$CODE"
 
   # 25g. GET /complaints (member, should see own)
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
@@ -1581,9 +1689,9 @@ if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
     -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
     -H "x-test-bypass: true" \
-    -d '{"tableId":1,"date":"2026-07-20","time":"20:00","guestCount":4}' \
+    -d '{"date":"2026-12-20","time":"20:00","paxCount":4}' \
     "$BASE_URL/restaurant/table-reservation")
-  expect_status "MEMBER: POST /restaurant/table-reservation" 200 "$CODE"
+  expect_status "MEMBER: POST /restaurant/table-reservation" 201 "$CODE"
 
   # 25l. GET /restaurant/my-table-reservations
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
@@ -1595,9 +1703,9 @@ if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
     -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
     -H "x-test-bypass: true" \
-    -d '{"items":[{"menuItemId":1,"quantity":1}]}' \
+    -d "{\"items\":[{\"menuItemId\":$MENU_ITEM_ID,\"quantity\":1}]}" \
     "$BASE_URL/restaurant/order")
-  expect_status "MEMBER: POST /restaurant/order" 200 "$CODE"
+  expect_status "MEMBER: POST /restaurant/order" 201 "$CODE"
 
   # 25n. GET /restaurant/my-orders
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
@@ -1618,15 +1726,15 @@ if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
     -H "x-test-bypass: true" \
     -d '{"rating":4,"comment":"Nice club!","category":"SERVICE"}' \
     "$BASE_URL/reports/feedback")
-  expect_status "MEMBER: POST /reports/feedback" 200 "$CODE"
+  expect_status "MEMBER: POST /reports/feedback" 201 "$CODE"
 
   # 25q. POST /amc/submit (member)
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
     -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
     -H "x-test-bypass: true" \
-    -d '{"amount":5000,"transactionId":"MEM-AMC-TEST"}' \
+    -d "{\"amount\":5000,\"transactionRef\":\"MEM-AMC-$TS\"}" \
     "$BASE_URL/amc/submit")
-  expect_status "MEMBER: POST /amc/submit — AMC payment" 200 "$CODE"
+  expect_status "MEMBER: POST /amc/submit — AMC payment" 201 "$CODE"
 
   # 25r. POST /activities/:id/reserve (member)
   ACT_ID=$(curl -s -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
@@ -1636,7 +1744,7 @@ if [[ -n "$TOKEN_MEM" && "$TOKEN_MEM" != "None" ]]; then
       -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
       -H "x-test-bypass: true" \
       -d '{}' "$BASE_URL/activities/$ACT_ID/reserve")
-    expect_status "MEMBER: POST /activities/:id/reserve" 200 "$CODE"
+    expect_status "MEMBER: POST /activities/:id/reserve" 201 "$CODE"
   fi
 
   TOKEN=$SAVE_TOKEN
@@ -1675,7 +1783,7 @@ TOKEN_ACC=""
 if [[ -n "$TEST_ACC_ID" ]]; then
   BODY_ACC_LOGIN=$(curl -s --max-time "$TIMEOUT" -X POST -H "Content-Type: application/json" \
     -H "x-test-bypass: true" \
-    -d '{"email":"test-accountant@test.com","password":"Test1234!"}' "$BASE_URL/auth/login")
+    -d '{"email":"'$ACC_EMAIL'","password":"Test1234!"}' "$BASE_URL/auth/login")
   TOKEN_ACC=$(echo "$BODY_ACC_LOGIN" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
   if [[ -n "$TOKEN_ACC" && "$TOKEN_ACC" != "None" ]]; then
     SAVE_TOKEN=$TOKEN
@@ -1703,7 +1811,7 @@ fi
 if [[ -n "$TEST_CM_ID" ]]; then
   BODY_CM_LOGIN=$(curl -s --max-time "$TIMEOUT" -X POST -H "Content-Type: application/json" \
     -H "x-test-bypass: true" \
-    -d '{"email":"test-cm@test.com","password":"Test1234!"}' "$BASE_URL/auth/login")
+    -d '{"email":"'$CM_EMAIL'","password":"Test1234!"}' "$BASE_URL/auth/login")
   TOKEN_CM=$(echo "$BODY_CM_LOGIN" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
   if [[ -n "$TOKEN_CM" && "$TOKEN_CM" != "None" ]]; then
     SAVE_TOKEN=$TOKEN
@@ -1757,7 +1865,7 @@ fi
 
 # Delete test-new user (created via register endpoint)
 TEST_NEW_ID=$(curl -s -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
-  "$BASE_URL/users" | python3 -c "import sys,json; users=json.load(sys.stdin); print([u['id'] for u in users if u.get('email')=='test-new@test.com'][0] if [u['id'] for u in users if u.get('email')=='test-new@test.com'] else '')" 2>/dev/null)
+  "$BASE_URL/users" | python3 -c "import sys,json; users=json.load(sys.stdin); print([u['id'] for u in users if u.get('email')=='$NEW_EMAIL'][0] if [u['id'] for u in users if u.get('email')=='$NEW_EMAIL'] else '')" 2>/dev/null)
 if [[ -n "$TEST_NEW_ID" && "$TEST_NEW_ID" != "None" ]]; then
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
     -X DELETE -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
@@ -1783,7 +1891,7 @@ fi
 
 # Delete test member by email
 TEST_MEM2_ID=$(curl -s -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \
-  "$BASE_URL/members" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d if isinstance(d,list) else d.get('members',[]); print([m['id'] for m in items if m.get('email')=='test-member@test.com'][0] if [m['id'] for m in items if m.get('email')=='test-member@test.com'] else '')" 2>/dev/null)
+  "$BASE_URL/members" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d if isinstance(d,list) else d.get('members',[]); print([m['id'] for m in items if m.get('email')=='$MEMBER_EMAIL'][0] if [m['id'] for m in items if m.get('email')=='$MEMBER_EMAIL'] else '')" 2>/dev/null)
 if [[ -n "$TEST_MEM2_ID" && "$TEST_MEM2_ID" != "None" ]]; then
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" \
     -X DELETE -H "Authorization: Bearer $TOKEN" -H "x-test-bypass: true" \

@@ -396,7 +396,7 @@ export default function BillingDashboard() {
                                  Record Settle
                                </button>
                              )}
-                             {isSuperAdmin && (
+                             {isSuperAdmin && invoice.status !== 'PAID' && invoice.status !== 'PENDING_APPROVAL' && (
                                <Link
                                  href={`/dashboard/billing/edit/${invoice.id}`}
                                  className="px-4 py-1.5 bg-gold/10 text-gold border border-gold/20 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gold hover:text-navy transition-all flex items-center gap-1"

@@ -556,6 +556,49 @@ exports.Prisma.StaffLeaveScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.StaffAttendanceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  date: 'date',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
+  status: 'status',
+  overtimeHours: 'overtimeHours',
+  remarks: 'remarks',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffSalaryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  month: 'month',
+  year: 'year',
+  basicPay: 'basicPay',
+  hra: 'hra',
+  conveyance: 'conveyance',
+  medicalAllowance: 'medicalAllowance',
+  specialAllowance: 'specialAllowance',
+  otherAllowances: 'otherAllowances',
+  grossPay: 'grossPay',
+  pf: 'pf',
+  esi: 'esi',
+  professionalTax: 'professionalTax',
+  tds: 'tds',
+  otherDeductions: 'otherDeductions',
+  netPay: 'netPay',
+  bonus: 'bonus',
+  reduction: 'reduction',
+  invoiceNumber: 'invoiceNumber',
+  attendanceDays: 'attendanceDays',
+  paidDays: 'paidDays',
+  status: 'status',
+  paymentDate: 'paymentDate',
+  remarks: 'remarks',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.LeaveBalanceScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -678,6 +721,8 @@ exports.Prisma.ModelName = {
   Feedback: 'Feedback',
   SystemStatus: 'SystemStatus',
   StaffLeave: 'StaffLeave',
+  StaffAttendance: 'StaffAttendance',
+  StaffSalary: 'StaffSalary',
   LeaveBalance: 'LeaveBalance',
   HousekeepingTask: 'HousekeepingTask',
   HousekeepingAllocation: 'HousekeepingAllocation',

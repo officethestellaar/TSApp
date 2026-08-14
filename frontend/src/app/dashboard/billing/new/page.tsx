@@ -156,6 +156,17 @@ function CreateInvoiceForm() {
   const total = Math.round(rawTotal);
   const roundOff = Number((total - rawTotal).toFixed(2));
 
+  const getGstSplit = (inv: any) => {
+    const rate = (inv.department === 'RESTAURANT' || inv.department === 'BANQUET' || inv.department === 'POS') ? 0.05 : 0.18;
+    const gst = Number(inv.gst) || 0;
+    return {
+      cgst: gst / 2,
+      sgst: gst / 2,
+      cgstRate: rate / 2,
+      sgstRate: rate / 2,
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isMember && !memberId) return alert('Please select a member');
@@ -199,7 +210,9 @@ function CreateInvoiceForm() {
     msg += line('──────────────────');
     msg += line(`Subtotal   ₹${Number(inv.amount).toLocaleString()}`);
     if (Number(inv.discount) > 0) msg += line(`Discount  -₹${Number(inv.discount).toLocaleString()}`);
-    msg += line(`GST        ₹${Number(inv.gst).toLocaleString()}`);
+    const gstSplit = getGstSplit(inv);
+    msg += line(`CGST (${(gstSplit.cgstRate * 100).toFixed(1)}%)  ₹${gstSplit.cgst.toLocaleString()}`);
+    msg += line(`SGST (${(gstSplit.sgstRate * 100).toFixed(1)}%)  ₹${gstSplit.sgst.toLocaleString()}`);
     msg += line(`*Total      ₹${Number(inv.total).toLocaleString()}*`);
     msg += line('──────────────────');
     msg += line('Thank you for your patronage!');
@@ -244,7 +257,11 @@ function CreateInvoiceForm() {
       <table>
         <tr><td>Subtotal</td><td class="right">₹${Number(inv.amount).toLocaleString()}</td></tr>
         ${Number(inv.discount) > 0 ? `<tr><td>Discount</td><td class="right">-₹${Number(inv.discount).toLocaleString()}</td></tr>` : ''}
-        <tr><td>GST</td><td class="right">₹${Number(inv.gst).toLocaleString()}</td></tr>
+        ${(() => {
+          const s = getGstSplit(inv);
+          return `<tr><td>CGST (${(s.cgstRate * 100).toFixed(1)}%)</td><td class="right">₹${s.cgst.toLocaleString()}</td></tr>
+        <tr><td>SGST (${(s.sgstRate * 100).toFixed(1)}%)</td><td class="right">₹${s.sgst.toLocaleString()}</td></tr>`;
+        })()}
         ${Number(inv.roundOff) !== 0 ? `<tr><td>Round Off</td><td class="right">${Number(inv.roundOff) > 0 ? '+' : ''}₹${Number(inv.roundOff).toLocaleString()}</td></tr>` : ''}
         <tr class="total"><td class="bold">Total</td><td class="right bold">₹${Number(inv.total).toLocaleString()}</td></tr>
       </table>
@@ -297,8 +314,12 @@ function CreateInvoiceForm() {
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">GST</span>
-                  <span>₹{Number(inv.gst).toLocaleString()}</span>
+                  <span className="text-gray-500">CGST ({Number((getGstSplit(inv).cgstRate * 100).toFixed(1))}%)</span>
+                  <span>₹{getGstSplit(inv).cgst.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">SGST ({Number((getGstSplit(inv).sgstRate * 100).toFixed(1))}%)</span>
+                  <span>₹{getGstSplit(inv).sgst.toLocaleString()}</span>
                 </div>
                 {Number(inv.roundOff) !== 0 && (
                   <div className="flex justify-between text-sm">

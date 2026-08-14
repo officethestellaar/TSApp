@@ -169,6 +169,16 @@ export type SystemStatus = $Result.DefaultSelection<Prisma.$SystemStatusPayload>
  */
 export type StaffLeave = $Result.DefaultSelection<Prisma.$StaffLeavePayload>
 /**
+ * Model StaffAttendance
+ * 
+ */
+export type StaffAttendance = $Result.DefaultSelection<Prisma.$StaffAttendancePayload>
+/**
+ * Model StaffSalary
+ * 
+ */
+export type StaffSalary = $Result.DefaultSelection<Prisma.$StaffSalaryPayload>
+/**
  * Model LeaveBalance
  * 
  */
@@ -631,6 +641,26 @@ export class PrismaClient<
     * ```
     */
   get staffLeave(): Prisma.StaffLeaveDelegate<ExtArgs>;
+
+  /**
+   * `prisma.staffAttendance`: Exposes CRUD operations for the **StaffAttendance** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StaffAttendances
+    * const staffAttendances = await prisma.staffAttendance.findMany()
+    * ```
+    */
+  get staffAttendance(): Prisma.StaffAttendanceDelegate<ExtArgs>;
+
+  /**
+   * `prisma.staffSalary`: Exposes CRUD operations for the **StaffSalary** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StaffSalaries
+    * const staffSalaries = await prisma.staffSalary.findMany()
+    * ```
+    */
+  get staffSalary(): Prisma.StaffSalaryDelegate<ExtArgs>;
 
   /**
    * `prisma.leaveBalance`: Exposes CRUD operations for the **LeaveBalance** model.
@@ -1163,6 +1193,8 @@ export namespace Prisma {
     Feedback: 'Feedback',
     SystemStatus: 'SystemStatus',
     StaffLeave: 'StaffLeave',
+    StaffAttendance: 'StaffAttendance',
+    StaffSalary: 'StaffSalary',
     LeaveBalance: 'LeaveBalance',
     HousekeepingTask: 'HousekeepingTask',
     HousekeepingAllocation: 'HousekeepingAllocation',
@@ -1184,7 +1216,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "role" | "user" | "staff" | "member" | "tableReservation" | "aMCPaymentRequest" | "activity" | "unenrollmentRequest" | "reservation" | "familyMember" | "invoice" | "walkInGuest" | "invoiceItem" | "payment" | "restaurantTable" | "menuItem" | "inventoryItem" | "inventoryLog" | "recipe" | "order" | "orderItem" | "accessLog" | "complaint" | "message" | "announcement" | "auditLog" | "asset" | "maintenanceLog" | "feedback" | "systemStatus" | "staffLeave" | "leaveBalance" | "housekeepingTask" | "housekeepingAllocation" | "housekeepingTaskInstance" | "housekeepingDeepCleaning" | "housekeepingFloorTemplate"
+      modelProps: "role" | "user" | "staff" | "member" | "tableReservation" | "aMCPaymentRequest" | "activity" | "unenrollmentRequest" | "reservation" | "familyMember" | "invoice" | "walkInGuest" | "invoiceItem" | "payment" | "restaurantTable" | "menuItem" | "inventoryItem" | "inventoryLog" | "recipe" | "order" | "orderItem" | "accessLog" | "complaint" | "message" | "announcement" | "auditLog" | "asset" | "maintenanceLog" | "feedback" | "systemStatus" | "staffLeave" | "staffAttendance" | "staffSalary" | "leaveBalance" | "housekeepingTask" | "housekeepingAllocation" | "housekeepingTaskInstance" | "housekeepingDeepCleaning" | "housekeepingFloorTemplate"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3358,6 +3390,146 @@ export namespace Prisma {
           }
         }
       }
+      StaffAttendance: {
+        payload: Prisma.$StaffAttendancePayload<ExtArgs>
+        fields: Prisma.StaffAttendanceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StaffAttendanceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StaffAttendanceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>
+          }
+          findFirst: {
+            args: Prisma.StaffAttendanceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StaffAttendanceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>
+          }
+          findMany: {
+            args: Prisma.StaffAttendanceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>[]
+          }
+          create: {
+            args: Prisma.StaffAttendanceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>
+          }
+          createMany: {
+            args: Prisma.StaffAttendanceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StaffAttendanceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>[]
+          }
+          delete: {
+            args: Prisma.StaffAttendanceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>
+          }
+          update: {
+            args: Prisma.StaffAttendanceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>
+          }
+          deleteMany: {
+            args: Prisma.StaffAttendanceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StaffAttendanceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.StaffAttendanceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffAttendancePayload>
+          }
+          aggregate: {
+            args: Prisma.StaffAttendanceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStaffAttendance>
+          }
+          groupBy: {
+            args: Prisma.StaffAttendanceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StaffAttendanceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StaffAttendanceCountArgs<ExtArgs>
+            result: $Utils.Optional<StaffAttendanceCountAggregateOutputType> | number
+          }
+        }
+      }
+      StaffSalary: {
+        payload: Prisma.$StaffSalaryPayload<ExtArgs>
+        fields: Prisma.StaffSalaryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StaffSalaryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StaffSalaryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>
+          }
+          findFirst: {
+            args: Prisma.StaffSalaryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StaffSalaryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>
+          }
+          findMany: {
+            args: Prisma.StaffSalaryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>[]
+          }
+          create: {
+            args: Prisma.StaffSalaryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>
+          }
+          createMany: {
+            args: Prisma.StaffSalaryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StaffSalaryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>[]
+          }
+          delete: {
+            args: Prisma.StaffSalaryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>
+          }
+          update: {
+            args: Prisma.StaffSalaryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>
+          }
+          deleteMany: {
+            args: Prisma.StaffSalaryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StaffSalaryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.StaffSalaryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaffSalaryPayload>
+          }
+          aggregate: {
+            args: Prisma.StaffSalaryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStaffSalary>
+          }
+          groupBy: {
+            args: Prisma.StaffSalaryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StaffSalaryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StaffSalaryCountArgs<ExtArgs>
+            result: $Utils.Optional<StaffSalaryCountAggregateOutputType> | number
+          }
+        }
+      }
       LeaveBalance: {
         payload: Prisma.$LeaveBalancePayload<ExtArgs>
         fields: Prisma.LeaveBalanceFieldRefs
@@ -3980,6 +4152,8 @@ export namespace Prisma {
     leaveBalances: number
     housekeepingAllocations: number
     housekeepingInstances: number
+    attendanceRecords: number
+    salaryRecords: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3993,6 +4167,8 @@ export namespace Prisma {
     leaveBalances?: boolean | UserCountOutputTypeCountLeaveBalancesArgs
     housekeepingAllocations?: boolean | UserCountOutputTypeCountHousekeepingAllocationsArgs
     housekeepingInstances?: boolean | UserCountOutputTypeCountHousekeepingInstancesArgs
+    attendanceRecords?: boolean | UserCountOutputTypeCountAttendanceRecordsArgs
+    salaryRecords?: boolean | UserCountOutputTypeCountSalaryRecordsArgs
   }
 
   // Custom InputTypes
@@ -4074,6 +4250,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountHousekeepingInstancesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: HousekeepingTaskInstanceWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAttendanceRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StaffAttendanceWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSalaryRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StaffSalaryWhereInput
   }
 
 
@@ -5887,6 +6077,8 @@ export namespace Prisma {
     leaveBalances?: boolean | User$leaveBalancesArgs<ExtArgs>
     housekeepingAllocations?: boolean | User$housekeepingAllocationsArgs<ExtArgs>
     housekeepingInstances?: boolean | User$housekeepingInstancesArgs<ExtArgs>
+    attendanceRecords?: boolean | User$attendanceRecordsArgs<ExtArgs>
+    salaryRecords?: boolean | User$salaryRecordsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -5943,6 +6135,8 @@ export namespace Prisma {
     leaveBalances?: boolean | User$leaveBalancesArgs<ExtArgs>
     housekeepingAllocations?: boolean | User$housekeepingAllocationsArgs<ExtArgs>
     housekeepingInstances?: boolean | User$housekeepingInstancesArgs<ExtArgs>
+    attendanceRecords?: boolean | User$attendanceRecordsArgs<ExtArgs>
+    salaryRecords?: boolean | User$salaryRecordsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5965,6 +6159,8 @@ export namespace Prisma {
       leaveBalances: Prisma.$LeaveBalancePayload<ExtArgs>[]
       housekeepingAllocations: Prisma.$HousekeepingAllocationPayload<ExtArgs>[]
       housekeepingInstances: Prisma.$HousekeepingTaskInstancePayload<ExtArgs>[]
+      attendanceRecords: Prisma.$StaffAttendancePayload<ExtArgs>[]
+      salaryRecords: Prisma.$StaffSalaryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -6359,6 +6555,8 @@ export namespace Prisma {
     leaveBalances<T extends User$leaveBalancesArgs<ExtArgs> = {}>(args?: Subset<T, User$leaveBalancesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LeaveBalancePayload<ExtArgs>, T, "findMany"> | Null>
     housekeepingAllocations<T extends User$housekeepingAllocationsArgs<ExtArgs> = {}>(args?: Subset<T, User$housekeepingAllocationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HousekeepingAllocationPayload<ExtArgs>, T, "findMany"> | Null>
     housekeepingInstances<T extends User$housekeepingInstancesArgs<ExtArgs> = {}>(args?: Subset<T, User$housekeepingInstancesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HousekeepingTaskInstancePayload<ExtArgs>, T, "findMany"> | Null>
+    attendanceRecords<T extends User$attendanceRecordsArgs<ExtArgs> = {}>(args?: Subset<T, User$attendanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "findMany"> | Null>
+    salaryRecords<T extends User$salaryRecordsArgs<ExtArgs> = {}>(args?: Subset<T, User$salaryRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6932,6 +7130,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: HousekeepingTaskInstanceScalarFieldEnum | HousekeepingTaskInstanceScalarFieldEnum[]
+  }
+
+  /**
+   * User.attendanceRecords
+   */
+  export type User$attendanceRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    where?: StaffAttendanceWhereInput
+    orderBy?: StaffAttendanceOrderByWithRelationInput | StaffAttendanceOrderByWithRelationInput[]
+    cursor?: StaffAttendanceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StaffAttendanceScalarFieldEnum | StaffAttendanceScalarFieldEnum[]
+  }
+
+  /**
+   * User.salaryRecords
+   */
+  export type User$salaryRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    where?: StaffSalaryWhereInput
+    orderBy?: StaffSalaryOrderByWithRelationInput | StaffSalaryOrderByWithRelationInput[]
+    cursor?: StaffSalaryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StaffSalaryScalarFieldEnum | StaffSalaryScalarFieldEnum[]
   }
 
   /**
@@ -38284,6 +38522,2348 @@ export namespace Prisma {
 
 
   /**
+   * Model StaffAttendance
+   */
+
+  export type AggregateStaffAttendance = {
+    _count: StaffAttendanceCountAggregateOutputType | null
+    _avg: StaffAttendanceAvgAggregateOutputType | null
+    _sum: StaffAttendanceSumAggregateOutputType | null
+    _min: StaffAttendanceMinAggregateOutputType | null
+    _max: StaffAttendanceMaxAggregateOutputType | null
+  }
+
+  export type StaffAttendanceAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    overtimeHours: number | null
+  }
+
+  export type StaffAttendanceSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    overtimeHours: number | null
+  }
+
+  export type StaffAttendanceMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    date: Date | null
+    checkIn: Date | null
+    checkOut: Date | null
+    status: string | null
+    overtimeHours: number | null
+    remarks: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StaffAttendanceMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    date: Date | null
+    checkIn: Date | null
+    checkOut: Date | null
+    status: string | null
+    overtimeHours: number | null
+    remarks: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StaffAttendanceCountAggregateOutputType = {
+    id: number
+    userId: number
+    date: number
+    checkIn: number
+    checkOut: number
+    status: number
+    overtimeHours: number
+    remarks: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type StaffAttendanceAvgAggregateInputType = {
+    id?: true
+    userId?: true
+    overtimeHours?: true
+  }
+
+  export type StaffAttendanceSumAggregateInputType = {
+    id?: true
+    userId?: true
+    overtimeHours?: true
+  }
+
+  export type StaffAttendanceMinAggregateInputType = {
+    id?: true
+    userId?: true
+    date?: true
+    checkIn?: true
+    checkOut?: true
+    status?: true
+    overtimeHours?: true
+    remarks?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StaffAttendanceMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    date?: true
+    checkIn?: true
+    checkOut?: true
+    status?: true
+    overtimeHours?: true
+    remarks?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StaffAttendanceCountAggregateInputType = {
+    id?: true
+    userId?: true
+    date?: true
+    checkIn?: true
+    checkOut?: true
+    status?: true
+    overtimeHours?: true
+    remarks?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type StaffAttendanceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StaffAttendance to aggregate.
+     */
+    where?: StaffAttendanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffAttendances to fetch.
+     */
+    orderBy?: StaffAttendanceOrderByWithRelationInput | StaffAttendanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StaffAttendanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffAttendances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffAttendances.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StaffAttendances
+    **/
+    _count?: true | StaffAttendanceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: StaffAttendanceAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: StaffAttendanceSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StaffAttendanceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StaffAttendanceMaxAggregateInputType
+  }
+
+  export type GetStaffAttendanceAggregateType<T extends StaffAttendanceAggregateArgs> = {
+        [P in keyof T & keyof AggregateStaffAttendance]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStaffAttendance[P]>
+      : GetScalarType<T[P], AggregateStaffAttendance[P]>
+  }
+
+
+
+
+  export type StaffAttendanceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StaffAttendanceWhereInput
+    orderBy?: StaffAttendanceOrderByWithAggregationInput | StaffAttendanceOrderByWithAggregationInput[]
+    by: StaffAttendanceScalarFieldEnum[] | StaffAttendanceScalarFieldEnum
+    having?: StaffAttendanceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StaffAttendanceCountAggregateInputType | true
+    _avg?: StaffAttendanceAvgAggregateInputType
+    _sum?: StaffAttendanceSumAggregateInputType
+    _min?: StaffAttendanceMinAggregateInputType
+    _max?: StaffAttendanceMaxAggregateInputType
+  }
+
+  export type StaffAttendanceGroupByOutputType = {
+    id: number
+    userId: number
+    date: Date
+    checkIn: Date | null
+    checkOut: Date | null
+    status: string
+    overtimeHours: number
+    remarks: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: StaffAttendanceCountAggregateOutputType | null
+    _avg: StaffAttendanceAvgAggregateOutputType | null
+    _sum: StaffAttendanceSumAggregateOutputType | null
+    _min: StaffAttendanceMinAggregateOutputType | null
+    _max: StaffAttendanceMaxAggregateOutputType | null
+  }
+
+  type GetStaffAttendanceGroupByPayload<T extends StaffAttendanceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StaffAttendanceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StaffAttendanceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StaffAttendanceGroupByOutputType[P]>
+            : GetScalarType<T[P], StaffAttendanceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StaffAttendanceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    date?: boolean
+    checkIn?: boolean
+    checkOut?: boolean
+    status?: boolean
+    overtimeHours?: boolean
+    remarks?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["staffAttendance"]>
+
+  export type StaffAttendanceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    date?: boolean
+    checkIn?: boolean
+    checkOut?: boolean
+    status?: boolean
+    overtimeHours?: boolean
+    remarks?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["staffAttendance"]>
+
+  export type StaffAttendanceSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    date?: boolean
+    checkIn?: boolean
+    checkOut?: boolean
+    status?: boolean
+    overtimeHours?: boolean
+    remarks?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type StaffAttendanceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type StaffAttendanceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $StaffAttendancePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StaffAttendance"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      date: Date
+      checkIn: Date | null
+      checkOut: Date | null
+      status: string
+      overtimeHours: number
+      remarks: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["staffAttendance"]>
+    composites: {}
+  }
+
+  type StaffAttendanceGetPayload<S extends boolean | null | undefined | StaffAttendanceDefaultArgs> = $Result.GetResult<Prisma.$StaffAttendancePayload, S>
+
+  type StaffAttendanceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<StaffAttendanceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: StaffAttendanceCountAggregateInputType | true
+    }
+
+  export interface StaffAttendanceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StaffAttendance'], meta: { name: 'StaffAttendance' } }
+    /**
+     * Find zero or one StaffAttendance that matches the filter.
+     * @param {StaffAttendanceFindUniqueArgs} args - Arguments to find a StaffAttendance
+     * @example
+     * // Get one StaffAttendance
+     * const staffAttendance = await prisma.staffAttendance.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StaffAttendanceFindUniqueArgs>(args: SelectSubset<T, StaffAttendanceFindUniqueArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one StaffAttendance that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {StaffAttendanceFindUniqueOrThrowArgs} args - Arguments to find a StaffAttendance
+     * @example
+     * // Get one StaffAttendance
+     * const staffAttendance = await prisma.staffAttendance.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StaffAttendanceFindUniqueOrThrowArgs>(args: SelectSubset<T, StaffAttendanceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first StaffAttendance that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffAttendanceFindFirstArgs} args - Arguments to find a StaffAttendance
+     * @example
+     * // Get one StaffAttendance
+     * const staffAttendance = await prisma.staffAttendance.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StaffAttendanceFindFirstArgs>(args?: SelectSubset<T, StaffAttendanceFindFirstArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first StaffAttendance that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffAttendanceFindFirstOrThrowArgs} args - Arguments to find a StaffAttendance
+     * @example
+     * // Get one StaffAttendance
+     * const staffAttendance = await prisma.staffAttendance.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StaffAttendanceFindFirstOrThrowArgs>(args?: SelectSubset<T, StaffAttendanceFindFirstOrThrowArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more StaffAttendances that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffAttendanceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StaffAttendances
+     * const staffAttendances = await prisma.staffAttendance.findMany()
+     * 
+     * // Get first 10 StaffAttendances
+     * const staffAttendances = await prisma.staffAttendance.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const staffAttendanceWithIdOnly = await prisma.staffAttendance.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StaffAttendanceFindManyArgs>(args?: SelectSubset<T, StaffAttendanceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a StaffAttendance.
+     * @param {StaffAttendanceCreateArgs} args - Arguments to create a StaffAttendance.
+     * @example
+     * // Create one StaffAttendance
+     * const StaffAttendance = await prisma.staffAttendance.create({
+     *   data: {
+     *     // ... data to create a StaffAttendance
+     *   }
+     * })
+     * 
+     */
+    create<T extends StaffAttendanceCreateArgs>(args: SelectSubset<T, StaffAttendanceCreateArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many StaffAttendances.
+     * @param {StaffAttendanceCreateManyArgs} args - Arguments to create many StaffAttendances.
+     * @example
+     * // Create many StaffAttendances
+     * const staffAttendance = await prisma.staffAttendance.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StaffAttendanceCreateManyArgs>(args?: SelectSubset<T, StaffAttendanceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StaffAttendances and returns the data saved in the database.
+     * @param {StaffAttendanceCreateManyAndReturnArgs} args - Arguments to create many StaffAttendances.
+     * @example
+     * // Create many StaffAttendances
+     * const staffAttendance = await prisma.staffAttendance.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StaffAttendances and only return the `id`
+     * const staffAttendanceWithIdOnly = await prisma.staffAttendance.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StaffAttendanceCreateManyAndReturnArgs>(args?: SelectSubset<T, StaffAttendanceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a StaffAttendance.
+     * @param {StaffAttendanceDeleteArgs} args - Arguments to delete one StaffAttendance.
+     * @example
+     * // Delete one StaffAttendance
+     * const StaffAttendance = await prisma.staffAttendance.delete({
+     *   where: {
+     *     // ... filter to delete one StaffAttendance
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StaffAttendanceDeleteArgs>(args: SelectSubset<T, StaffAttendanceDeleteArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one StaffAttendance.
+     * @param {StaffAttendanceUpdateArgs} args - Arguments to update one StaffAttendance.
+     * @example
+     * // Update one StaffAttendance
+     * const staffAttendance = await prisma.staffAttendance.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StaffAttendanceUpdateArgs>(args: SelectSubset<T, StaffAttendanceUpdateArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more StaffAttendances.
+     * @param {StaffAttendanceDeleteManyArgs} args - Arguments to filter StaffAttendances to delete.
+     * @example
+     * // Delete a few StaffAttendances
+     * const { count } = await prisma.staffAttendance.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StaffAttendanceDeleteManyArgs>(args?: SelectSubset<T, StaffAttendanceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StaffAttendances.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffAttendanceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StaffAttendances
+     * const staffAttendance = await prisma.staffAttendance.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StaffAttendanceUpdateManyArgs>(args: SelectSubset<T, StaffAttendanceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one StaffAttendance.
+     * @param {StaffAttendanceUpsertArgs} args - Arguments to update or create a StaffAttendance.
+     * @example
+     * // Update or create a StaffAttendance
+     * const staffAttendance = await prisma.staffAttendance.upsert({
+     *   create: {
+     *     // ... data to create a StaffAttendance
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StaffAttendance we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StaffAttendanceUpsertArgs>(args: SelectSubset<T, StaffAttendanceUpsertArgs<ExtArgs>>): Prisma__StaffAttendanceClient<$Result.GetResult<Prisma.$StaffAttendancePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of StaffAttendances.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffAttendanceCountArgs} args - Arguments to filter StaffAttendances to count.
+     * @example
+     * // Count the number of StaffAttendances
+     * const count = await prisma.staffAttendance.count({
+     *   where: {
+     *     // ... the filter for the StaffAttendances we want to count
+     *   }
+     * })
+    **/
+    count<T extends StaffAttendanceCountArgs>(
+      args?: Subset<T, StaffAttendanceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StaffAttendanceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StaffAttendance.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffAttendanceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StaffAttendanceAggregateArgs>(args: Subset<T, StaffAttendanceAggregateArgs>): Prisma.PrismaPromise<GetStaffAttendanceAggregateType<T>>
+
+    /**
+     * Group by StaffAttendance.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffAttendanceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StaffAttendanceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StaffAttendanceGroupByArgs['orderBy'] }
+        : { orderBy?: StaffAttendanceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StaffAttendanceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStaffAttendanceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StaffAttendance model
+   */
+  readonly fields: StaffAttendanceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StaffAttendance.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StaffAttendanceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StaffAttendance model
+   */ 
+  interface StaffAttendanceFieldRefs {
+    readonly id: FieldRef<"StaffAttendance", 'Int'>
+    readonly userId: FieldRef<"StaffAttendance", 'Int'>
+    readonly date: FieldRef<"StaffAttendance", 'DateTime'>
+    readonly checkIn: FieldRef<"StaffAttendance", 'DateTime'>
+    readonly checkOut: FieldRef<"StaffAttendance", 'DateTime'>
+    readonly status: FieldRef<"StaffAttendance", 'String'>
+    readonly overtimeHours: FieldRef<"StaffAttendance", 'Float'>
+    readonly remarks: FieldRef<"StaffAttendance", 'String'>
+    readonly createdAt: FieldRef<"StaffAttendance", 'DateTime'>
+    readonly updatedAt: FieldRef<"StaffAttendance", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StaffAttendance findUnique
+   */
+  export type StaffAttendanceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffAttendance to fetch.
+     */
+    where: StaffAttendanceWhereUniqueInput
+  }
+
+  /**
+   * StaffAttendance findUniqueOrThrow
+   */
+  export type StaffAttendanceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffAttendance to fetch.
+     */
+    where: StaffAttendanceWhereUniqueInput
+  }
+
+  /**
+   * StaffAttendance findFirst
+   */
+  export type StaffAttendanceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffAttendance to fetch.
+     */
+    where?: StaffAttendanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffAttendances to fetch.
+     */
+    orderBy?: StaffAttendanceOrderByWithRelationInput | StaffAttendanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StaffAttendances.
+     */
+    cursor?: StaffAttendanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffAttendances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffAttendances.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StaffAttendances.
+     */
+    distinct?: StaffAttendanceScalarFieldEnum | StaffAttendanceScalarFieldEnum[]
+  }
+
+  /**
+   * StaffAttendance findFirstOrThrow
+   */
+  export type StaffAttendanceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffAttendance to fetch.
+     */
+    where?: StaffAttendanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffAttendances to fetch.
+     */
+    orderBy?: StaffAttendanceOrderByWithRelationInput | StaffAttendanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StaffAttendances.
+     */
+    cursor?: StaffAttendanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffAttendances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffAttendances.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StaffAttendances.
+     */
+    distinct?: StaffAttendanceScalarFieldEnum | StaffAttendanceScalarFieldEnum[]
+  }
+
+  /**
+   * StaffAttendance findMany
+   */
+  export type StaffAttendanceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffAttendances to fetch.
+     */
+    where?: StaffAttendanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffAttendances to fetch.
+     */
+    orderBy?: StaffAttendanceOrderByWithRelationInput | StaffAttendanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StaffAttendances.
+     */
+    cursor?: StaffAttendanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffAttendances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffAttendances.
+     */
+    skip?: number
+    distinct?: StaffAttendanceScalarFieldEnum | StaffAttendanceScalarFieldEnum[]
+  }
+
+  /**
+   * StaffAttendance create
+   */
+  export type StaffAttendanceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a StaffAttendance.
+     */
+    data: XOR<StaffAttendanceCreateInput, StaffAttendanceUncheckedCreateInput>
+  }
+
+  /**
+   * StaffAttendance createMany
+   */
+  export type StaffAttendanceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StaffAttendances.
+     */
+    data: StaffAttendanceCreateManyInput | StaffAttendanceCreateManyInput[]
+  }
+
+  /**
+   * StaffAttendance createManyAndReturn
+   */
+  export type StaffAttendanceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many StaffAttendances.
+     */
+    data: StaffAttendanceCreateManyInput | StaffAttendanceCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StaffAttendance update
+   */
+  export type StaffAttendanceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a StaffAttendance.
+     */
+    data: XOR<StaffAttendanceUpdateInput, StaffAttendanceUncheckedUpdateInput>
+    /**
+     * Choose, which StaffAttendance to update.
+     */
+    where: StaffAttendanceWhereUniqueInput
+  }
+
+  /**
+   * StaffAttendance updateMany
+   */
+  export type StaffAttendanceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StaffAttendances.
+     */
+    data: XOR<StaffAttendanceUpdateManyMutationInput, StaffAttendanceUncheckedUpdateManyInput>
+    /**
+     * Filter which StaffAttendances to update
+     */
+    where?: StaffAttendanceWhereInput
+  }
+
+  /**
+   * StaffAttendance upsert
+   */
+  export type StaffAttendanceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the StaffAttendance to update in case it exists.
+     */
+    where: StaffAttendanceWhereUniqueInput
+    /**
+     * In case the StaffAttendance found by the `where` argument doesn't exist, create a new StaffAttendance with this data.
+     */
+    create: XOR<StaffAttendanceCreateInput, StaffAttendanceUncheckedCreateInput>
+    /**
+     * In case the StaffAttendance was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StaffAttendanceUpdateInput, StaffAttendanceUncheckedUpdateInput>
+  }
+
+  /**
+   * StaffAttendance delete
+   */
+  export type StaffAttendanceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+    /**
+     * Filter which StaffAttendance to delete.
+     */
+    where: StaffAttendanceWhereUniqueInput
+  }
+
+  /**
+   * StaffAttendance deleteMany
+   */
+  export type StaffAttendanceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StaffAttendances to delete
+     */
+    where?: StaffAttendanceWhereInput
+  }
+
+  /**
+   * StaffAttendance without action
+   */
+  export type StaffAttendanceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffAttendance
+     */
+    select?: StaffAttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffAttendanceInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model StaffSalary
+   */
+
+  export type AggregateStaffSalary = {
+    _count: StaffSalaryCountAggregateOutputType | null
+    _avg: StaffSalaryAvgAggregateOutputType | null
+    _sum: StaffSalarySumAggregateOutputType | null
+    _min: StaffSalaryMinAggregateOutputType | null
+    _max: StaffSalaryMaxAggregateOutputType | null
+  }
+
+  export type StaffSalaryAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    month: number | null
+    year: number | null
+    basicPay: number | null
+    hra: number | null
+    conveyance: number | null
+    medicalAllowance: number | null
+    specialAllowance: number | null
+    otherAllowances: number | null
+    grossPay: number | null
+    pf: number | null
+    esi: number | null
+    professionalTax: number | null
+    tds: number | null
+    otherDeductions: number | null
+    netPay: number | null
+    bonus: number | null
+    reduction: number | null
+    attendanceDays: number | null
+    paidDays: number | null
+  }
+
+  export type StaffSalarySumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    month: number | null
+    year: number | null
+    basicPay: number | null
+    hra: number | null
+    conveyance: number | null
+    medicalAllowance: number | null
+    specialAllowance: number | null
+    otherAllowances: number | null
+    grossPay: number | null
+    pf: number | null
+    esi: number | null
+    professionalTax: number | null
+    tds: number | null
+    otherDeductions: number | null
+    netPay: number | null
+    bonus: number | null
+    reduction: number | null
+    attendanceDays: number | null
+    paidDays: number | null
+  }
+
+  export type StaffSalaryMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    month: number | null
+    year: number | null
+    basicPay: number | null
+    hra: number | null
+    conveyance: number | null
+    medicalAllowance: number | null
+    specialAllowance: number | null
+    otherAllowances: number | null
+    grossPay: number | null
+    pf: number | null
+    esi: number | null
+    professionalTax: number | null
+    tds: number | null
+    otherDeductions: number | null
+    netPay: number | null
+    bonus: number | null
+    reduction: number | null
+    invoiceNumber: string | null
+    attendanceDays: number | null
+    paidDays: number | null
+    status: string | null
+    paymentDate: Date | null
+    remarks: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StaffSalaryMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    month: number | null
+    year: number | null
+    basicPay: number | null
+    hra: number | null
+    conveyance: number | null
+    medicalAllowance: number | null
+    specialAllowance: number | null
+    otherAllowances: number | null
+    grossPay: number | null
+    pf: number | null
+    esi: number | null
+    professionalTax: number | null
+    tds: number | null
+    otherDeductions: number | null
+    netPay: number | null
+    bonus: number | null
+    reduction: number | null
+    invoiceNumber: string | null
+    attendanceDays: number | null
+    paidDays: number | null
+    status: string | null
+    paymentDate: Date | null
+    remarks: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StaffSalaryCountAggregateOutputType = {
+    id: number
+    userId: number
+    month: number
+    year: number
+    basicPay: number
+    hra: number
+    conveyance: number
+    medicalAllowance: number
+    specialAllowance: number
+    otherAllowances: number
+    grossPay: number
+    pf: number
+    esi: number
+    professionalTax: number
+    tds: number
+    otherDeductions: number
+    netPay: number
+    bonus: number
+    reduction: number
+    invoiceNumber: number
+    attendanceDays: number
+    paidDays: number
+    status: number
+    paymentDate: number
+    remarks: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type StaffSalaryAvgAggregateInputType = {
+    id?: true
+    userId?: true
+    month?: true
+    year?: true
+    basicPay?: true
+    hra?: true
+    conveyance?: true
+    medicalAllowance?: true
+    specialAllowance?: true
+    otherAllowances?: true
+    grossPay?: true
+    pf?: true
+    esi?: true
+    professionalTax?: true
+    tds?: true
+    otherDeductions?: true
+    netPay?: true
+    bonus?: true
+    reduction?: true
+    attendanceDays?: true
+    paidDays?: true
+  }
+
+  export type StaffSalarySumAggregateInputType = {
+    id?: true
+    userId?: true
+    month?: true
+    year?: true
+    basicPay?: true
+    hra?: true
+    conveyance?: true
+    medicalAllowance?: true
+    specialAllowance?: true
+    otherAllowances?: true
+    grossPay?: true
+    pf?: true
+    esi?: true
+    professionalTax?: true
+    tds?: true
+    otherDeductions?: true
+    netPay?: true
+    bonus?: true
+    reduction?: true
+    attendanceDays?: true
+    paidDays?: true
+  }
+
+  export type StaffSalaryMinAggregateInputType = {
+    id?: true
+    userId?: true
+    month?: true
+    year?: true
+    basicPay?: true
+    hra?: true
+    conveyance?: true
+    medicalAllowance?: true
+    specialAllowance?: true
+    otherAllowances?: true
+    grossPay?: true
+    pf?: true
+    esi?: true
+    professionalTax?: true
+    tds?: true
+    otherDeductions?: true
+    netPay?: true
+    bonus?: true
+    reduction?: true
+    invoiceNumber?: true
+    attendanceDays?: true
+    paidDays?: true
+    status?: true
+    paymentDate?: true
+    remarks?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StaffSalaryMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    month?: true
+    year?: true
+    basicPay?: true
+    hra?: true
+    conveyance?: true
+    medicalAllowance?: true
+    specialAllowance?: true
+    otherAllowances?: true
+    grossPay?: true
+    pf?: true
+    esi?: true
+    professionalTax?: true
+    tds?: true
+    otherDeductions?: true
+    netPay?: true
+    bonus?: true
+    reduction?: true
+    invoiceNumber?: true
+    attendanceDays?: true
+    paidDays?: true
+    status?: true
+    paymentDate?: true
+    remarks?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StaffSalaryCountAggregateInputType = {
+    id?: true
+    userId?: true
+    month?: true
+    year?: true
+    basicPay?: true
+    hra?: true
+    conveyance?: true
+    medicalAllowance?: true
+    specialAllowance?: true
+    otherAllowances?: true
+    grossPay?: true
+    pf?: true
+    esi?: true
+    professionalTax?: true
+    tds?: true
+    otherDeductions?: true
+    netPay?: true
+    bonus?: true
+    reduction?: true
+    invoiceNumber?: true
+    attendanceDays?: true
+    paidDays?: true
+    status?: true
+    paymentDate?: true
+    remarks?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type StaffSalaryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StaffSalary to aggregate.
+     */
+    where?: StaffSalaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffSalaries to fetch.
+     */
+    orderBy?: StaffSalaryOrderByWithRelationInput | StaffSalaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StaffSalaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffSalaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffSalaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StaffSalaries
+    **/
+    _count?: true | StaffSalaryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: StaffSalaryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: StaffSalarySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StaffSalaryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StaffSalaryMaxAggregateInputType
+  }
+
+  export type GetStaffSalaryAggregateType<T extends StaffSalaryAggregateArgs> = {
+        [P in keyof T & keyof AggregateStaffSalary]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStaffSalary[P]>
+      : GetScalarType<T[P], AggregateStaffSalary[P]>
+  }
+
+
+
+
+  export type StaffSalaryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StaffSalaryWhereInput
+    orderBy?: StaffSalaryOrderByWithAggregationInput | StaffSalaryOrderByWithAggregationInput[]
+    by: StaffSalaryScalarFieldEnum[] | StaffSalaryScalarFieldEnum
+    having?: StaffSalaryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StaffSalaryCountAggregateInputType | true
+    _avg?: StaffSalaryAvgAggregateInputType
+    _sum?: StaffSalarySumAggregateInputType
+    _min?: StaffSalaryMinAggregateInputType
+    _max?: StaffSalaryMaxAggregateInputType
+  }
+
+  export type StaffSalaryGroupByOutputType = {
+    id: number
+    userId: number
+    month: number
+    year: number
+    basicPay: number
+    hra: number
+    conveyance: number
+    medicalAllowance: number
+    specialAllowance: number
+    otherAllowances: number
+    grossPay: number
+    pf: number
+    esi: number
+    professionalTax: number
+    tds: number
+    otherDeductions: number
+    netPay: number
+    bonus: number
+    reduction: number
+    invoiceNumber: string | null
+    attendanceDays: number
+    paidDays: number
+    status: string
+    paymentDate: Date | null
+    remarks: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: StaffSalaryCountAggregateOutputType | null
+    _avg: StaffSalaryAvgAggregateOutputType | null
+    _sum: StaffSalarySumAggregateOutputType | null
+    _min: StaffSalaryMinAggregateOutputType | null
+    _max: StaffSalaryMaxAggregateOutputType | null
+  }
+
+  type GetStaffSalaryGroupByPayload<T extends StaffSalaryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StaffSalaryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StaffSalaryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StaffSalaryGroupByOutputType[P]>
+            : GetScalarType<T[P], StaffSalaryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StaffSalarySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    month?: boolean
+    year?: boolean
+    basicPay?: boolean
+    hra?: boolean
+    conveyance?: boolean
+    medicalAllowance?: boolean
+    specialAllowance?: boolean
+    otherAllowances?: boolean
+    grossPay?: boolean
+    pf?: boolean
+    esi?: boolean
+    professionalTax?: boolean
+    tds?: boolean
+    otherDeductions?: boolean
+    netPay?: boolean
+    bonus?: boolean
+    reduction?: boolean
+    invoiceNumber?: boolean
+    attendanceDays?: boolean
+    paidDays?: boolean
+    status?: boolean
+    paymentDate?: boolean
+    remarks?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["staffSalary"]>
+
+  export type StaffSalarySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    month?: boolean
+    year?: boolean
+    basicPay?: boolean
+    hra?: boolean
+    conveyance?: boolean
+    medicalAllowance?: boolean
+    specialAllowance?: boolean
+    otherAllowances?: boolean
+    grossPay?: boolean
+    pf?: boolean
+    esi?: boolean
+    professionalTax?: boolean
+    tds?: boolean
+    otherDeductions?: boolean
+    netPay?: boolean
+    bonus?: boolean
+    reduction?: boolean
+    invoiceNumber?: boolean
+    attendanceDays?: boolean
+    paidDays?: boolean
+    status?: boolean
+    paymentDate?: boolean
+    remarks?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["staffSalary"]>
+
+  export type StaffSalarySelectScalar = {
+    id?: boolean
+    userId?: boolean
+    month?: boolean
+    year?: boolean
+    basicPay?: boolean
+    hra?: boolean
+    conveyance?: boolean
+    medicalAllowance?: boolean
+    specialAllowance?: boolean
+    otherAllowances?: boolean
+    grossPay?: boolean
+    pf?: boolean
+    esi?: boolean
+    professionalTax?: boolean
+    tds?: boolean
+    otherDeductions?: boolean
+    netPay?: boolean
+    bonus?: boolean
+    reduction?: boolean
+    invoiceNumber?: boolean
+    attendanceDays?: boolean
+    paidDays?: boolean
+    status?: boolean
+    paymentDate?: boolean
+    remarks?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type StaffSalaryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type StaffSalaryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $StaffSalaryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StaffSalary"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      month: number
+      year: number
+      basicPay: number
+      hra: number
+      conveyance: number
+      medicalAllowance: number
+      specialAllowance: number
+      otherAllowances: number
+      grossPay: number
+      pf: number
+      esi: number
+      professionalTax: number
+      tds: number
+      otherDeductions: number
+      netPay: number
+      bonus: number
+      reduction: number
+      invoiceNumber: string | null
+      attendanceDays: number
+      paidDays: number
+      status: string
+      paymentDate: Date | null
+      remarks: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["staffSalary"]>
+    composites: {}
+  }
+
+  type StaffSalaryGetPayload<S extends boolean | null | undefined | StaffSalaryDefaultArgs> = $Result.GetResult<Prisma.$StaffSalaryPayload, S>
+
+  type StaffSalaryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<StaffSalaryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: StaffSalaryCountAggregateInputType | true
+    }
+
+  export interface StaffSalaryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StaffSalary'], meta: { name: 'StaffSalary' } }
+    /**
+     * Find zero or one StaffSalary that matches the filter.
+     * @param {StaffSalaryFindUniqueArgs} args - Arguments to find a StaffSalary
+     * @example
+     * // Get one StaffSalary
+     * const staffSalary = await prisma.staffSalary.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StaffSalaryFindUniqueArgs>(args: SelectSubset<T, StaffSalaryFindUniqueArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one StaffSalary that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {StaffSalaryFindUniqueOrThrowArgs} args - Arguments to find a StaffSalary
+     * @example
+     * // Get one StaffSalary
+     * const staffSalary = await prisma.staffSalary.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StaffSalaryFindUniqueOrThrowArgs>(args: SelectSubset<T, StaffSalaryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first StaffSalary that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffSalaryFindFirstArgs} args - Arguments to find a StaffSalary
+     * @example
+     * // Get one StaffSalary
+     * const staffSalary = await prisma.staffSalary.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StaffSalaryFindFirstArgs>(args?: SelectSubset<T, StaffSalaryFindFirstArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first StaffSalary that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffSalaryFindFirstOrThrowArgs} args - Arguments to find a StaffSalary
+     * @example
+     * // Get one StaffSalary
+     * const staffSalary = await prisma.staffSalary.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StaffSalaryFindFirstOrThrowArgs>(args?: SelectSubset<T, StaffSalaryFindFirstOrThrowArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more StaffSalaries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffSalaryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StaffSalaries
+     * const staffSalaries = await prisma.staffSalary.findMany()
+     * 
+     * // Get first 10 StaffSalaries
+     * const staffSalaries = await prisma.staffSalary.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const staffSalaryWithIdOnly = await prisma.staffSalary.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StaffSalaryFindManyArgs>(args?: SelectSubset<T, StaffSalaryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a StaffSalary.
+     * @param {StaffSalaryCreateArgs} args - Arguments to create a StaffSalary.
+     * @example
+     * // Create one StaffSalary
+     * const StaffSalary = await prisma.staffSalary.create({
+     *   data: {
+     *     // ... data to create a StaffSalary
+     *   }
+     * })
+     * 
+     */
+    create<T extends StaffSalaryCreateArgs>(args: SelectSubset<T, StaffSalaryCreateArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many StaffSalaries.
+     * @param {StaffSalaryCreateManyArgs} args - Arguments to create many StaffSalaries.
+     * @example
+     * // Create many StaffSalaries
+     * const staffSalary = await prisma.staffSalary.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StaffSalaryCreateManyArgs>(args?: SelectSubset<T, StaffSalaryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StaffSalaries and returns the data saved in the database.
+     * @param {StaffSalaryCreateManyAndReturnArgs} args - Arguments to create many StaffSalaries.
+     * @example
+     * // Create many StaffSalaries
+     * const staffSalary = await prisma.staffSalary.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StaffSalaries and only return the `id`
+     * const staffSalaryWithIdOnly = await prisma.staffSalary.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StaffSalaryCreateManyAndReturnArgs>(args?: SelectSubset<T, StaffSalaryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a StaffSalary.
+     * @param {StaffSalaryDeleteArgs} args - Arguments to delete one StaffSalary.
+     * @example
+     * // Delete one StaffSalary
+     * const StaffSalary = await prisma.staffSalary.delete({
+     *   where: {
+     *     // ... filter to delete one StaffSalary
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StaffSalaryDeleteArgs>(args: SelectSubset<T, StaffSalaryDeleteArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one StaffSalary.
+     * @param {StaffSalaryUpdateArgs} args - Arguments to update one StaffSalary.
+     * @example
+     * // Update one StaffSalary
+     * const staffSalary = await prisma.staffSalary.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StaffSalaryUpdateArgs>(args: SelectSubset<T, StaffSalaryUpdateArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more StaffSalaries.
+     * @param {StaffSalaryDeleteManyArgs} args - Arguments to filter StaffSalaries to delete.
+     * @example
+     * // Delete a few StaffSalaries
+     * const { count } = await prisma.staffSalary.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StaffSalaryDeleteManyArgs>(args?: SelectSubset<T, StaffSalaryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StaffSalaries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffSalaryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StaffSalaries
+     * const staffSalary = await prisma.staffSalary.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StaffSalaryUpdateManyArgs>(args: SelectSubset<T, StaffSalaryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one StaffSalary.
+     * @param {StaffSalaryUpsertArgs} args - Arguments to update or create a StaffSalary.
+     * @example
+     * // Update or create a StaffSalary
+     * const staffSalary = await prisma.staffSalary.upsert({
+     *   create: {
+     *     // ... data to create a StaffSalary
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StaffSalary we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StaffSalaryUpsertArgs>(args: SelectSubset<T, StaffSalaryUpsertArgs<ExtArgs>>): Prisma__StaffSalaryClient<$Result.GetResult<Prisma.$StaffSalaryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of StaffSalaries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffSalaryCountArgs} args - Arguments to filter StaffSalaries to count.
+     * @example
+     * // Count the number of StaffSalaries
+     * const count = await prisma.staffSalary.count({
+     *   where: {
+     *     // ... the filter for the StaffSalaries we want to count
+     *   }
+     * })
+    **/
+    count<T extends StaffSalaryCountArgs>(
+      args?: Subset<T, StaffSalaryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StaffSalaryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StaffSalary.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffSalaryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StaffSalaryAggregateArgs>(args: Subset<T, StaffSalaryAggregateArgs>): Prisma.PrismaPromise<GetStaffSalaryAggregateType<T>>
+
+    /**
+     * Group by StaffSalary.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaffSalaryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StaffSalaryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StaffSalaryGroupByArgs['orderBy'] }
+        : { orderBy?: StaffSalaryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StaffSalaryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStaffSalaryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StaffSalary model
+   */
+  readonly fields: StaffSalaryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StaffSalary.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StaffSalaryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StaffSalary model
+   */ 
+  interface StaffSalaryFieldRefs {
+    readonly id: FieldRef<"StaffSalary", 'Int'>
+    readonly userId: FieldRef<"StaffSalary", 'Int'>
+    readonly month: FieldRef<"StaffSalary", 'Int'>
+    readonly year: FieldRef<"StaffSalary", 'Int'>
+    readonly basicPay: FieldRef<"StaffSalary", 'Float'>
+    readonly hra: FieldRef<"StaffSalary", 'Float'>
+    readonly conveyance: FieldRef<"StaffSalary", 'Float'>
+    readonly medicalAllowance: FieldRef<"StaffSalary", 'Float'>
+    readonly specialAllowance: FieldRef<"StaffSalary", 'Float'>
+    readonly otherAllowances: FieldRef<"StaffSalary", 'Float'>
+    readonly grossPay: FieldRef<"StaffSalary", 'Float'>
+    readonly pf: FieldRef<"StaffSalary", 'Float'>
+    readonly esi: FieldRef<"StaffSalary", 'Float'>
+    readonly professionalTax: FieldRef<"StaffSalary", 'Float'>
+    readonly tds: FieldRef<"StaffSalary", 'Float'>
+    readonly otherDeductions: FieldRef<"StaffSalary", 'Float'>
+    readonly netPay: FieldRef<"StaffSalary", 'Float'>
+    readonly bonus: FieldRef<"StaffSalary", 'Float'>
+    readonly reduction: FieldRef<"StaffSalary", 'Float'>
+    readonly invoiceNumber: FieldRef<"StaffSalary", 'String'>
+    readonly attendanceDays: FieldRef<"StaffSalary", 'Int'>
+    readonly paidDays: FieldRef<"StaffSalary", 'Int'>
+    readonly status: FieldRef<"StaffSalary", 'String'>
+    readonly paymentDate: FieldRef<"StaffSalary", 'DateTime'>
+    readonly remarks: FieldRef<"StaffSalary", 'String'>
+    readonly createdAt: FieldRef<"StaffSalary", 'DateTime'>
+    readonly updatedAt: FieldRef<"StaffSalary", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StaffSalary findUnique
+   */
+  export type StaffSalaryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffSalary to fetch.
+     */
+    where: StaffSalaryWhereUniqueInput
+  }
+
+  /**
+   * StaffSalary findUniqueOrThrow
+   */
+  export type StaffSalaryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffSalary to fetch.
+     */
+    where: StaffSalaryWhereUniqueInput
+  }
+
+  /**
+   * StaffSalary findFirst
+   */
+  export type StaffSalaryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffSalary to fetch.
+     */
+    where?: StaffSalaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffSalaries to fetch.
+     */
+    orderBy?: StaffSalaryOrderByWithRelationInput | StaffSalaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StaffSalaries.
+     */
+    cursor?: StaffSalaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffSalaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffSalaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StaffSalaries.
+     */
+    distinct?: StaffSalaryScalarFieldEnum | StaffSalaryScalarFieldEnum[]
+  }
+
+  /**
+   * StaffSalary findFirstOrThrow
+   */
+  export type StaffSalaryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffSalary to fetch.
+     */
+    where?: StaffSalaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffSalaries to fetch.
+     */
+    orderBy?: StaffSalaryOrderByWithRelationInput | StaffSalaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StaffSalaries.
+     */
+    cursor?: StaffSalaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffSalaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffSalaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StaffSalaries.
+     */
+    distinct?: StaffSalaryScalarFieldEnum | StaffSalaryScalarFieldEnum[]
+  }
+
+  /**
+   * StaffSalary findMany
+   */
+  export type StaffSalaryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * Filter, which StaffSalaries to fetch.
+     */
+    where?: StaffSalaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaffSalaries to fetch.
+     */
+    orderBy?: StaffSalaryOrderByWithRelationInput | StaffSalaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StaffSalaries.
+     */
+    cursor?: StaffSalaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaffSalaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaffSalaries.
+     */
+    skip?: number
+    distinct?: StaffSalaryScalarFieldEnum | StaffSalaryScalarFieldEnum[]
+  }
+
+  /**
+   * StaffSalary create
+   */
+  export type StaffSalaryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a StaffSalary.
+     */
+    data: XOR<StaffSalaryCreateInput, StaffSalaryUncheckedCreateInput>
+  }
+
+  /**
+   * StaffSalary createMany
+   */
+  export type StaffSalaryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StaffSalaries.
+     */
+    data: StaffSalaryCreateManyInput | StaffSalaryCreateManyInput[]
+  }
+
+  /**
+   * StaffSalary createManyAndReturn
+   */
+  export type StaffSalaryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many StaffSalaries.
+     */
+    data: StaffSalaryCreateManyInput | StaffSalaryCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StaffSalary update
+   */
+  export type StaffSalaryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a StaffSalary.
+     */
+    data: XOR<StaffSalaryUpdateInput, StaffSalaryUncheckedUpdateInput>
+    /**
+     * Choose, which StaffSalary to update.
+     */
+    where: StaffSalaryWhereUniqueInput
+  }
+
+  /**
+   * StaffSalary updateMany
+   */
+  export type StaffSalaryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StaffSalaries.
+     */
+    data: XOR<StaffSalaryUpdateManyMutationInput, StaffSalaryUncheckedUpdateManyInput>
+    /**
+     * Filter which StaffSalaries to update
+     */
+    where?: StaffSalaryWhereInput
+  }
+
+  /**
+   * StaffSalary upsert
+   */
+  export type StaffSalaryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the StaffSalary to update in case it exists.
+     */
+    where: StaffSalaryWhereUniqueInput
+    /**
+     * In case the StaffSalary found by the `where` argument doesn't exist, create a new StaffSalary with this data.
+     */
+    create: XOR<StaffSalaryCreateInput, StaffSalaryUncheckedCreateInput>
+    /**
+     * In case the StaffSalary was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StaffSalaryUpdateInput, StaffSalaryUncheckedUpdateInput>
+  }
+
+  /**
+   * StaffSalary delete
+   */
+  export type StaffSalaryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+    /**
+     * Filter which StaffSalary to delete.
+     */
+    where: StaffSalaryWhereUniqueInput
+  }
+
+  /**
+   * StaffSalary deleteMany
+   */
+  export type StaffSalaryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StaffSalaries to delete
+     */
+    where?: StaffSalaryWhereInput
+  }
+
+  /**
+   * StaffSalary without action
+   */
+  export type StaffSalaryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaffSalary
+     */
+    select?: StaffSalarySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffSalaryInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model LeaveBalance
    */
 
@@ -44984,6 +47564,55 @@ export namespace Prisma {
   export type StaffLeaveScalarFieldEnum = (typeof StaffLeaveScalarFieldEnum)[keyof typeof StaffLeaveScalarFieldEnum]
 
 
+  export const StaffAttendanceScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    date: 'date',
+    checkIn: 'checkIn',
+    checkOut: 'checkOut',
+    status: 'status',
+    overtimeHours: 'overtimeHours',
+    remarks: 'remarks',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type StaffAttendanceScalarFieldEnum = (typeof StaffAttendanceScalarFieldEnum)[keyof typeof StaffAttendanceScalarFieldEnum]
+
+
+  export const StaffSalaryScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    month: 'month',
+    year: 'year',
+    basicPay: 'basicPay',
+    hra: 'hra',
+    conveyance: 'conveyance',
+    medicalAllowance: 'medicalAllowance',
+    specialAllowance: 'specialAllowance',
+    otherAllowances: 'otherAllowances',
+    grossPay: 'grossPay',
+    pf: 'pf',
+    esi: 'esi',
+    professionalTax: 'professionalTax',
+    tds: 'tds',
+    otherDeductions: 'otherDeductions',
+    netPay: 'netPay',
+    bonus: 'bonus',
+    reduction: 'reduction',
+    invoiceNumber: 'invoiceNumber',
+    attendanceDays: 'attendanceDays',
+    paidDays: 'paidDays',
+    status: 'status',
+    paymentDate: 'paymentDate',
+    remarks: 'remarks',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type StaffSalaryScalarFieldEnum = (typeof StaffSalaryScalarFieldEnum)[keyof typeof StaffSalaryScalarFieldEnum]
+
+
   export const LeaveBalanceScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -45214,6 +47843,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceListRelationFilter
     housekeepingAllocations?: HousekeepingAllocationListRelationFilter
     housekeepingInstances?: HousekeepingTaskInstanceListRelationFilter
+    attendanceRecords?: StaffAttendanceListRelationFilter
+    salaryRecords?: StaffSalaryListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -45245,6 +47876,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceOrderByRelationAggregateInput
     housekeepingAllocations?: HousekeepingAllocationOrderByRelationAggregateInput
     housekeepingInstances?: HousekeepingTaskInstanceOrderByRelationAggregateInput
+    attendanceRecords?: StaffAttendanceOrderByRelationAggregateInput
+    salaryRecords?: StaffSalaryOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -45279,6 +47912,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceListRelationFilter
     housekeepingAllocations?: HousekeepingAllocationListRelationFilter
     housekeepingInstances?: HousekeepingTaskInstanceListRelationFilter
+    attendanceRecords?: StaffAttendanceListRelationFilter
+    salaryRecords?: StaffSalaryListRelationFilter
   }, "id" | "email" | "authUserId" | "staffProfileId">
 
   export type UserOrderByWithAggregationInput = {
@@ -47991,6 +50626,257 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"StaffLeave"> | Date | string
   }
 
+  export type StaffAttendanceWhereInput = {
+    AND?: StaffAttendanceWhereInput | StaffAttendanceWhereInput[]
+    OR?: StaffAttendanceWhereInput[]
+    NOT?: StaffAttendanceWhereInput | StaffAttendanceWhereInput[]
+    id?: IntFilter<"StaffAttendance"> | number
+    userId?: IntFilter<"StaffAttendance"> | number
+    date?: DateTimeFilter<"StaffAttendance"> | Date | string
+    checkIn?: DateTimeNullableFilter<"StaffAttendance"> | Date | string | null
+    checkOut?: DateTimeNullableFilter<"StaffAttendance"> | Date | string | null
+    status?: StringFilter<"StaffAttendance"> | string
+    overtimeHours?: FloatFilter<"StaffAttendance"> | number
+    remarks?: StringNullableFilter<"StaffAttendance"> | string | null
+    createdAt?: DateTimeFilter<"StaffAttendance"> | Date | string
+    updatedAt?: DateTimeFilter<"StaffAttendance"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type StaffAttendanceOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    date?: SortOrder
+    checkIn?: SortOrderInput | SortOrder
+    checkOut?: SortOrderInput | SortOrder
+    status?: SortOrder
+    overtimeHours?: SortOrder
+    remarks?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type StaffAttendanceWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    userId_date?: StaffAttendanceUserIdDateCompoundUniqueInput
+    AND?: StaffAttendanceWhereInput | StaffAttendanceWhereInput[]
+    OR?: StaffAttendanceWhereInput[]
+    NOT?: StaffAttendanceWhereInput | StaffAttendanceWhereInput[]
+    userId?: IntFilter<"StaffAttendance"> | number
+    date?: DateTimeFilter<"StaffAttendance"> | Date | string
+    checkIn?: DateTimeNullableFilter<"StaffAttendance"> | Date | string | null
+    checkOut?: DateTimeNullableFilter<"StaffAttendance"> | Date | string | null
+    status?: StringFilter<"StaffAttendance"> | string
+    overtimeHours?: FloatFilter<"StaffAttendance"> | number
+    remarks?: StringNullableFilter<"StaffAttendance"> | string | null
+    createdAt?: DateTimeFilter<"StaffAttendance"> | Date | string
+    updatedAt?: DateTimeFilter<"StaffAttendance"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id" | "userId_date">
+
+  export type StaffAttendanceOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    date?: SortOrder
+    checkIn?: SortOrderInput | SortOrder
+    checkOut?: SortOrderInput | SortOrder
+    status?: SortOrder
+    overtimeHours?: SortOrder
+    remarks?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: StaffAttendanceCountOrderByAggregateInput
+    _avg?: StaffAttendanceAvgOrderByAggregateInput
+    _max?: StaffAttendanceMaxOrderByAggregateInput
+    _min?: StaffAttendanceMinOrderByAggregateInput
+    _sum?: StaffAttendanceSumOrderByAggregateInput
+  }
+
+  export type StaffAttendanceScalarWhereWithAggregatesInput = {
+    AND?: StaffAttendanceScalarWhereWithAggregatesInput | StaffAttendanceScalarWhereWithAggregatesInput[]
+    OR?: StaffAttendanceScalarWhereWithAggregatesInput[]
+    NOT?: StaffAttendanceScalarWhereWithAggregatesInput | StaffAttendanceScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"StaffAttendance"> | number
+    userId?: IntWithAggregatesFilter<"StaffAttendance"> | number
+    date?: DateTimeWithAggregatesFilter<"StaffAttendance"> | Date | string
+    checkIn?: DateTimeNullableWithAggregatesFilter<"StaffAttendance"> | Date | string | null
+    checkOut?: DateTimeNullableWithAggregatesFilter<"StaffAttendance"> | Date | string | null
+    status?: StringWithAggregatesFilter<"StaffAttendance"> | string
+    overtimeHours?: FloatWithAggregatesFilter<"StaffAttendance"> | number
+    remarks?: StringNullableWithAggregatesFilter<"StaffAttendance"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"StaffAttendance"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"StaffAttendance"> | Date | string
+  }
+
+  export type StaffSalaryWhereInput = {
+    AND?: StaffSalaryWhereInput | StaffSalaryWhereInput[]
+    OR?: StaffSalaryWhereInput[]
+    NOT?: StaffSalaryWhereInput | StaffSalaryWhereInput[]
+    id?: IntFilter<"StaffSalary"> | number
+    userId?: IntFilter<"StaffSalary"> | number
+    month?: IntFilter<"StaffSalary"> | number
+    year?: IntFilter<"StaffSalary"> | number
+    basicPay?: FloatFilter<"StaffSalary"> | number
+    hra?: FloatFilter<"StaffSalary"> | number
+    conveyance?: FloatFilter<"StaffSalary"> | number
+    medicalAllowance?: FloatFilter<"StaffSalary"> | number
+    specialAllowance?: FloatFilter<"StaffSalary"> | number
+    otherAllowances?: FloatFilter<"StaffSalary"> | number
+    grossPay?: FloatFilter<"StaffSalary"> | number
+    pf?: FloatFilter<"StaffSalary"> | number
+    esi?: FloatFilter<"StaffSalary"> | number
+    professionalTax?: FloatFilter<"StaffSalary"> | number
+    tds?: FloatFilter<"StaffSalary"> | number
+    otherDeductions?: FloatFilter<"StaffSalary"> | number
+    netPay?: FloatFilter<"StaffSalary"> | number
+    bonus?: FloatFilter<"StaffSalary"> | number
+    reduction?: FloatFilter<"StaffSalary"> | number
+    invoiceNumber?: StringNullableFilter<"StaffSalary"> | string | null
+    attendanceDays?: IntFilter<"StaffSalary"> | number
+    paidDays?: IntFilter<"StaffSalary"> | number
+    status?: StringFilter<"StaffSalary"> | string
+    paymentDate?: DateTimeNullableFilter<"StaffSalary"> | Date | string | null
+    remarks?: StringNullableFilter<"StaffSalary"> | string | null
+    createdAt?: DateTimeFilter<"StaffSalary"> | Date | string
+    updatedAt?: DateTimeFilter<"StaffSalary"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type StaffSalaryOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    month?: SortOrder
+    year?: SortOrder
+    basicPay?: SortOrder
+    hra?: SortOrder
+    conveyance?: SortOrder
+    medicalAllowance?: SortOrder
+    specialAllowance?: SortOrder
+    otherAllowances?: SortOrder
+    grossPay?: SortOrder
+    pf?: SortOrder
+    esi?: SortOrder
+    professionalTax?: SortOrder
+    tds?: SortOrder
+    otherDeductions?: SortOrder
+    netPay?: SortOrder
+    bonus?: SortOrder
+    reduction?: SortOrder
+    invoiceNumber?: SortOrderInput | SortOrder
+    attendanceDays?: SortOrder
+    paidDays?: SortOrder
+    status?: SortOrder
+    paymentDate?: SortOrderInput | SortOrder
+    remarks?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type StaffSalaryWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    userId_month_year?: StaffSalaryUserIdMonthYearCompoundUniqueInput
+    AND?: StaffSalaryWhereInput | StaffSalaryWhereInput[]
+    OR?: StaffSalaryWhereInput[]
+    NOT?: StaffSalaryWhereInput | StaffSalaryWhereInput[]
+    userId?: IntFilter<"StaffSalary"> | number
+    month?: IntFilter<"StaffSalary"> | number
+    year?: IntFilter<"StaffSalary"> | number
+    basicPay?: FloatFilter<"StaffSalary"> | number
+    hra?: FloatFilter<"StaffSalary"> | number
+    conveyance?: FloatFilter<"StaffSalary"> | number
+    medicalAllowance?: FloatFilter<"StaffSalary"> | number
+    specialAllowance?: FloatFilter<"StaffSalary"> | number
+    otherAllowances?: FloatFilter<"StaffSalary"> | number
+    grossPay?: FloatFilter<"StaffSalary"> | number
+    pf?: FloatFilter<"StaffSalary"> | number
+    esi?: FloatFilter<"StaffSalary"> | number
+    professionalTax?: FloatFilter<"StaffSalary"> | number
+    tds?: FloatFilter<"StaffSalary"> | number
+    otherDeductions?: FloatFilter<"StaffSalary"> | number
+    netPay?: FloatFilter<"StaffSalary"> | number
+    bonus?: FloatFilter<"StaffSalary"> | number
+    reduction?: FloatFilter<"StaffSalary"> | number
+    invoiceNumber?: StringNullableFilter<"StaffSalary"> | string | null
+    attendanceDays?: IntFilter<"StaffSalary"> | number
+    paidDays?: IntFilter<"StaffSalary"> | number
+    status?: StringFilter<"StaffSalary"> | string
+    paymentDate?: DateTimeNullableFilter<"StaffSalary"> | Date | string | null
+    remarks?: StringNullableFilter<"StaffSalary"> | string | null
+    createdAt?: DateTimeFilter<"StaffSalary"> | Date | string
+    updatedAt?: DateTimeFilter<"StaffSalary"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id" | "userId_month_year">
+
+  export type StaffSalaryOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    month?: SortOrder
+    year?: SortOrder
+    basicPay?: SortOrder
+    hra?: SortOrder
+    conveyance?: SortOrder
+    medicalAllowance?: SortOrder
+    specialAllowance?: SortOrder
+    otherAllowances?: SortOrder
+    grossPay?: SortOrder
+    pf?: SortOrder
+    esi?: SortOrder
+    professionalTax?: SortOrder
+    tds?: SortOrder
+    otherDeductions?: SortOrder
+    netPay?: SortOrder
+    bonus?: SortOrder
+    reduction?: SortOrder
+    invoiceNumber?: SortOrderInput | SortOrder
+    attendanceDays?: SortOrder
+    paidDays?: SortOrder
+    status?: SortOrder
+    paymentDate?: SortOrderInput | SortOrder
+    remarks?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: StaffSalaryCountOrderByAggregateInput
+    _avg?: StaffSalaryAvgOrderByAggregateInput
+    _max?: StaffSalaryMaxOrderByAggregateInput
+    _min?: StaffSalaryMinOrderByAggregateInput
+    _sum?: StaffSalarySumOrderByAggregateInput
+  }
+
+  export type StaffSalaryScalarWhereWithAggregatesInput = {
+    AND?: StaffSalaryScalarWhereWithAggregatesInput | StaffSalaryScalarWhereWithAggregatesInput[]
+    OR?: StaffSalaryScalarWhereWithAggregatesInput[]
+    NOT?: StaffSalaryScalarWhereWithAggregatesInput | StaffSalaryScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"StaffSalary"> | number
+    userId?: IntWithAggregatesFilter<"StaffSalary"> | number
+    month?: IntWithAggregatesFilter<"StaffSalary"> | number
+    year?: IntWithAggregatesFilter<"StaffSalary"> | number
+    basicPay?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    hra?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    conveyance?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    medicalAllowance?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    specialAllowance?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    otherAllowances?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    grossPay?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    pf?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    esi?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    professionalTax?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    tds?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    otherDeductions?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    netPay?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    bonus?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    reduction?: FloatWithAggregatesFilter<"StaffSalary"> | number
+    invoiceNumber?: StringNullableWithAggregatesFilter<"StaffSalary"> | string | null
+    attendanceDays?: IntWithAggregatesFilter<"StaffSalary"> | number
+    paidDays?: IntWithAggregatesFilter<"StaffSalary"> | number
+    status?: StringWithAggregatesFilter<"StaffSalary"> | string
+    paymentDate?: DateTimeNullableWithAggregatesFilter<"StaffSalary"> | Date | string | null
+    remarks?: StringNullableWithAggregatesFilter<"StaffSalary"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"StaffSalary"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"StaffSalary"> | Date | string
+  }
+
   export type LeaveBalanceWhereInput = {
     AND?: LeaveBalanceWhereInput | LeaveBalanceWhereInput[]
     OR?: LeaveBalanceWhereInput[]
@@ -48553,6 +51439,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -48582,6 +51470,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -48610,6 +51500,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -48639,6 +51531,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -51586,6 +54480,299 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type StaffAttendanceCreateInput = {
+    date: Date | string
+    checkIn?: Date | string | null
+    checkOut?: Date | string | null
+    status?: string
+    overtimeHours?: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutAttendanceRecordsInput
+  }
+
+  export type StaffAttendanceUncheckedCreateInput = {
+    id?: number
+    userId: number
+    date: Date | string
+    checkIn?: Date | string | null
+    checkOut?: Date | string | null
+    status?: string
+    overtimeHours?: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffAttendanceUpdateInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    checkIn?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    overtimeHours?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutAttendanceRecordsNestedInput
+  }
+
+  export type StaffAttendanceUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    checkIn?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    overtimeHours?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffAttendanceCreateManyInput = {
+    id?: number
+    userId: number
+    date: Date | string
+    checkIn?: Date | string | null
+    checkOut?: Date | string | null
+    status?: string
+    overtimeHours?: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffAttendanceUpdateManyMutationInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    checkIn?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    overtimeHours?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffAttendanceUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    checkIn?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    overtimeHours?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffSalaryCreateInput = {
+    month: number
+    year: number
+    basicPay?: number
+    hra?: number
+    conveyance?: number
+    medicalAllowance?: number
+    specialAllowance?: number
+    otherAllowances?: number
+    grossPay?: number
+    pf?: number
+    esi?: number
+    professionalTax?: number
+    tds?: number
+    otherDeductions?: number
+    netPay?: number
+    bonus?: number
+    reduction?: number
+    invoiceNumber?: string | null
+    attendanceDays?: number
+    paidDays?: number
+    status?: string
+    paymentDate?: Date | string | null
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutSalaryRecordsInput
+  }
+
+  export type StaffSalaryUncheckedCreateInput = {
+    id?: number
+    userId: number
+    month: number
+    year: number
+    basicPay?: number
+    hra?: number
+    conveyance?: number
+    medicalAllowance?: number
+    specialAllowance?: number
+    otherAllowances?: number
+    grossPay?: number
+    pf?: number
+    esi?: number
+    professionalTax?: number
+    tds?: number
+    otherDeductions?: number
+    netPay?: number
+    bonus?: number
+    reduction?: number
+    invoiceNumber?: string | null
+    attendanceDays?: number
+    paidDays?: number
+    status?: string
+    paymentDate?: Date | string | null
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffSalaryUpdateInput = {
+    month?: IntFieldUpdateOperationsInput | number
+    year?: IntFieldUpdateOperationsInput | number
+    basicPay?: FloatFieldUpdateOperationsInput | number
+    hra?: FloatFieldUpdateOperationsInput | number
+    conveyance?: FloatFieldUpdateOperationsInput | number
+    medicalAllowance?: FloatFieldUpdateOperationsInput | number
+    specialAllowance?: FloatFieldUpdateOperationsInput | number
+    otherAllowances?: FloatFieldUpdateOperationsInput | number
+    grossPay?: FloatFieldUpdateOperationsInput | number
+    pf?: FloatFieldUpdateOperationsInput | number
+    esi?: FloatFieldUpdateOperationsInput | number
+    professionalTax?: FloatFieldUpdateOperationsInput | number
+    tds?: FloatFieldUpdateOperationsInput | number
+    otherDeductions?: FloatFieldUpdateOperationsInput | number
+    netPay?: FloatFieldUpdateOperationsInput | number
+    bonus?: FloatFieldUpdateOperationsInput | number
+    reduction?: FloatFieldUpdateOperationsInput | number
+    invoiceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    attendanceDays?: IntFieldUpdateOperationsInput | number
+    paidDays?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSalaryRecordsNestedInput
+  }
+
+  export type StaffSalaryUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    month?: IntFieldUpdateOperationsInput | number
+    year?: IntFieldUpdateOperationsInput | number
+    basicPay?: FloatFieldUpdateOperationsInput | number
+    hra?: FloatFieldUpdateOperationsInput | number
+    conveyance?: FloatFieldUpdateOperationsInput | number
+    medicalAllowance?: FloatFieldUpdateOperationsInput | number
+    specialAllowance?: FloatFieldUpdateOperationsInput | number
+    otherAllowances?: FloatFieldUpdateOperationsInput | number
+    grossPay?: FloatFieldUpdateOperationsInput | number
+    pf?: FloatFieldUpdateOperationsInput | number
+    esi?: FloatFieldUpdateOperationsInput | number
+    professionalTax?: FloatFieldUpdateOperationsInput | number
+    tds?: FloatFieldUpdateOperationsInput | number
+    otherDeductions?: FloatFieldUpdateOperationsInput | number
+    netPay?: FloatFieldUpdateOperationsInput | number
+    bonus?: FloatFieldUpdateOperationsInput | number
+    reduction?: FloatFieldUpdateOperationsInput | number
+    invoiceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    attendanceDays?: IntFieldUpdateOperationsInput | number
+    paidDays?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffSalaryCreateManyInput = {
+    id?: number
+    userId: number
+    month: number
+    year: number
+    basicPay?: number
+    hra?: number
+    conveyance?: number
+    medicalAllowance?: number
+    specialAllowance?: number
+    otherAllowances?: number
+    grossPay?: number
+    pf?: number
+    esi?: number
+    professionalTax?: number
+    tds?: number
+    otherDeductions?: number
+    netPay?: number
+    bonus?: number
+    reduction?: number
+    invoiceNumber?: string | null
+    attendanceDays?: number
+    paidDays?: number
+    status?: string
+    paymentDate?: Date | string | null
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffSalaryUpdateManyMutationInput = {
+    month?: IntFieldUpdateOperationsInput | number
+    year?: IntFieldUpdateOperationsInput | number
+    basicPay?: FloatFieldUpdateOperationsInput | number
+    hra?: FloatFieldUpdateOperationsInput | number
+    conveyance?: FloatFieldUpdateOperationsInput | number
+    medicalAllowance?: FloatFieldUpdateOperationsInput | number
+    specialAllowance?: FloatFieldUpdateOperationsInput | number
+    otherAllowances?: FloatFieldUpdateOperationsInput | number
+    grossPay?: FloatFieldUpdateOperationsInput | number
+    pf?: FloatFieldUpdateOperationsInput | number
+    esi?: FloatFieldUpdateOperationsInput | number
+    professionalTax?: FloatFieldUpdateOperationsInput | number
+    tds?: FloatFieldUpdateOperationsInput | number
+    otherDeductions?: FloatFieldUpdateOperationsInput | number
+    netPay?: FloatFieldUpdateOperationsInput | number
+    bonus?: FloatFieldUpdateOperationsInput | number
+    reduction?: FloatFieldUpdateOperationsInput | number
+    invoiceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    attendanceDays?: IntFieldUpdateOperationsInput | number
+    paidDays?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffSalaryUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    month?: IntFieldUpdateOperationsInput | number
+    year?: IntFieldUpdateOperationsInput | number
+    basicPay?: FloatFieldUpdateOperationsInput | number
+    hra?: FloatFieldUpdateOperationsInput | number
+    conveyance?: FloatFieldUpdateOperationsInput | number
+    medicalAllowance?: FloatFieldUpdateOperationsInput | number
+    specialAllowance?: FloatFieldUpdateOperationsInput | number
+    otherAllowances?: FloatFieldUpdateOperationsInput | number
+    grossPay?: FloatFieldUpdateOperationsInput | number
+    pf?: FloatFieldUpdateOperationsInput | number
+    esi?: FloatFieldUpdateOperationsInput | number
+    professionalTax?: FloatFieldUpdateOperationsInput | number
+    tds?: FloatFieldUpdateOperationsInput | number
+    otherDeductions?: FloatFieldUpdateOperationsInput | number
+    netPay?: FloatFieldUpdateOperationsInput | number
+    bonus?: FloatFieldUpdateOperationsInput | number
+    reduction?: FloatFieldUpdateOperationsInput | number
+    invoiceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    attendanceDays?: IntFieldUpdateOperationsInput | number
+    paidDays?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LeaveBalanceCreateInput = {
     earnedLeave?: number
     sickLeave?: number
@@ -52331,6 +55518,18 @@ export namespace Prisma {
     none?: HousekeepingTaskInstanceWhereInput
   }
 
+  export type StaffAttendanceListRelationFilter = {
+    every?: StaffAttendanceWhereInput
+    some?: StaffAttendanceWhereInput
+    none?: StaffAttendanceWhereInput
+  }
+
+  export type StaffSalaryListRelationFilter = {
+    every?: StaffSalaryWhereInput
+    some?: StaffSalaryWhereInput
+    none?: StaffSalaryWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -52369,6 +55568,14 @@ export namespace Prisma {
   }
 
   export type HousekeepingTaskInstanceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type StaffAttendanceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type StaffSalaryOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -54396,6 +57603,206 @@ export namespace Prisma {
     reviewedById?: SortOrder
   }
 
+  export type StaffAttendanceUserIdDateCompoundUniqueInput = {
+    userId: number
+    date: Date | string
+  }
+
+  export type StaffAttendanceCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    date?: SortOrder
+    checkIn?: SortOrder
+    checkOut?: SortOrder
+    status?: SortOrder
+    overtimeHours?: SortOrder
+    remarks?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaffAttendanceAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    overtimeHours?: SortOrder
+  }
+
+  export type StaffAttendanceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    date?: SortOrder
+    checkIn?: SortOrder
+    checkOut?: SortOrder
+    status?: SortOrder
+    overtimeHours?: SortOrder
+    remarks?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaffAttendanceMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    date?: SortOrder
+    checkIn?: SortOrder
+    checkOut?: SortOrder
+    status?: SortOrder
+    overtimeHours?: SortOrder
+    remarks?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaffAttendanceSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    overtimeHours?: SortOrder
+  }
+
+  export type StaffSalaryUserIdMonthYearCompoundUniqueInput = {
+    userId: number
+    month: number
+    year: number
+  }
+
+  export type StaffSalaryCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    month?: SortOrder
+    year?: SortOrder
+    basicPay?: SortOrder
+    hra?: SortOrder
+    conveyance?: SortOrder
+    medicalAllowance?: SortOrder
+    specialAllowance?: SortOrder
+    otherAllowances?: SortOrder
+    grossPay?: SortOrder
+    pf?: SortOrder
+    esi?: SortOrder
+    professionalTax?: SortOrder
+    tds?: SortOrder
+    otherDeductions?: SortOrder
+    netPay?: SortOrder
+    bonus?: SortOrder
+    reduction?: SortOrder
+    invoiceNumber?: SortOrder
+    attendanceDays?: SortOrder
+    paidDays?: SortOrder
+    status?: SortOrder
+    paymentDate?: SortOrder
+    remarks?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaffSalaryAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    month?: SortOrder
+    year?: SortOrder
+    basicPay?: SortOrder
+    hra?: SortOrder
+    conveyance?: SortOrder
+    medicalAllowance?: SortOrder
+    specialAllowance?: SortOrder
+    otherAllowances?: SortOrder
+    grossPay?: SortOrder
+    pf?: SortOrder
+    esi?: SortOrder
+    professionalTax?: SortOrder
+    tds?: SortOrder
+    otherDeductions?: SortOrder
+    netPay?: SortOrder
+    bonus?: SortOrder
+    reduction?: SortOrder
+    attendanceDays?: SortOrder
+    paidDays?: SortOrder
+  }
+
+  export type StaffSalaryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    month?: SortOrder
+    year?: SortOrder
+    basicPay?: SortOrder
+    hra?: SortOrder
+    conveyance?: SortOrder
+    medicalAllowance?: SortOrder
+    specialAllowance?: SortOrder
+    otherAllowances?: SortOrder
+    grossPay?: SortOrder
+    pf?: SortOrder
+    esi?: SortOrder
+    professionalTax?: SortOrder
+    tds?: SortOrder
+    otherDeductions?: SortOrder
+    netPay?: SortOrder
+    bonus?: SortOrder
+    reduction?: SortOrder
+    invoiceNumber?: SortOrder
+    attendanceDays?: SortOrder
+    paidDays?: SortOrder
+    status?: SortOrder
+    paymentDate?: SortOrder
+    remarks?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaffSalaryMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    month?: SortOrder
+    year?: SortOrder
+    basicPay?: SortOrder
+    hra?: SortOrder
+    conveyance?: SortOrder
+    medicalAllowance?: SortOrder
+    specialAllowance?: SortOrder
+    otherAllowances?: SortOrder
+    grossPay?: SortOrder
+    pf?: SortOrder
+    esi?: SortOrder
+    professionalTax?: SortOrder
+    tds?: SortOrder
+    otherDeductions?: SortOrder
+    netPay?: SortOrder
+    bonus?: SortOrder
+    reduction?: SortOrder
+    invoiceNumber?: SortOrder
+    attendanceDays?: SortOrder
+    paidDays?: SortOrder
+    status?: SortOrder
+    paymentDate?: SortOrder
+    remarks?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaffSalarySumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    month?: SortOrder
+    year?: SortOrder
+    basicPay?: SortOrder
+    hra?: SortOrder
+    conveyance?: SortOrder
+    medicalAllowance?: SortOrder
+    specialAllowance?: SortOrder
+    otherAllowances?: SortOrder
+    grossPay?: SortOrder
+    pf?: SortOrder
+    esi?: SortOrder
+    professionalTax?: SortOrder
+    tds?: SortOrder
+    otherDeductions?: SortOrder
+    netPay?: SortOrder
+    bonus?: SortOrder
+    reduction?: SortOrder
+    attendanceDays?: SortOrder
+    paidDays?: SortOrder
+  }
+
   export type LeaveBalanceCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -54847,6 +58254,20 @@ export namespace Prisma {
     connect?: HousekeepingTaskInstanceWhereUniqueInput | HousekeepingTaskInstanceWhereUniqueInput[]
   }
 
+  export type StaffAttendanceCreateNestedManyWithoutUserInput = {
+    create?: XOR<StaffAttendanceCreateWithoutUserInput, StaffAttendanceUncheckedCreateWithoutUserInput> | StaffAttendanceCreateWithoutUserInput[] | StaffAttendanceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffAttendanceCreateOrConnectWithoutUserInput | StaffAttendanceCreateOrConnectWithoutUserInput[]
+    createMany?: StaffAttendanceCreateManyUserInputEnvelope
+    connect?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+  }
+
+  export type StaffSalaryCreateNestedManyWithoutUserInput = {
+    create?: XOR<StaffSalaryCreateWithoutUserInput, StaffSalaryUncheckedCreateWithoutUserInput> | StaffSalaryCreateWithoutUserInput[] | StaffSalaryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffSalaryCreateOrConnectWithoutUserInput | StaffSalaryCreateOrConnectWithoutUserInput[]
+    createMany?: StaffSalaryCreateManyUserInputEnvelope
+    connect?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+  }
+
   export type AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput = {
     create?: XOR<AnnouncementCreateWithoutCreatedByInput, AnnouncementUncheckedCreateWithoutCreatedByInput> | AnnouncementCreateWithoutCreatedByInput[] | AnnouncementUncheckedCreateWithoutCreatedByInput[]
     connectOrCreate?: AnnouncementCreateOrConnectWithoutCreatedByInput | AnnouncementCreateOrConnectWithoutCreatedByInput[]
@@ -54915,6 +58336,20 @@ export namespace Prisma {
     connectOrCreate?: HousekeepingTaskInstanceCreateOrConnectWithoutEmployeeInput | HousekeepingTaskInstanceCreateOrConnectWithoutEmployeeInput[]
     createMany?: HousekeepingTaskInstanceCreateManyEmployeeInputEnvelope
     connect?: HousekeepingTaskInstanceWhereUniqueInput | HousekeepingTaskInstanceWhereUniqueInput[]
+  }
+
+  export type StaffAttendanceUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<StaffAttendanceCreateWithoutUserInput, StaffAttendanceUncheckedCreateWithoutUserInput> | StaffAttendanceCreateWithoutUserInput[] | StaffAttendanceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffAttendanceCreateOrConnectWithoutUserInput | StaffAttendanceCreateOrConnectWithoutUserInput[]
+    createMany?: StaffAttendanceCreateManyUserInputEnvelope
+    connect?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+  }
+
+  export type StaffSalaryUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<StaffSalaryCreateWithoutUserInput, StaffSalaryUncheckedCreateWithoutUserInput> | StaffSalaryCreateWithoutUserInput[] | StaffSalaryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffSalaryCreateOrConnectWithoutUserInput | StaffSalaryCreateOrConnectWithoutUserInput[]
+    createMany?: StaffSalaryCreateManyUserInputEnvelope
+    connect?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -55099,6 +58534,34 @@ export namespace Prisma {
     deleteMany?: HousekeepingTaskInstanceScalarWhereInput | HousekeepingTaskInstanceScalarWhereInput[]
   }
 
+  export type StaffAttendanceUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StaffAttendanceCreateWithoutUserInput, StaffAttendanceUncheckedCreateWithoutUserInput> | StaffAttendanceCreateWithoutUserInput[] | StaffAttendanceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffAttendanceCreateOrConnectWithoutUserInput | StaffAttendanceCreateOrConnectWithoutUserInput[]
+    upsert?: StaffAttendanceUpsertWithWhereUniqueWithoutUserInput | StaffAttendanceUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StaffAttendanceCreateManyUserInputEnvelope
+    set?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    disconnect?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    delete?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    connect?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    update?: StaffAttendanceUpdateWithWhereUniqueWithoutUserInput | StaffAttendanceUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StaffAttendanceUpdateManyWithWhereWithoutUserInput | StaffAttendanceUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StaffAttendanceScalarWhereInput | StaffAttendanceScalarWhereInput[]
+  }
+
+  export type StaffSalaryUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StaffSalaryCreateWithoutUserInput, StaffSalaryUncheckedCreateWithoutUserInput> | StaffSalaryCreateWithoutUserInput[] | StaffSalaryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffSalaryCreateOrConnectWithoutUserInput | StaffSalaryCreateOrConnectWithoutUserInput[]
+    upsert?: StaffSalaryUpsertWithWhereUniqueWithoutUserInput | StaffSalaryUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StaffSalaryCreateManyUserInputEnvelope
+    set?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    disconnect?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    delete?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    connect?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    update?: StaffSalaryUpdateWithWhereUniqueWithoutUserInput | StaffSalaryUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StaffSalaryUpdateManyWithWhereWithoutUserInput | StaffSalaryUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StaffSalaryScalarWhereInput | StaffSalaryScalarWhereInput[]
+  }
+
   export type AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput = {
     create?: XOR<AnnouncementCreateWithoutCreatedByInput, AnnouncementUncheckedCreateWithoutCreatedByInput> | AnnouncementCreateWithoutCreatedByInput[] | AnnouncementUncheckedCreateWithoutCreatedByInput[]
     connectOrCreate?: AnnouncementCreateOrConnectWithoutCreatedByInput | AnnouncementCreateOrConnectWithoutCreatedByInput[]
@@ -55237,6 +58700,34 @@ export namespace Prisma {
     update?: HousekeepingTaskInstanceUpdateWithWhereUniqueWithoutEmployeeInput | HousekeepingTaskInstanceUpdateWithWhereUniqueWithoutEmployeeInput[]
     updateMany?: HousekeepingTaskInstanceUpdateManyWithWhereWithoutEmployeeInput | HousekeepingTaskInstanceUpdateManyWithWhereWithoutEmployeeInput[]
     deleteMany?: HousekeepingTaskInstanceScalarWhereInput | HousekeepingTaskInstanceScalarWhereInput[]
+  }
+
+  export type StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StaffAttendanceCreateWithoutUserInput, StaffAttendanceUncheckedCreateWithoutUserInput> | StaffAttendanceCreateWithoutUserInput[] | StaffAttendanceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffAttendanceCreateOrConnectWithoutUserInput | StaffAttendanceCreateOrConnectWithoutUserInput[]
+    upsert?: StaffAttendanceUpsertWithWhereUniqueWithoutUserInput | StaffAttendanceUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StaffAttendanceCreateManyUserInputEnvelope
+    set?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    disconnect?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    delete?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    connect?: StaffAttendanceWhereUniqueInput | StaffAttendanceWhereUniqueInput[]
+    update?: StaffAttendanceUpdateWithWhereUniqueWithoutUserInput | StaffAttendanceUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StaffAttendanceUpdateManyWithWhereWithoutUserInput | StaffAttendanceUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StaffAttendanceScalarWhereInput | StaffAttendanceScalarWhereInput[]
+  }
+
+  export type StaffSalaryUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StaffSalaryCreateWithoutUserInput, StaffSalaryUncheckedCreateWithoutUserInput> | StaffSalaryCreateWithoutUserInput[] | StaffSalaryUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StaffSalaryCreateOrConnectWithoutUserInput | StaffSalaryCreateOrConnectWithoutUserInput[]
+    upsert?: StaffSalaryUpsertWithWhereUniqueWithoutUserInput | StaffSalaryUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StaffSalaryCreateManyUserInputEnvelope
+    set?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    disconnect?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    delete?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    connect?: StaffSalaryWhereUniqueInput | StaffSalaryWhereUniqueInput[]
+    update?: StaffSalaryUpdateWithWhereUniqueWithoutUserInput | StaffSalaryUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StaffSalaryUpdateManyWithWhereWithoutUserInput | StaffSalaryUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StaffSalaryScalarWhereInput | StaffSalaryScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutStaffProfileInput = {
@@ -56983,6 +60474,34 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReviewedLeavesInput, UserUpdateWithoutReviewedLeavesInput>, UserUncheckedUpdateWithoutReviewedLeavesInput>
   }
 
+  export type UserCreateNestedOneWithoutAttendanceRecordsInput = {
+    create?: XOR<UserCreateWithoutAttendanceRecordsInput, UserUncheckedCreateWithoutAttendanceRecordsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAttendanceRecordsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutAttendanceRecordsNestedInput = {
+    create?: XOR<UserCreateWithoutAttendanceRecordsInput, UserUncheckedCreateWithoutAttendanceRecordsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAttendanceRecordsInput
+    upsert?: UserUpsertWithoutAttendanceRecordsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAttendanceRecordsInput, UserUpdateWithoutAttendanceRecordsInput>, UserUncheckedUpdateWithoutAttendanceRecordsInput>
+  }
+
+  export type UserCreateNestedOneWithoutSalaryRecordsInput = {
+    create?: XOR<UserCreateWithoutSalaryRecordsInput, UserUncheckedCreateWithoutSalaryRecordsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSalaryRecordsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutSalaryRecordsNestedInput = {
+    create?: XOR<UserCreateWithoutSalaryRecordsInput, UserUncheckedCreateWithoutSalaryRecordsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSalaryRecordsInput
+    upsert?: UserUpsertWithoutSalaryRecordsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSalaryRecordsInput, UserUpdateWithoutSalaryRecordsInput>, UserUncheckedUpdateWithoutSalaryRecordsInput>
+  }
+
   export type UserCreateNestedOneWithoutLeaveBalancesInput = {
     create?: XOR<UserCreateWithoutLeaveBalancesInput, UserUncheckedCreateWithoutLeaveBalancesInput>
     connectOrCreate?: UserCreateOrConnectWithoutLeaveBalancesInput
@@ -57397,6 +60916,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRoleInput = {
@@ -57425,6 +60946,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRoleInput = {
@@ -57842,6 +61365,104 @@ export namespace Prisma {
     data: HousekeepingTaskInstanceCreateManyEmployeeInput | HousekeepingTaskInstanceCreateManyEmployeeInput[]
   }
 
+  export type StaffAttendanceCreateWithoutUserInput = {
+    date: Date | string
+    checkIn?: Date | string | null
+    checkOut?: Date | string | null
+    status?: string
+    overtimeHours?: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffAttendanceUncheckedCreateWithoutUserInput = {
+    id?: number
+    date: Date | string
+    checkIn?: Date | string | null
+    checkOut?: Date | string | null
+    status?: string
+    overtimeHours?: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffAttendanceCreateOrConnectWithoutUserInput = {
+    where: StaffAttendanceWhereUniqueInput
+    create: XOR<StaffAttendanceCreateWithoutUserInput, StaffAttendanceUncheckedCreateWithoutUserInput>
+  }
+
+  export type StaffAttendanceCreateManyUserInputEnvelope = {
+    data: StaffAttendanceCreateManyUserInput | StaffAttendanceCreateManyUserInput[]
+  }
+
+  export type StaffSalaryCreateWithoutUserInput = {
+    month: number
+    year: number
+    basicPay?: number
+    hra?: number
+    conveyance?: number
+    medicalAllowance?: number
+    specialAllowance?: number
+    otherAllowances?: number
+    grossPay?: number
+    pf?: number
+    esi?: number
+    professionalTax?: number
+    tds?: number
+    otherDeductions?: number
+    netPay?: number
+    bonus?: number
+    reduction?: number
+    invoiceNumber?: string | null
+    attendanceDays?: number
+    paidDays?: number
+    status?: string
+    paymentDate?: Date | string | null
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffSalaryUncheckedCreateWithoutUserInput = {
+    id?: number
+    month: number
+    year: number
+    basicPay?: number
+    hra?: number
+    conveyance?: number
+    medicalAllowance?: number
+    specialAllowance?: number
+    otherAllowances?: number
+    grossPay?: number
+    pf?: number
+    esi?: number
+    professionalTax?: number
+    tds?: number
+    otherDeductions?: number
+    netPay?: number
+    bonus?: number
+    reduction?: number
+    invoiceNumber?: string | null
+    attendanceDays?: number
+    paidDays?: number
+    status?: string
+    paymentDate?: Date | string | null
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffSalaryCreateOrConnectWithoutUserInput = {
+    where: StaffSalaryWhereUniqueInput
+    create: XOR<StaffSalaryCreateWithoutUserInput, StaffSalaryUncheckedCreateWithoutUserInput>
+  }
+
+  export type StaffSalaryCreateManyUserInputEnvelope = {
+    data: StaffSalaryCreateManyUserInput | StaffSalaryCreateManyUserInput[]
+  }
+
   export type AnnouncementUpsertWithWhereUniqueWithoutCreatedByInput = {
     where: AnnouncementWhereUniqueInput
     update: XOR<AnnouncementUpdateWithoutCreatedByInput, AnnouncementUncheckedUpdateWithoutCreatedByInput>
@@ -58199,6 +61820,87 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"HousekeepingTaskInstance"> | Date | string
   }
 
+  export type StaffAttendanceUpsertWithWhereUniqueWithoutUserInput = {
+    where: StaffAttendanceWhereUniqueInput
+    update: XOR<StaffAttendanceUpdateWithoutUserInput, StaffAttendanceUncheckedUpdateWithoutUserInput>
+    create: XOR<StaffAttendanceCreateWithoutUserInput, StaffAttendanceUncheckedCreateWithoutUserInput>
+  }
+
+  export type StaffAttendanceUpdateWithWhereUniqueWithoutUserInput = {
+    where: StaffAttendanceWhereUniqueInput
+    data: XOR<StaffAttendanceUpdateWithoutUserInput, StaffAttendanceUncheckedUpdateWithoutUserInput>
+  }
+
+  export type StaffAttendanceUpdateManyWithWhereWithoutUserInput = {
+    where: StaffAttendanceScalarWhereInput
+    data: XOR<StaffAttendanceUpdateManyMutationInput, StaffAttendanceUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type StaffAttendanceScalarWhereInput = {
+    AND?: StaffAttendanceScalarWhereInput | StaffAttendanceScalarWhereInput[]
+    OR?: StaffAttendanceScalarWhereInput[]
+    NOT?: StaffAttendanceScalarWhereInput | StaffAttendanceScalarWhereInput[]
+    id?: IntFilter<"StaffAttendance"> | number
+    userId?: IntFilter<"StaffAttendance"> | number
+    date?: DateTimeFilter<"StaffAttendance"> | Date | string
+    checkIn?: DateTimeNullableFilter<"StaffAttendance"> | Date | string | null
+    checkOut?: DateTimeNullableFilter<"StaffAttendance"> | Date | string | null
+    status?: StringFilter<"StaffAttendance"> | string
+    overtimeHours?: FloatFilter<"StaffAttendance"> | number
+    remarks?: StringNullableFilter<"StaffAttendance"> | string | null
+    createdAt?: DateTimeFilter<"StaffAttendance"> | Date | string
+    updatedAt?: DateTimeFilter<"StaffAttendance"> | Date | string
+  }
+
+  export type StaffSalaryUpsertWithWhereUniqueWithoutUserInput = {
+    where: StaffSalaryWhereUniqueInput
+    update: XOR<StaffSalaryUpdateWithoutUserInput, StaffSalaryUncheckedUpdateWithoutUserInput>
+    create: XOR<StaffSalaryCreateWithoutUserInput, StaffSalaryUncheckedCreateWithoutUserInput>
+  }
+
+  export type StaffSalaryUpdateWithWhereUniqueWithoutUserInput = {
+    where: StaffSalaryWhereUniqueInput
+    data: XOR<StaffSalaryUpdateWithoutUserInput, StaffSalaryUncheckedUpdateWithoutUserInput>
+  }
+
+  export type StaffSalaryUpdateManyWithWhereWithoutUserInput = {
+    where: StaffSalaryScalarWhereInput
+    data: XOR<StaffSalaryUpdateManyMutationInput, StaffSalaryUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type StaffSalaryScalarWhereInput = {
+    AND?: StaffSalaryScalarWhereInput | StaffSalaryScalarWhereInput[]
+    OR?: StaffSalaryScalarWhereInput[]
+    NOT?: StaffSalaryScalarWhereInput | StaffSalaryScalarWhereInput[]
+    id?: IntFilter<"StaffSalary"> | number
+    userId?: IntFilter<"StaffSalary"> | number
+    month?: IntFilter<"StaffSalary"> | number
+    year?: IntFilter<"StaffSalary"> | number
+    basicPay?: FloatFilter<"StaffSalary"> | number
+    hra?: FloatFilter<"StaffSalary"> | number
+    conveyance?: FloatFilter<"StaffSalary"> | number
+    medicalAllowance?: FloatFilter<"StaffSalary"> | number
+    specialAllowance?: FloatFilter<"StaffSalary"> | number
+    otherAllowances?: FloatFilter<"StaffSalary"> | number
+    grossPay?: FloatFilter<"StaffSalary"> | number
+    pf?: FloatFilter<"StaffSalary"> | number
+    esi?: FloatFilter<"StaffSalary"> | number
+    professionalTax?: FloatFilter<"StaffSalary"> | number
+    tds?: FloatFilter<"StaffSalary"> | number
+    otherDeductions?: FloatFilter<"StaffSalary"> | number
+    netPay?: FloatFilter<"StaffSalary"> | number
+    bonus?: FloatFilter<"StaffSalary"> | number
+    reduction?: FloatFilter<"StaffSalary"> | number
+    invoiceNumber?: StringNullableFilter<"StaffSalary"> | string | null
+    attendanceDays?: IntFilter<"StaffSalary"> | number
+    paidDays?: IntFilter<"StaffSalary"> | number
+    status?: StringFilter<"StaffSalary"> | string
+    paymentDate?: DateTimeNullableFilter<"StaffSalary"> | Date | string | null
+    remarks?: StringNullableFilter<"StaffSalary"> | string | null
+    createdAt?: DateTimeFilter<"StaffSalary"> | Date | string
+    updatedAt?: DateTimeFilter<"StaffSalary"> | Date | string
+  }
+
   export type UserCreateWithoutStaffProfileInput = {
     email: string
     password: string
@@ -58224,6 +61926,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutStaffProfileInput = {
@@ -58252,6 +61956,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutStaffProfileInput = {
@@ -58295,6 +62001,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStaffProfileInput = {
@@ -58323,6 +62031,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AccessLogCreateWithoutMemberInput = {
@@ -59619,6 +63329,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAmcRequestsInput = {
@@ -59647,6 +63359,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAmcRequestsInput = {
@@ -59852,6 +63566,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAmcRequestsInput = {
@@ -59880,6 +63596,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ReservationCreateWithoutActivityInput = {
@@ -60109,6 +63827,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutProcessedUnenrollmentsInput = {
@@ -60137,6 +63857,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutProcessedUnenrollmentsInput = {
@@ -60342,6 +64064,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProcessedUnenrollmentsInput = {
@@ -60370,6 +64094,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type MemberCreateWithoutReservationsInput = {
@@ -62141,6 +65867,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPaymentsInput = {
@@ -62169,6 +65897,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPaymentsInput = {
@@ -62254,6 +65984,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPaymentsInput = {
@@ -62282,6 +66014,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type InvoiceUpsertWithoutPaymentsInput = {
@@ -64463,6 +68197,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAnnouncementsInput = {
@@ -64491,6 +68227,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAnnouncementsInput = {
@@ -64534,6 +68272,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAnnouncementsInput = {
@@ -64562,6 +68302,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type MaintenanceLogCreateWithoutAssetInput = {
@@ -65175,6 +68917,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSystemLocksInput = {
@@ -65203,6 +68947,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSystemLocksInput = {
@@ -65246,6 +68992,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSystemLocksInput = {
@@ -65274,6 +69022,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutLeaveApplicationsInput = {
@@ -65301,6 +69051,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutLeaveApplicationsInput = {
@@ -65329,6 +69081,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutLeaveApplicationsInput = {
@@ -65361,6 +69115,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutReviewedLeavesInput = {
@@ -65389,6 +69145,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutReviewedLeavesInput = {
@@ -65432,6 +69190,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutLeaveApplicationsInput = {
@@ -65460,6 +69220,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutReviewedLeavesInput = {
@@ -65498,6 +69260,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReviewedLeavesInput = {
@@ -65526,6 +69290,276 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutAttendanceRecordsInput = {
+    email: string
+    password: string
+    name: string
+    status?: string
+    locked?: boolean
+    pin?: string | null
+    defaultCheckIn?: string | null
+    monthlySalary?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    authUserId?: string | null
+    resetPasswordToken?: string | null
+    resetPasswordExpires?: Date | string | null
+    announcements?: AnnouncementCreateNestedManyWithoutCreatedByInput
+    payments?: PaymentCreateNestedManyWithoutReceivedByInput
+    systemLocks?: SystemStatusCreateNestedManyWithoutLockedByInput
+    role: RoleCreateNestedOneWithoutUsersInput
+    amcRequests?: AMCPaymentRequestCreateNestedManyWithoutProcessedByInput
+    processedUnenrollments?: UnenrollmentRequestCreateNestedManyWithoutProcessedByInput
+    staffProfile?: staffCreateNestedOneWithoutSystemUserInput
+    leaveApplications?: StaffLeaveCreateNestedManyWithoutUserInput
+    reviewedLeaves?: StaffLeaveCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
+    housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
+    housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutAttendanceRecordsInput = {
+    id?: number
+    email: string
+    password: string
+    name: string
+    roleId: number
+    status?: string
+    locked?: boolean
+    pin?: string | null
+    defaultCheckIn?: string | null
+    monthlySalary?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    authUserId?: string | null
+    resetPasswordToken?: string | null
+    resetPasswordExpires?: Date | string | null
+    staffProfileId?: string | null
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutReceivedByInput
+    systemLocks?: SystemStatusUncheckedCreateNestedManyWithoutLockedByInput
+    amcRequests?: AMCPaymentRequestUncheckedCreateNestedManyWithoutProcessedByInput
+    processedUnenrollments?: UnenrollmentRequestUncheckedCreateNestedManyWithoutProcessedByInput
+    leaveApplications?: StaffLeaveUncheckedCreateNestedManyWithoutUserInput
+    reviewedLeaves?: StaffLeaveUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
+    housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+    housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutAttendanceRecordsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAttendanceRecordsInput, UserUncheckedCreateWithoutAttendanceRecordsInput>
+  }
+
+  export type UserUpsertWithoutAttendanceRecordsInput = {
+    update: XOR<UserUpdateWithoutAttendanceRecordsInput, UserUncheckedUpdateWithoutAttendanceRecordsInput>
+    create: XOR<UserCreateWithoutAttendanceRecordsInput, UserUncheckedCreateWithoutAttendanceRecordsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAttendanceRecordsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAttendanceRecordsInput, UserUncheckedUpdateWithoutAttendanceRecordsInput>
+  }
+
+  export type UserUpdateWithoutAttendanceRecordsInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    pin?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultCheckIn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlySalary?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    authUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    announcements?: AnnouncementUpdateManyWithoutCreatedByNestedInput
+    payments?: PaymentUpdateManyWithoutReceivedByNestedInput
+    systemLocks?: SystemStatusUpdateManyWithoutLockedByNestedInput
+    role?: RoleUpdateOneRequiredWithoutUsersNestedInput
+    amcRequests?: AMCPaymentRequestUpdateManyWithoutProcessedByNestedInput
+    processedUnenrollments?: UnenrollmentRequestUpdateManyWithoutProcessedByNestedInput
+    staffProfile?: staffUpdateOneWithoutSystemUserNestedInput
+    leaveApplications?: StaffLeaveUpdateManyWithoutUserNestedInput
+    reviewedLeaves?: StaffLeaveUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
+    housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
+    housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAttendanceRecordsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    roleId?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    pin?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultCheckIn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlySalary?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    authUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    staffProfileId?: NullableStringFieldUpdateOperationsInput | string | null
+    announcements?: AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutReceivedByNestedInput
+    systemLocks?: SystemStatusUncheckedUpdateManyWithoutLockedByNestedInput
+    amcRequests?: AMCPaymentRequestUncheckedUpdateManyWithoutProcessedByNestedInput
+    processedUnenrollments?: UnenrollmentRequestUncheckedUpdateManyWithoutProcessedByNestedInput
+    leaveApplications?: StaffLeaveUncheckedUpdateManyWithoutUserNestedInput
+    reviewedLeaves?: StaffLeaveUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
+    housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+    housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutSalaryRecordsInput = {
+    email: string
+    password: string
+    name: string
+    status?: string
+    locked?: boolean
+    pin?: string | null
+    defaultCheckIn?: string | null
+    monthlySalary?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    authUserId?: string | null
+    resetPasswordToken?: string | null
+    resetPasswordExpires?: Date | string | null
+    announcements?: AnnouncementCreateNestedManyWithoutCreatedByInput
+    payments?: PaymentCreateNestedManyWithoutReceivedByInput
+    systemLocks?: SystemStatusCreateNestedManyWithoutLockedByInput
+    role: RoleCreateNestedOneWithoutUsersInput
+    amcRequests?: AMCPaymentRequestCreateNestedManyWithoutProcessedByInput
+    processedUnenrollments?: UnenrollmentRequestCreateNestedManyWithoutProcessedByInput
+    staffProfile?: staffCreateNestedOneWithoutSystemUserInput
+    leaveApplications?: StaffLeaveCreateNestedManyWithoutUserInput
+    reviewedLeaves?: StaffLeaveCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
+    housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
+    housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutSalaryRecordsInput = {
+    id?: number
+    email: string
+    password: string
+    name: string
+    roleId: number
+    status?: string
+    locked?: boolean
+    pin?: string | null
+    defaultCheckIn?: string | null
+    monthlySalary?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    authUserId?: string | null
+    resetPasswordToken?: string | null
+    resetPasswordExpires?: Date | string | null
+    staffProfileId?: string | null
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutReceivedByInput
+    systemLocks?: SystemStatusUncheckedCreateNestedManyWithoutLockedByInput
+    amcRequests?: AMCPaymentRequestUncheckedCreateNestedManyWithoutProcessedByInput
+    processedUnenrollments?: UnenrollmentRequestUncheckedCreateNestedManyWithoutProcessedByInput
+    leaveApplications?: StaffLeaveUncheckedCreateNestedManyWithoutUserInput
+    reviewedLeaves?: StaffLeaveUncheckedCreateNestedManyWithoutReviewedByInput
+    leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
+    housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+    housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutSalaryRecordsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSalaryRecordsInput, UserUncheckedCreateWithoutSalaryRecordsInput>
+  }
+
+  export type UserUpsertWithoutSalaryRecordsInput = {
+    update: XOR<UserUpdateWithoutSalaryRecordsInput, UserUncheckedUpdateWithoutSalaryRecordsInput>
+    create: XOR<UserCreateWithoutSalaryRecordsInput, UserUncheckedCreateWithoutSalaryRecordsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSalaryRecordsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSalaryRecordsInput, UserUncheckedUpdateWithoutSalaryRecordsInput>
+  }
+
+  export type UserUpdateWithoutSalaryRecordsInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    pin?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultCheckIn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlySalary?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    authUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    announcements?: AnnouncementUpdateManyWithoutCreatedByNestedInput
+    payments?: PaymentUpdateManyWithoutReceivedByNestedInput
+    systemLocks?: SystemStatusUpdateManyWithoutLockedByNestedInput
+    role?: RoleUpdateOneRequiredWithoutUsersNestedInput
+    amcRequests?: AMCPaymentRequestUpdateManyWithoutProcessedByNestedInput
+    processedUnenrollments?: UnenrollmentRequestUpdateManyWithoutProcessedByNestedInput
+    staffProfile?: staffUpdateOneWithoutSystemUserNestedInput
+    leaveApplications?: StaffLeaveUpdateManyWithoutUserNestedInput
+    reviewedLeaves?: StaffLeaveUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
+    housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
+    housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSalaryRecordsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    roleId?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    pin?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultCheckIn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlySalary?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    authUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    staffProfileId?: NullableStringFieldUpdateOperationsInput | string | null
+    announcements?: AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutReceivedByNestedInput
+    systemLocks?: SystemStatusUncheckedUpdateManyWithoutLockedByNestedInput
+    amcRequests?: AMCPaymentRequestUncheckedUpdateManyWithoutProcessedByNestedInput
+    processedUnenrollments?: UnenrollmentRequestUncheckedUpdateManyWithoutProcessedByNestedInput
+    leaveApplications?: StaffLeaveUncheckedUpdateManyWithoutUserNestedInput
+    reviewedLeaves?: StaffLeaveUncheckedUpdateManyWithoutReviewedByNestedInput
+    leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
+    housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+    housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutLeaveBalancesInput = {
@@ -65553,6 +69587,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveCreateNestedManyWithoutReviewedByInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutLeaveBalancesInput = {
@@ -65581,6 +69617,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUncheckedCreateNestedManyWithoutReviewedByInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutLeaveBalancesInput = {
@@ -65624,6 +69662,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUpdateManyWithoutReviewedByNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutLeaveBalancesInput = {
@@ -65652,6 +69692,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUncheckedUpdateManyWithoutReviewedByNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type HousekeepingTaskInstanceCreateWithoutTaskInput = {
@@ -65739,6 +69781,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveCreateNestedManyWithoutReviewedByInput
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingInstances?: HousekeepingTaskInstanceCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutHousekeepingAllocationsInput = {
@@ -65767,6 +69811,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUncheckedCreateNestedManyWithoutReviewedByInput
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutHousekeepingAllocationsInput = {
@@ -65854,6 +69900,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUpdateManyWithoutReviewedByNestedInput
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutHousekeepingAllocationsInput = {
@@ -65882,6 +69930,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUncheckedUpdateManyWithoutReviewedByNestedInput
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type HousekeepingTaskInstanceUpsertWithWhereUniqueWithoutAllocationInput = {
@@ -65985,6 +70035,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveCreateNestedManyWithoutReviewedByInput
     leaveBalances?: LeaveBalanceCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutHousekeepingInstancesInput = {
@@ -66013,6 +70065,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUncheckedCreateNestedManyWithoutReviewedByInput
     leaveBalances?: LeaveBalanceUncheckedCreateNestedManyWithoutUserInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+    attendanceRecords?: StaffAttendanceUncheckedCreateNestedManyWithoutUserInput
+    salaryRecords?: StaffSalaryUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutHousekeepingInstancesInput = {
@@ -66128,6 +70182,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUpdateManyWithoutReviewedByNestedInput
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutHousekeepingInstancesInput = {
@@ -66156,6 +70212,8 @@ export namespace Prisma {
     reviewedLeaves?: StaffLeaveUncheckedUpdateManyWithoutReviewedByNestedInput
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyRoleInput = {
@@ -66201,6 +70259,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRoleInput = {
@@ -66229,6 +70289,8 @@ export namespace Prisma {
     leaveBalances?: LeaveBalanceUncheckedUpdateManyWithoutUserNestedInput
     housekeepingAllocations?: HousekeepingAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
     housekeepingInstances?: HousekeepingTaskInstanceUncheckedUpdateManyWithoutEmployeeNestedInput
+    attendanceRecords?: StaffAttendanceUncheckedUpdateManyWithoutUserNestedInput
+    salaryRecords?: StaffSalaryUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutRoleInput = {
@@ -66367,6 +70429,47 @@ export namespace Prisma {
     completedAt?: Date | string | null
     remarks?: string | null
     photoUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffAttendanceCreateManyUserInput = {
+    id?: number
+    date: Date | string
+    checkIn?: Date | string | null
+    checkOut?: Date | string | null
+    status?: string
+    overtimeHours?: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaffSalaryCreateManyUserInput = {
+    id?: number
+    month: number
+    year: number
+    basicPay?: number
+    hra?: number
+    conveyance?: number
+    medicalAllowance?: number
+    specialAllowance?: number
+    otherAllowances?: number
+    grossPay?: number
+    pf?: number
+    esi?: number
+    professionalTax?: number
+    tds?: number
+    otherDeductions?: number
+    netPay?: number
+    bonus?: number
+    reduction?: number
+    invoiceNumber?: string | null
+    attendanceDays?: number
+    paidDays?: number
+    status?: string
+    paymentDate?: Date | string | null
+    remarks?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -66726,6 +70829,127 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffAttendanceUpdateWithoutUserInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    checkIn?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    overtimeHours?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffAttendanceUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    checkIn?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    overtimeHours?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffAttendanceUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    checkIn?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    overtimeHours?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffSalaryUpdateWithoutUserInput = {
+    month?: IntFieldUpdateOperationsInput | number
+    year?: IntFieldUpdateOperationsInput | number
+    basicPay?: FloatFieldUpdateOperationsInput | number
+    hra?: FloatFieldUpdateOperationsInput | number
+    conveyance?: FloatFieldUpdateOperationsInput | number
+    medicalAllowance?: FloatFieldUpdateOperationsInput | number
+    specialAllowance?: FloatFieldUpdateOperationsInput | number
+    otherAllowances?: FloatFieldUpdateOperationsInput | number
+    grossPay?: FloatFieldUpdateOperationsInput | number
+    pf?: FloatFieldUpdateOperationsInput | number
+    esi?: FloatFieldUpdateOperationsInput | number
+    professionalTax?: FloatFieldUpdateOperationsInput | number
+    tds?: FloatFieldUpdateOperationsInput | number
+    otherDeductions?: FloatFieldUpdateOperationsInput | number
+    netPay?: FloatFieldUpdateOperationsInput | number
+    bonus?: FloatFieldUpdateOperationsInput | number
+    reduction?: FloatFieldUpdateOperationsInput | number
+    invoiceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    attendanceDays?: IntFieldUpdateOperationsInput | number
+    paidDays?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffSalaryUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    month?: IntFieldUpdateOperationsInput | number
+    year?: IntFieldUpdateOperationsInput | number
+    basicPay?: FloatFieldUpdateOperationsInput | number
+    hra?: FloatFieldUpdateOperationsInput | number
+    conveyance?: FloatFieldUpdateOperationsInput | number
+    medicalAllowance?: FloatFieldUpdateOperationsInput | number
+    specialAllowance?: FloatFieldUpdateOperationsInput | number
+    otherAllowances?: FloatFieldUpdateOperationsInput | number
+    grossPay?: FloatFieldUpdateOperationsInput | number
+    pf?: FloatFieldUpdateOperationsInput | number
+    esi?: FloatFieldUpdateOperationsInput | number
+    professionalTax?: FloatFieldUpdateOperationsInput | number
+    tds?: FloatFieldUpdateOperationsInput | number
+    otherDeductions?: FloatFieldUpdateOperationsInput | number
+    netPay?: FloatFieldUpdateOperationsInput | number
+    bonus?: FloatFieldUpdateOperationsInput | number
+    reduction?: FloatFieldUpdateOperationsInput | number
+    invoiceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    attendanceDays?: IntFieldUpdateOperationsInput | number
+    paidDays?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaffSalaryUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    month?: IntFieldUpdateOperationsInput | number
+    year?: IntFieldUpdateOperationsInput | number
+    basicPay?: FloatFieldUpdateOperationsInput | number
+    hra?: FloatFieldUpdateOperationsInput | number
+    conveyance?: FloatFieldUpdateOperationsInput | number
+    medicalAllowance?: FloatFieldUpdateOperationsInput | number
+    specialAllowance?: FloatFieldUpdateOperationsInput | number
+    otherAllowances?: FloatFieldUpdateOperationsInput | number
+    grossPay?: FloatFieldUpdateOperationsInput | number
+    pf?: FloatFieldUpdateOperationsInput | number
+    esi?: FloatFieldUpdateOperationsInput | number
+    professionalTax?: FloatFieldUpdateOperationsInput | number
+    tds?: FloatFieldUpdateOperationsInput | number
+    otherDeductions?: FloatFieldUpdateOperationsInput | number
+    netPay?: FloatFieldUpdateOperationsInput | number
+    bonus?: FloatFieldUpdateOperationsInput | number
+    reduction?: FloatFieldUpdateOperationsInput | number
+    invoiceNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    attendanceDays?: IntFieldUpdateOperationsInput | number
+    paidDays?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -68367,6 +72591,14 @@ export namespace Prisma {
      * @deprecated Use StaffLeaveDefaultArgs instead
      */
     export type StaffLeaveArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StaffLeaveDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use StaffAttendanceDefaultArgs instead
+     */
+    export type StaffAttendanceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StaffAttendanceDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use StaffSalaryDefaultArgs instead
+     */
+    export type StaffSalaryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StaffSalaryDefaultArgs<ExtArgs>
     /**
      * @deprecated Use LeaveBalanceDefaultArgs instead
      */

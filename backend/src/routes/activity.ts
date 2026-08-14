@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission, authorizePermissionOrMember, AuthRequest } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 import { sendNewActivityEmail } from '../lib/email';
 
@@ -8,7 +8,7 @@ const router = express.Router();
 const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'RECEPTIONIST'];
 
 // Get all activities with current booking status
-router.get('/', authenticateToken, authorizePermission('activities', 'read'), async (req, res) => {
+router.get('/', authenticateToken, authorizePermissionOrMember('activities', 'read'), async (req, res) => {
   try {
     const activities = await prisma.activity.findMany({
       include: {

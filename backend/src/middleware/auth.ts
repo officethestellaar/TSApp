@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import cache from '../lib/cache';
 import prisma from '../lib/prisma';
+import { ROLE_SCREEN_MAP } from '../lib/screenDefaults';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
@@ -28,7 +29,8 @@ const actionFieldMap: Record<PermissionAction, string> = {
 /**
  * Middleware that checks if the authenticated user has a specific CRUD action
  * on a given screen. SUPER_ADMIN bypasses all checks.
- * Use AFTER authenticateToken.
+ * Role default screens (ROLE_SCREEN_MAP) grant a read-only baseline unless an
+ * explicit per-user permission exists. Use AFTER authenticateToken.
  */
 export const authorizePermission = (screenKey: string, action: PermissionAction) => {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -44,16 +46,39 @@ export const authorizePermission = (screenKey: string, action: PermissionAction)
         select: { [field]: true },
       });
 
-      if (!perm || !(perm as any)[field]) {
-        return res.status(403).json({
-          message: `You don't have ${action} permission on ${screenKey}`,
-        });
+      // Explicit per-user permission exists → enforce it (can grant OR revoke)
+      if (perm) {
+        if (!(perm as any)[field]) {
+          return res.status(403).json({
+            message: `You don't have ${action} permission on ${screenKey}`,
+          });
+        }
+        return next();
       }
 
-      next();
+      // Fall back to the role's default screens (read-only baseline)
+      const roleDefaults = ROLE_SCREEN_MAP[req.user.role] || [];
+      if (action === 'read' && roleDefaults.includes(screenKey)) {
+        return next();
+      }
+
+      return res.status(403).json({
+        message: `You don't have ${action} permission on ${screenKey}`,
+      });
     } catch {
       return res.status(500).json({ message: 'Internal server error' });
     }
+  };
+};
+
+/**
+ * Same as authorizePermission, but MEMBER-role users bypass the screen check.
+ * Used for member-facing read endpoints (activities, announcements, restaurant).
+ */
+export const authorizePermissionOrMember = (screenKey: string, action: PermissionAction) => {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (req.user?.role === 'MEMBER') return next();
+    return authorizePermission(screenKey, action)(req, res, next);
   };
 };
 

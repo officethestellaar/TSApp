@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authorizeRoles, authorizePermission, AuthRequest } from '../middleware/auth';
+import { authenticateToken, authorizeRoles, authorizePermission, authorizePermissionOrMember, AuthRequest } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 import { clearCachePattern } from '../lib/cache';
 import { createAuditLog } from '../lib/audit';
@@ -111,7 +111,7 @@ router.get('/my-table-reservations', authenticateToken, async (req: AuthRequest,
 });
 
 // Get all tables
-router.get('/tables', authenticateToken, authorizePermission('restaurant-pos', 'read'), async (req, res) => {
+router.get('/tables', authenticateToken, authorizePermissionOrMember('restaurant-pos', 'read'), async (req, res) => {
   try {
     const tables = await prisma.restaurantTable.findMany({
 
@@ -230,7 +230,7 @@ router.post('/order', authenticateToken, async (req: AuthRequest, res) => {
         data: {
           orderNumber: `KOT-${new Date().getFullYear()}-${1000 + count + 1}`,
           tableId,
-          memberId: providedMemberId || authUserId,
+          memberId: providedMemberId || null,
           affiliateId: affiliateId || null,
           paxCount,
           status: 'OPEN'

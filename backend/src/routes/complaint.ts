@@ -61,13 +61,24 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 
     const complaints = await prisma.complaint.findMany({
       where,
-      include: { 
-        member: { select: { nameAsAadhaar: true, membershipNumber: true } },
+      include: {
         _count: { select: { messages: true } }
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(complaints);
+    const memberIds = [...new Set(complaints.map(c => c.memberId))];
+    const members = memberIds.length
+      ? await prisma.member.findMany({
+          where: { id: { in: memberIds } },
+          select: { id: true, nameAsAadhaar: true, membershipNumber: true },
+        })
+      : [];
+    const memberMap = new Map(members.map(m => [m.id, m]));
+    const enriched = complaints.map(c => ({
+      ...c,
+      member: memberMap.get(c.memberId) || null,
+    }));
+    res.json(enriched);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -82,10 +93,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
     const complaint = await prisma.complaint.findUnique({
       where: { id: complaintId },
-      include: {
-        member: { select: { nameAsAadhaar: true, membershipNumber: true } },
-        messages: { orderBy: { createdAt: 'asc' } }
-      }
+      include: { messages: { orderBy: { createdAt: 'asc' } } }
     });
 
     if (!complaint) return res.status(404).json({ message: 'Complaint not found' });
@@ -95,7 +103,11 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(403).json({ message: 'Access denied to this concierge node' });
     }
 
-    res.json(complaint);
+    const owner = await prisma.member.findUnique({
+      where: { id: complaint.memberId },
+      select: { nameAsAadhaar: true, membershipNumber: true },
+    });
+    res.json({ ...complaint, member: owner || null });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }

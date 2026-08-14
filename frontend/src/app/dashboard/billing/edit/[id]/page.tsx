@@ -72,6 +72,10 @@ function EditInvoiceForm() {
   const roundOff = Number((total - rawTotal).toFixed(2));
 
   const handleSave = async () => {
+    if (isLocked) {
+      toast.error('This invoice is settled and locked.');
+      return;
+    }
     if (items.some(i => !i.description.trim())) {
       toast.error('Every item needs a description');
       return;
@@ -116,6 +120,7 @@ function EditInvoiceForm() {
   }
 
   const customerName = invoice?.member?.nameAsAadhaar || invoice?.walkInGuest?.name || 'Unknown';
+  const isLocked = invoice?.status === 'PAID' || invoice?.status === 'PENDING_APPROVAL';
 
   return (
     <div className="p-8">
@@ -154,12 +159,25 @@ function EditInvoiceForm() {
           </div>
         </header>
 
+        {isLocked && (
+          <div className="mb-8 bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+              <ShieldCheck size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-green-700">Invoice Settled — Editing Locked</h3>
+              <p className="text-xs text-green-600/80 mt-1">This invoice is {invoice.status === 'PENDING_APPROVAL' ? 'fully paid and pending approval' : 'fully settled (PAID)'}. Its amounts, items, and status are locked and cannot be changed.</p>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-3xl shadow-2xl shadow-navy/5 border border-slate/5 p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-serif font-bold text-navy">Bill Items</h3>
             <button
               onClick={addItem}
-              className="flex items-center gap-1.5 px-4 py-2 border border-dashed border-slate/30 rounded-xl text-[10px] font-black text-slate hover:text-navy hover:border-gold/40 hover:bg-gold/5 transition-all uppercase tracking-widest"
+              disabled={isLocked}
+              className="flex items-center gap-1.5 px-4 py-2 border border-dashed border-slate/30 rounded-xl text-[10px] font-black text-slate hover:text-navy hover:border-gold/40 hover:bg-gold/5 transition-all uppercase tracking-widest disabled:opacity-40 disabled:pointer-events-none"
             >
               <Plus size={14} /> Add Item
             </button>
@@ -179,8 +197,9 @@ function EditInvoiceForm() {
                   <input
                     value={item.description}
                     onChange={(e) => updateItem(index, 'description', e.target.value)}
+                    disabled={isLocked}
                     placeholder="Item description..."
-                    className="w-full p-2.5 border border-slate/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold transition-all"
+                    className="w-full p-2.5 border border-slate/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold transition-all disabled:opacity-60 disabled:bg-navy/[0.03]"
                   />
                 </div>
                 <div>
@@ -190,7 +209,8 @@ function EditInvoiceForm() {
                     min="1"
                     value={item.quantity}
                     onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                    className="w-full p-2.5 border border-slate/10 rounded-xl text-sm text-right font-bold outline-none focus:ring-2 focus:ring-gold transition-all"
+                    disabled={isLocked}
+                    className="w-full p-2.5 border border-slate/10 rounded-xl text-sm text-right font-bold outline-none focus:ring-2 focus:ring-gold transition-all disabled:opacity-60 disabled:bg-navy/[0.03]"
                   />
                 </div>
                 <div>
@@ -201,12 +221,14 @@ function EditInvoiceForm() {
                     step="0.01"
                     value={item.unitPrice}
                     onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
-                    className="w-full p-2.5 border border-slate/10 rounded-xl text-sm text-right font-bold outline-none focus:ring-2 focus:ring-gold transition-all"
+                    disabled={isLocked}
+                    className="w-full p-2.5 border border-slate/10 rounded-xl text-sm text-right font-bold outline-none focus:ring-2 focus:ring-gold transition-all disabled:opacity-60 disabled:bg-navy/[0.03]"
                   />
                 </div>
                 <button
                   onClick={() => removeItem(index)}
-                  className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all justify-self-start md:justify-self-end"
+                  disabled={isLocked}
+                  className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all justify-self-start md:justify-self-end disabled:opacity-40 disabled:pointer-events-none"
                 >
                   <Trash2 size={18} />
                 </button>
@@ -231,13 +253,18 @@ function EditInvoiceForm() {
                   step="0.01"
                   value={discount}
                   onChange={(e) => setDiscount(Number(e.target.value))}
-                  className="w-28 p-2 border border-slate/10 rounded-xl text-right text-sm font-bold text-green-600 outline-none focus:ring-2 focus:ring-gold"
+                  disabled={isLocked}
+                  className="w-28 p-2 border border-slate/10 rounded-xl text-right text-sm font-bold text-green-600 outline-none focus:ring-2 focus:ring-gold disabled:opacity-60 disabled:bg-navy/[0.03]"
                 />
               </div>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate font-medium">GST ({(gstRate * 100).toFixed(0)}%)</span>
-              <span className="font-bold text-navy">₹ {gstAmount.toFixed(2)}</span>
+              <span className="text-slate font-medium">CGST ({((gstRate / 2) * 100).toFixed(1)}%)</span>
+              <span className="font-bold text-navy">₹ {(gstAmount / 2).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate font-medium">SGST ({((gstRate / 2) * 100).toFixed(1)}%)</span>
+              <span className="font-bold text-navy">₹ {(gstAmount / 2).toFixed(2)}</span>
             </div>
             {roundOff !== 0 && (
               <div className="flex justify-between text-sm">
@@ -255,7 +282,8 @@ function EditInvoiceForm() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full p-2.5 border border-slate/10 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-gold"
+                disabled={isLocked}
+                className="w-full p-2.5 border border-slate/10 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-gold disabled:opacity-60 disabled:bg-navy/[0.03]"
               >
                 <option value="UNPAID">Unpaid</option>
                 <option value="PAID">Paid</option>
@@ -266,11 +294,11 @@ function EditInvoiceForm() {
 
             <button
               onClick={handleSave}
-              disabled={saving}
-              className="w-full mt-4 bg-navy hover:bg-black text-gold py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+              disabled={saving || isLocked}
+              className="w-full mt-4 bg-navy hover:bg-black text-gold py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              Save Changes
+              {isLocked ? 'Invoice Locked' : 'Save Changes'}
             </button>
           </div>
         </div>

@@ -563,10 +563,21 @@ router.get('/family-requests/pending', authenticateToken, authorizeRoles('SUPER_
   try {
     const requests = await prisma.familyMember.findMany({
       where: { status: 'PENDING' },
-      include: { member: { select: { nameAsAadhaar: true, membershipNumber: true } } },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(requests);
+    const memberIds = [...new Set(requests.map(r => r.memberId))];
+    const members = memberIds.length
+      ? await prisma.member.findMany({
+          where: { id: { in: memberIds } },
+          select: { id: true, nameAsAadhaar: true, membershipNumber: true },
+        })
+      : [];
+    const memberMap = new Map(members.map(m => [m.id, m]));
+    const enriched = requests.map(r => ({
+      ...r,
+      member: memberMap.get(r.memberId) || null,
+    }));
+    res.json(enriched);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
