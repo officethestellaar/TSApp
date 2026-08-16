@@ -3,11 +3,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import { useParams, useRouter } from 'next/navigation';
-import { CheckCircle, XCircle, ArrowLeft, Calendar, Phone, Mail, MapPin, User, ShieldCheck, QrCode, RefreshCcw, AlertTriangle, UserPlus } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowLeft, Calendar, Phone, Mail, MapPin, User, ShieldCheck, QrCode, RefreshCcw, AlertTriangle, UserPlus, IndianRupee, Edit3 } from 'lucide-react';
 import { Member, FamilyMember } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import AddFamilyMemberModal from '@/components/members/AddFamilyMemberModal';
+import UpdateStatusModal from '@/components/members/UpdateStatusModal';
+import SettleAMCModal from '@/components/members/SettleAMCModal';
 import toast from 'react-hot-toast';
 import { usePermission } from '@/hooks/usePermission';
 
@@ -20,6 +22,8 @@ export default function MemberDetailPage() {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showAddFamilyModal, setShowAddFamilyModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showSettleAMCModal, setShowSettleAMCModal] = useState(false);
   const router = useRouter();
 
   const fetchQrCode = useCallback(async () => {
@@ -53,10 +57,10 @@ export default function MemberDetailPage() {
   const handleStatusUpdate = async (status: string) => {
     try {
       await api.patch(`members/${id}/status`, { status });
-      alert(`Member ${status.toLowerCase()} successfully!`);
+      toast.success(`Member ${status.toLowerCase()} successfully!`);
       void fetchMember();
     } catch {
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     }
   };
 
@@ -92,10 +96,32 @@ export default function MemberDetailPage() {
               <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-6 ${
                 member.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
                 member.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                member.status === 'TERMINATED' ? 'bg-gray-100 text-gray-800' :
                 'bg-yellow-100 text-yellow-800'
               }`}>
                 {member.status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </div>
+
+              {canUpdateMember && (
+                <div className="space-y-2 mb-4">
+                  <button
+                    onClick={() => setShowStatusModal(true)}
+                    className="w-full py-2.5 px-4 bg-navy/5 hover:bg-navy/10 text-navy rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-navy/10"
+                  >
+                    <Edit3 size={14} /> Change Membership Status
+                  </button>
+                  <button
+                    onClick={() => setShowSettleAMCModal(true)}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${
+                      member.amcStatus === 'PAID'
+                        ? 'bg-green-50 hover:bg-green-100 text-green-800 border border-green-200'
+                        : 'gold-gradient text-navy font-black hover:shadow-md'
+                    }`}
+                  >
+                    <IndianRupee size={14} /> {member.amcStatus === 'PAID' ? 'AMC Paid (Manage AMC)' : 'Settle AMC & Generate Bill'}
+                  </button>
+                </div>
+              )}
 
               {canUpdateMember && member.status === 'PENDING' && (
                 <div className="grid grid-cols-2 gap-3 mt-4">
@@ -165,10 +191,38 @@ export default function MemberDetailPage() {
             )}
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2"><ShieldCheck size={18} className="text-blue-600" /> Membership Status</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-blue-600" /> Membership Status
+                </h3>
+                {canUpdateMember && (
+                  <button
+                    onClick={() => setShowStatusModal(true)}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
               <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Account Status:</span>
+                <span className="font-bold text-gray-900">{member.status}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">AMC Status:</span>
-                <span className={`font-bold ${member.amcStatus === 'PAID' ? 'text-green-600' : 'text-red-600'}`}>{member.amcStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`font-bold ${member.amcStatus === 'PAID' ? 'text-green-600' : 'text-red-600'}`}>
+                    {member.amcStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                  </span>
+                  {canUpdateMember && (
+                    <button
+                      onClick={() => setShowSettleAMCModal(true)}
+                      className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-gold/10 text-gold hover:bg-gold hover:text-navy transition-all"
+                    >
+                      {member.amcStatus === 'PAID' ? 'Manage' : 'Settle'}
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Access Status:</span>
@@ -178,6 +232,26 @@ export default function MemberDetailPage() {
                 <span className="text-gray-500">Valid Upto:</span>
                 <span className="font-semibold text-gray-900">{new Date(member.expiryDate).toLocaleDateString()}</span>
               </div>
+              {canUpdateMember && (
+                <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
+                  <button
+                    onClick={() => setShowStatusModal(true)}
+                    className="w-full py-2 px-3 bg-navy/5 hover:bg-navy/10 text-navy rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <ShieldCheck size={14} /> Change Membership Status
+                  </button>
+                  <button
+                    onClick={() => setShowSettleAMCModal(true)}
+                    className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      member.amcStatus === 'PAID'
+                        ? 'bg-green-50 hover:bg-green-100 text-green-800 border border-green-200'
+                        : 'gold-gradient text-navy font-black shadow-sm'
+                    }`}
+                  >
+                    <IndianRupee size={14} /> {member.amcStatus === 'PAID' ? 'AMC Paid (Manage AMC)' : 'Settle AMC & Generate Bill'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -314,6 +388,20 @@ export default function MemberDetailPage() {
         <AddFamilyMemberModal 
           memberId={member.id}
           onClose={() => setShowAddFamilyModal(false)}
+          onSuccess={fetchMember}
+        />
+      )}
+      {showStatusModal && member && (
+        <UpdateStatusModal 
+          member={member}
+          onClose={() => setShowStatusModal(false)}
+          onSuccess={fetchMember}
+        />
+      )}
+      {showSettleAMCModal && member && (
+        <SettleAMCModal 
+          member={member}
+          onClose={() => setShowSettleAMCModal(false)}
           onSuccess={fetchMember}
         />
       )}

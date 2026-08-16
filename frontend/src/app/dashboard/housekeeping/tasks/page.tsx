@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { HousekeepingTask } from '@/types';
-import { Plus, Pencil, Trash2, Search, X, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Search, X } from 'lucide-react';
 import ExportButton from '@/components/ui/ExportButton';
 import toast from 'react-hot-toast';
 import { usePermission } from '@/hooks/usePermission';

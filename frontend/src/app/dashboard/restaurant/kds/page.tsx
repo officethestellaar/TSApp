@@ -75,7 +75,6 @@ export default function KDSPage() {
     }
   };
 
-  const [billingOrderId, setBillingOrderId] = useState<number | null>(null);
   const [invoiceData, setInvoiceData] = useState<any>(null);
   const [billingLoading, setBillingLoading] = useState(false);
 

@@ -105,4 +105,46 @@ describe('Member Routes AMC Logic', () => {
     // AMC should be applicable by default (or at least not forced to false)
     expect(createCall.data.amcApplicable).not.toBe(false);
   });
+
+  it('should allow superadmin to update membership status', async () => {
+    vi.mocked(prisma.member.findUnique).mockResolvedValue({ id: 1, nameAsAadhaar: 'John Doe', status: 'PENDING' } as any);
+    vi.mocked(prisma.member.update).mockResolvedValue({ id: 1, nameAsAadhaar: 'John Doe', status: 'APPROVED', accessStatus: 'ENABLED' } as any);
+
+    const response = await request(app)
+      .patch('/api/members/1/status')
+      .send({ status: 'APPROVED' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('APPROVED');
+  });
+
+  it('should allow superadmin to settle AMC status from UNPAID to PAID by generating an AMC bill', async () => {
+    const mockMember = { id: 1, nameAsAadhaar: 'Jane Doe', membershipNumber: 'STEL-1001-1', amcStatus: 'UNPAID', amcAmount: 5000 };
+    vi.mocked(prisma.member.findUnique).mockResolvedValue(mockMember as any);
+    vi.mocked(prisma.member.update).mockResolvedValue({ ...mockMember, amcStatus: 'PAID', amcYear: '2026', accessStatus: 'ENABLED' } as any);
+    
+    // Mock invoice creation inside transaction
+    (prisma as any).invoice = {
+      count: vi.fn().mockResolvedValue(10),
+      create: vi.fn().mockResolvedValue({
+        id: 1,
+        invoiceNumber: 'AMC-2026-1011',
+        department: 'AMC',
+        amount: 5000,
+        gst: 900,
+        total: 5900,
+        status: 'PAID',
+      }),
+    };
+
+    const response = await request(app)
+      .patch('/api/members/1/amc-status')
+      .send({ amcStatus: 'PAID', paymentMode: 'CASH', amount: 5000, notes: 'Direct SuperAdmin Settle' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toContain('AMC Status updated to PAID');
+    expect(response.body.member.amcStatus).toBe('PAID');
+    expect(response.body.invoice.department).toBe('AMC');
+  });
 });
+

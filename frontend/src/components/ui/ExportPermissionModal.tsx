@@ -23,7 +23,7 @@ export default function ExportPermissionModal({
 }: ExportPermissionModalProps) {
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
-  const [requestId, setRequestId] = useState<number | null>(existingRequestId ?? null);
+  const [, setRequestId] = useState<number | null>(existingRequestId ?? null);
   const [status, setStatus] = useState<string>(existingStatus ?? 'IDLE');
   const [error, setError] = useState('');
 

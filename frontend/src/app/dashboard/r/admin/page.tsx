@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import api from '@/lib/api';
 import { CreditCard, Users, ShieldCheck, Activity, Calendar } from 'lucide-react';
-import { DashHeader, AnalyticCard, ComparisonNode, LoadingSpinner, DashboardStats, GrantedQuickActions } from '../_components/shared';
+import { AnalyticCard, ComparisonNode, LoadingSpinner, DashboardStats, GrantedQuickActions } from '../_components/shared';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();

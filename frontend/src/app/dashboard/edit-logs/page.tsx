@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import api from '@/lib/api';
-import { History, Search, User, Clock, Eye, FileText, Filter, Trash2 } from 'lucide-react';
+import { History, Search, Clock, Eye, FileText, Filter, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { usePermission } from '@/hooks/usePermission';
 import { useAuth } from '@/context/AuthContext';
 import ExportButton from '@/components/ui/ExportButton';
 

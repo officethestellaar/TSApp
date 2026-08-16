@@ -4,12 +4,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { UserPlus, Search, MoreVertical, CheckCircle, XCircle, Clock, Trash2, ShieldOff, FileSpreadsheet, Download, RefreshCcw } from 'lucide-react';
+import { UserPlus, Search, CheckCircle, XCircle, Clock, Trash2, ShieldOff, FileSpreadsheet, Download, RefreshCcw, ShieldCheck, IndianRupee } from 'lucide-react';
 import { Member } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import { usePermission } from '@/hooks/usePermission';
 import BulkImportModal from '@/components/members/BulkImportModal';
+import UpdateStatusModal from '@/components/members/UpdateStatusModal';
+import SettleAMCModal from '@/components/members/SettleAMCModal';
 
 export default function MemberListPage() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -17,6 +19,8 @@ export default function MemberListPage() {
   const [search, setSearch] = useState('');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusModalMember, setStatusModalMember] = useState<Member | null>(null);
+  const [amcModalMember, setAmcModalMember] = useState<Member | null>(null);
   const router = useRouter();
   const { user } = useAuth();
   const { socket } = useSocket();
@@ -170,6 +174,8 @@ export default function MemberListPage() {
             <option value="ALL">All Status</option>
             <option value="APPROVED">Approved</option>
             <option value="PENDING">Pending</option>
+            <option value="SUSPENDED">Suspended</option>
+            <option value="EXPIRED">Expired</option>
             <option value="TERMINATED">Terminated</option>
           </select>
         </div>
@@ -181,8 +187,8 @@ export default function MemberListPage() {
               <tr className="bg-navy/[0.02] border-b border-navy/[0.05]">
                 <th className="px-10 py-6 text-[9px] font-black text-slate uppercase tracking-[0.3em]">Member</th>
                 <th className="px-10 py-6 text-[9px] font-black text-slate uppercase tracking-[0.3em]">Member ID</th>
-                <th className="px-10 py-6 text-[9px] font-black text-slate uppercase tracking-[0.3em]">Status</th>
-                <th className="px-10 py-6 text-[9px] font-black text-slate uppercase tracking-[0.3em]">Status</th>
+                <th className="px-10 py-6 text-[9px] font-black text-slate uppercase tracking-[0.3em]">Membership Status</th>
+                <th className="px-10 py-6 text-[9px] font-black text-slate uppercase tracking-[0.3em]">AMC Status</th>
                 <th className="px-10 py-6 text-[9px] font-black text-slate uppercase tracking-[0.3em] text-right">Actions</th>
               </tr>
             </thead>
@@ -224,16 +230,30 @@ export default function MemberListPage() {
                     </td>
                     <td className="px-10 py-7">
                       <div className="flex flex-col gap-2">
-                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${
-                          member.status === 'APPROVED' ? 'bg-green-50 text-green-700 border-green-100' :
-                          member.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-100' :
-                          'bg-gold/5 text-gold border-gold/20'
-                        }`}>
-                          {member.status === 'PENDING' && <Clock size={10} className="mr-2" />}
-                          {member.status === 'APPROVED' && <CheckCircle size={10} className="mr-2" />}
-                          {member.status === 'REJECTED' && <XCircle size={10} className="mr-2" />}
-                          {member.status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${
+                            member.status === 'APPROVED' || member.status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-100' :
+                            member.status === 'REJECTED' || member.status === 'TERMINATED' ? 'bg-red-50 text-red-700 border-red-100' :
+                            'bg-gold/5 text-gold border-gold/20'
+                          }`}>
+                            {member.status === 'PENDING' && <Clock size={10} className="mr-2" />}
+                            {(member.status === 'APPROVED' || member.status === 'ACTIVE') && <CheckCircle size={10} className="mr-2" />}
+                            {(member.status === 'REJECTED' || member.status === 'TERMINATED') && <XCircle size={10} className="mr-2" />}
+                            {member.status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                          </span>
+                          {canUpdateMember && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setStatusModalMember(member);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate/40 hover:text-navy hover:bg-navy/5 rounded-lg"
+                              title="Change Membership Status"
+                            >
+                              <ShieldCheck size={14} />
+                            </button>
+                          )}
+                        </div>
                         <span className={`text-[10px] font-black uppercase tracking-widest ${
                           member.category === 'GOLD' ? 'text-gold' : 
                           member.category === 'SILVER' ? 'text-slate-400' : 
@@ -244,15 +264,51 @@ export default function MemberListPage() {
                       </div>
                     </td>
                     <td className="px-10 py-7">
-                      <div className="flex flex-col gap-1">
-                        <div className="text-[10px] font-black text-slate uppercase tracking-widest opacity-40">AMC</div>
-                        <span className={`text-xs font-black tracking-widest uppercase ${member.amcStatus === 'PAID' ? 'text-green-600' : 'text-red-500'}`}>
-                          {member.amcStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-1">
+                          <span className={`text-xs font-black tracking-widest uppercase ${member.amcStatus === 'PAID' ? 'text-green-600' : 'text-red-500'}`}>
+                            {member.amcStatus.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                          </span>
+                        </div>
+                        {canUpdateMember && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAmcModalMember(member);
+                            }}
+                            className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 ${
+                              member.amcStatus === 'PAID'
+                                ? 'bg-navy/5 text-navy hover:bg-navy/10'
+                                : 'bg-gold text-navy hover:bg-gold/80 shadow-sm'
+                            }`}
+                            title="Settle AMC & Generate Bill"
+                          >
+                            <IndianRupee size={10} />
+                            {member.amcStatus === 'PAID' ? 'Manage' : 'Settle'}
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="px-10 py-7 text-right">
-                      <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {canUpdateMember && (
+                          <>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setStatusModalMember(member); }}
+                              className="text-slate/40 hover:text-navy transition-all p-2 hover:bg-navy/5 rounded-xl"
+                              title="Change Membership Status"
+                            >
+                              <ShieldCheck size={18} />
+                            </button>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setAmcModalMember(member); }}
+                              className="text-slate/40 hover:text-gold transition-all p-2 hover:bg-gold/10 rounded-xl"
+                              title="Settle AMC & Generate Bill"
+                            >
+                              <IndianRupee size={18} />
+                            </button>
+                          </>
+                        )}
                         {canUpdateMember && (member.status === 'TERMINATED' ? (
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleRestore(member.id, member.nameAsAadhaar); }}
@@ -279,9 +335,6 @@ export default function MemberListPage() {
                             <Trash2 size={18} />
                           </button>
                         )}
-                        <button className="text-slate/40 hover:text-navy transition-all p-2 hover:bg-navy/5 rounded-xl">
-                          <MoreVertical size={18} />
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -296,6 +349,22 @@ export default function MemberListPage() {
         <BulkImportModal 
           onClose={() => setIsImportModalOpen(false)} 
           onSuccess={fetchMembers} 
+        />
+      )}
+
+      {statusModalMember && (
+        <UpdateStatusModal
+          member={statusModalMember}
+          onClose={() => setStatusModalMember(null)}
+          onSuccess={fetchMembers}
+        />
+      )}
+
+      {amcModalMember && (
+        <SettleAMCModal
+          member={amcModalMember}
+          onClose={() => setAmcModalMember(null)}
+          onSuccess={fetchMembers}
         />
       )}
     </div>

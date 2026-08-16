@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Activity, LayoutDashboard, Users, CreditCard, Utensils, BarChart3, MessageSquare, Bell, ShieldCheck, BookOpen, Package, User, IndianRupee, ChefHat, FileText, Calendar, Inbox, Settings, Building2, PiggyBank, CalendarClock, Scissors, Kanban, ClipboardCheck, Calculator, Clock, DoorOpen, Coffee, AlertCircle, CheckCircle2, Dumbbell, Waves, UserCheck, Wallet, ClipboardList, Receipt, History } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, LayoutDashboard, Users, CreditCard, Utensils, BarChart3, MessageSquare, Bell, ShieldCheck, BookOpen, Package, User, ChefHat, FileText, Calendar, Inbox, Settings, CalendarClock, Scissors, ClipboardCheck, Clock, AlertCircle, Dumbbell, Waves, ClipboardList, Receipt, History } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const SCREEN_ACTION_MAP: Record<string, { label: string; href: string; icon: any; color?: string }> = {

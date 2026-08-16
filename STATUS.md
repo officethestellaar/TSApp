@@ -1,11 +1,18 @@
 # Project Status & Stabilization Report
 
-**Last Updated:** June 19, 2026 | 13:10 (Local Time)  
+**Last Updated:** August 16, 2026 | 22:52 (Local Time)  
 **Status:** ✅ ALL SYSTEMS NOMINAL / FULLY TESTED / CLOUD ENABLED
 
 ---
 
 ## 🕒 Change Journal
+
+### [August 16, 2026 | 22:52] - Feature: SuperAdmin Membership Status & AMC Billing Control
+- **SuperAdmin Membership Status Override:** Empowered SuperAdmin/Admin to modify any member's Membership Status across all valid lifecycle states (`APPROVED`, `ACTIVE`, `PENDING`, `SUSPENDED`, `EXPIRED`, `INACTIVE`, `TERMINATED`, `REJECTED`) with automated synchronization of `accessStatus` (`ENABLED`/`DISABLED`) and full audit logging.
+- **Direct AMC Status Settle & Paid Bill Generation:** Empowered SuperAdmin to transition a member's AMC Status from `UNPAID` to `PAID` via `PATCH /api/members/:id/amc-status`. Automatically generates an official paid invoice named **"AMC"** (`department: 'AMC'`, invoice number format `AMC-YYYY-XXXX`, 18% GST calculation, line item `Annual Maintenance Charge - Year YYYY`) and immediate payment record with receipt number and ledger entry.
+- **Frontend Controls & Modals:** Integrated [`UpdateStatusModal`](file:///Users/areebalishivji/Documents/TSApp/frontend/src/components/members/UpdateStatusModal.tsx) and [`SettleAMCModal`](file:///Users/areebalishivji/Documents/TSApp/frontend/src/components/members/SettleAMCModal.tsx) into both the Member List page ([`page.tsx`](file:///Users/areebalishivji/Documents/TSApp/frontend/src/app/dashboard/members/page.tsx)) and Member Detail view ([`[id]/page.tsx`](file:///Users/areebalishivji/Documents/TSApp/frontend/src/app/dashboard/members/[id]/page.tsx)) for one-click status transitions and AMC billing settlements.
+- **Clean Linting & Test Verification:** Resolved all ESLint warnings across the entire frontend (0 errors, 0 warnings). Executed all Vitest test suites (4/4 frontend tests passed, 26/26 backend tests passed).
+- **System Health:** ✅ ALL SYSTEMS NOMINAL.
 
 ### [June 19, 2026 | 13:10] - Feature: Individual Dashboards for Family Affiliates
 - **Bifurcated Portal Views:** Restructured the `/member/dashboard` portal to dynamically present a customized experience depending on whether the authenticated session belongs to a primary member or a family affiliate.

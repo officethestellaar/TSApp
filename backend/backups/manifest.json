@@ -1,6 +1,36 @@
 {
   "backups": [
     {
+      "filename": "recovery-node-2026-08-15T04-30-00-071Z.db",
+      "timestamp": "2026-08-15T04:30:00.071Z",
+      "sizeBytes": 364544
+    },
+    {
+      "filename": "recovery-node-2026-08-15T04-00-00-330Z.db",
+      "timestamp": "2026-08-15T04:00:00.330Z",
+      "sizeBytes": 364544
+    },
+    {
+      "filename": "recovery-node-2026-08-14T11-00-00-035Z.db",
+      "timestamp": "2026-08-14T11:00:00.035Z",
+      "sizeBytes": 364544
+    },
+    {
+      "filename": "recovery-node-2026-08-14T10-30-00-015Z.db",
+      "timestamp": "2026-08-14T10:30:00.015Z",
+      "sizeBytes": 364544
+    },
+    {
+      "filename": "recovery-node-2026-08-14T09-26-51-901Z.db",
+      "timestamp": "2026-08-14T09:26:51.901Z",
+      "sizeBytes": 364544
+    },
+    {
+      "filename": "recovery-node-2026-08-14T09-26-44-909Z.db",
+      "timestamp": "2026-08-14T09:26:44.909Z",
+      "sizeBytes": 364544
+    },
+    {
       "filename": "recovery-node-2026-08-14T09-00-00-037Z.db",
       "timestamp": "2026-08-14T09:00:00.037Z",
       "sizeBytes": 364544
@@ -19,39 +49,9 @@
       "filename": "recovery-node-2026-08-14T08-30-00-018Z.db",
       "timestamp": "2026-08-14T08:30:00.018Z",
       "sizeBytes": 364544
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-16-33-450Z.db",
-      "timestamp": "2026-08-14T08:16:33.450Z",
-      "sizeBytes": 364544
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-15-47-539Z.db",
-      "timestamp": "2026-08-14T08:15:47.539Z",
-      "sizeBytes": 360448
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-13-47-602Z.db",
-      "timestamp": "2026-08-14T08:13:47.602Z",
-      "sizeBytes": 356352
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-13-40-033Z.db",
-      "timestamp": "2026-08-14T08:13:40.033Z",
-      "sizeBytes": 356352
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-04-19-564Z.db",
-      "timestamp": "2026-08-14T08:04:19.564Z",
-      "sizeBytes": 356352
-    },
-    {
-      "filename": "recovery-node-2026-08-14T08-03-54-686Z.db",
-      "timestamp": "2026-08-14T08:03:54.686Z",
-      "sizeBytes": 348160
     }
   ],
-  "lastBackupAt": "2026-08-14T09:00:00.037Z",
+  "lastBackupAt": "2026-08-15T04:30:00.071Z",
   "totalBackups": 10,
-  "totalSizeBytes": 3600384
+  "totalSizeBytes": 3645440
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import {
-  IndianRupee, User, CalendarDays, Clock,
+  IndianRupee, User, CalendarDays,
   ChevronDown, ChevronUp, FileText
 } from 'lucide-react';
 import { StaffSalary } from '@/types';
