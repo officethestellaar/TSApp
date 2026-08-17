@@ -76,6 +76,7 @@ export default function KDSPage() {
   };
 
   const [invoiceData, setInvoiceData] = useState<any>(null);
+  const [billingOrderId, setBillingOrderId] = useState<number | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
 
   const getStatusColor = (status: string) => {
