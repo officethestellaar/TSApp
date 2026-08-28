@@ -74,13 +74,13 @@ const STAFF_ACCOUNTS: { email: string; name: string; role: string; screens: stri
     screens: ['overview', 'housekeeping', 'housekeeping-tasks', 'housekeeping-allocations', 'housekeeping-deep-cleaning', 'housekeeping-reports', 'leave'],
   },
   {
-    email: 'salon.manager@thestellaar.com',
+    email: 'Salon@thestellaar.com',
     name: 'Salon Manager',
     role: 'SALON_MANAGER',
     screens: ['overview', 'salon-menu', 'leave'],
   },
   {
-    email: 'restaurant.manager@thestellaar.com',
+    email: 'Restro@thestellaar.com',
     name: 'Restaurant Manager',
     role: 'RESTAURANT_MANAGER',
     screens: ['overview', 'restaurant-pos', 'kitchen-display', 'inventory', 'leave'],
