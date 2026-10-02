@@ -268,7 +268,7 @@ export default function KDSPage() {
             </div>
             <h2 className="text-2xl font-bold text-navy">Bill Generated</h2>
             <p className="text-sm text-slate/60 font-semibold">
-              Order #{invoiceData.invoice?.invoiceNumber} created and table released.
+              Order {billingOrderId ? `#${billingOrderId}` : ''} ({invoiceData.invoice?.invoiceNumber}) created and table released.
             </p>
             {invoiceData.discountAbsolute > 0 && (
               <div className="bg-gold/10 rounded-xl px-4 py-3 text-sm font-bold text-navy">

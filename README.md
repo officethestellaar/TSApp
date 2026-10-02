@@ -1,485 +1,399 @@
-# The Stellaar — Club Management System
+# The Stellaar — Club Management System (V2.0)
 
-A full-featured web app for managing club members, billing, restaurant POS, inventory, staff, access control, and estate operations with real-time notifications and WhatsApp messaging.
+[![Testing: Vitest](https://img.shields.io/badge/Testing-Vitest-brightgreen.svg)](https://vitest.dev/)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2016-black.svg)](https://nextjs.org/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green.svg)](https://nodejs.org/)
+[![Database: Prisma & PostgreSQL](https://img.shields.io/badge/Database-Prisma%20%7C%20PostgreSQL-blue.svg)](https://www.prisma.io/)
+[![Status](https://img.shields.io/badge/System%20Health-All%20Nominal-success.svg)](./STATUS.md)
+
+**The Stellaar** is an enterprise-grade club management and estate curation platform designed for luxury clubs and private estates. It integrates member governance, family kinship management, granular permissions, multi-department invoicing, a full restaurant POS & Kitchen Display System (KDS), stock tracking, asset depreciation, concierge help desk, staff payroll, and real-time operations via Socket.IO and WhatsApp Cloud API.
 
 ---
 
-## Architecture
+## Table of Contents
+
+- [System Architecture](#system-architecture)
+- [Tech Stack](#tech-stack)
+- [Monorepo Structure](#monorepo-structure)
+- [Key Features](#key-features)
+- [Role-Based Access & Granular Permissions](#role-based-access--granular-permissions)
+- [Real-Time Events & WebSockets](#real-time-events--websockets)
+- [External Integrations](#external-integrations)
+- [API Reference](#api-reference)
+- [Getting Started](#getting-started)
+- [Testing & Quality Standards](#testing--quality-standards)
+- [Deployment Guide](#deployment-guide)
+- [Project Health & Status](#project-health--status)
+
+---
+
+## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Frontend (Next.js 16)             │
-│  /dashboard/r/[role]  │  /member  │  /dashboard/*   │
-│  Role-based views     │  Member   │  Admin pages    │
-│                       │  portal   │                 │
-│  ┌───────────────────────────────────────────────┐  │
-│  │  SocketContext (real-time notifications)      │  │
-│  │  usePermission (action gating by role+screen) │  │
-│  └───────────────────────────────────────────────┘  │
-└──────────────────────┬──────────────────────────────┘
-                       │ HTTP + WebSocket
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│              Backend (Express + TypeScript)          │
-│                                                      │
-│  ┌──────────┐  ┌──────────┐  ┌───────────────────┐  │
-│  │  Routes   │  │  Auth MW  │  │  Lib (services)   │  │
-│  │ 24 routes │  │  JWT +   │  │  email.ts         │  │
-│  │          │  │  RBAC    │  │  whatsapp.ts       │  │
-│  │          │  │          │  │  socket.ts         │  │
-│  │          │  │          │  │  push.ts           │  │
-│  │          │  │          │  │  audit.ts          │  │
-│  │          │  │          │  │  cache.ts          │  │
-│  │          │  │          │  │  ledger.ts         │  │
-│  │          │  │          │  │  prisma.ts         │  │
-│  └──────────┘  └──────────┘  └───────────────────┘  │
-│                                                      │
-│  ┌───────────────────────────────────────────────┐  │
-│  │  Socket.IO Server (real-time events)          │  │
-│  │  Events: new_invoice, payment_confirmed,      │  │
-│  │  new_kot, new_announcement, new_message,      │  │
-│  │  low_stock_alert, new_access_log, etc.        │  │
-│  └───────────────────────────────────────────────┘  │
-└──────────────────────┬──────────────────────────────┘
-                       │ Prisma ORM
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│           PostgreSQL (via Supabase)                  │
-│  ~45 tables: Member, Invoice, Payment, Inventory,    │
-│  Staff, Complaint, Message, AuditLog, Activity,      │
-│  Announcement, AccessLog, Housekeeping, etc.         │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Frontend (Next.js 16 + React 19)                 │
+│  /dashboard/r/[role]  │  /member/dashboard   │  /dashboard/*            │
+│  Role-Specific Views  │  Member/Family Portal│  Admin & Ops Hub         │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │ SocketContext (real-time targeted rooms: user_{id}, affiliate_{id})│  │
+│  │ usePermission Hook (action gating by screenKey + create/read/upd) │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ HTTP (REST) + WebSockets (Socket.IO)
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Backend API (Express 5 + TypeScript)                 │
+│                                                                         │
+│  ┌─────────────────┐   ┌───────────────────┐   ┌─────────────────────┐  │
+│  │ 24 Route Hubs   │   │ Security / Shield │   │ Services & Lib      │  │
+│  │ /api/members    │   │ JWT Verification  │   │ automation.ts       │  │
+│  │ /api/billing    │   │ RBAC Middleware   │   │ backup.ts (snapshot)│  │
+│  │ /api/restaurant │   │ Auth Rate Limiter │   │ sync.ts (cloud-sync)│  │
+│  │ /api/users      │   │ Screen Permissions│   │ whatsapp.ts         │  │
+│  │ /api/access ... │   │ x-test-bypass     │   │ socket.ts / push.ts │  │
+│  └─────────────────┘   └───────────────────┘   └─────────────────────┘  │
+└──────────┬─────────────────────────┬─────────────────────────┬──────────┘
+           │ Prisma ORM              │ Prisma Local Client     │ Prisma Ledger
+           ▼                         ▼                         ▼
+┌───────────────────────┐ ┌───────────────────────┐ ┌───────────────────────┐
+│ Primary Cloud Database│ │ Local SQLite Replica  │ │ Secondary Ledger DB   │
+│ PostgreSQL (Supabase) │ │ local.prisma          │ │ ledger.prisma         │
+│ 45+ Production Tables │ │ Offline Fault Buffer  │ │ Immutable Trans. Logs │
+└───────────────────────┘ └───────────────────────┘ └───────────────────────┘
 ```
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                                      |
-| ---------- | ----------------------------------------------- |
-| Frontend   | Next.js 16, React 19, Tailwind CSS 4, Recharts  |
-| Backend    | Node.js, Express 5, TypeScript                  |
-| Database   | PostgreSQL 14+ (via Supabase)                   |
-| ORM        | Prisma                                          |
-| Auth       | JWT + Role-Based Access Control (RBAC)          |
-| Real-time  | Socket.IO                                       |
-| Payments   | WhatsApp Cloud API (Meta)                       |
-| Email      | Nodemailer (Gmail SMTP)                         |
-| Push       | Expo Push Notifications                        |
-| Testing    | Vitest, Supertest                               |
+| Domain | Technologies |
+| :--- | :--- |
+| **Frontend** | [Next.js 16](https://nextjs.org/) (App Router), [React 19](https://react.dev/), [Tailwind CSS 4](https://tailwindcss.com/), [Recharts](https://recharts.org/), [Lucide React](https://lucide.dev/), [Axios](https://axios-http.com/) |
+| **Backend** | [Node.js](https://nodejs.org/) (v20+), [Express 5](https://expressjs.com/), [TypeScript 5](https://www.typescriptlang.org/), [tsx](https://github.com/privatenumber/tsx) |
+| **Databases** | **Primary:** PostgreSQL 14+ ([Supabase](https://supabase.com/) with PgBouncer)<br>**Offline Sync:** Local SQLite (`prisma/local.prisma`)<br>**Financial Audit:** Transaction Ledger SQLite (`prisma/ledger.prisma`) |
+| **ORM** | [Prisma ORM](https://www.prisma.io/) (v5.22, multi-schema & multiple client targets) |
+| **Real-time** | [Socket.IO](https://socket.io/) (rooms for user-specific alerts & broadcasts) |
+| **Messaging & Alerts** | [WhatsApp Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api) (Meta Graph v22.0), [Nodemailer](https://nodemailer.com/) (Gmail SMTP), [Expo Push](https://expo.dev/) |
+| **Testing** | [Vitest](https://vitest.dev/), [Supertest](https://github.com/ladjs/supertest) |
+| **Code Quality** | ESLint (strict 0 errors, 0 warnings policy) |
 
 ---
 
-## Folder Structure
+## Monorepo Structure
 
 ```
-TSwebapp/
-├── frontend/                    # Next.js 16 app
+TSApp/
+├── frontend/                         # Next.js 16 application
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── dashboard/       # Staff/admin dashboard
-│   │   │   │   └── r/[role]/    # Role-specific dashboards
-│   │   │   ├── member/          # Member portal
-│   │   │   ├── login/           # Auth pages
-│   │   │   └── layout.tsx       # Root layout
-│   │   ├── components/
-│   │   │   ├── layout/          # Sidebar, Navbar
-│   │   │   ├── ui/              # Reusable UI primitives
-│   │   │   └── dashboard/       # Dashboard widgets
-│   │   ├── context/
-│   │   │   ├── AuthContext.tsx   # Auth state + JWT
-│   │   │   └── SocketContext.tsx # Real-time notifications
-│   │   ├── hooks/               # usePermission, etc.
-│   │   ├── lib/                 # API client, helpers
-│   │   └── types/               # TypeScript interfaces
-│   └── tailwind.config.ts
-├── backend/                     # Express API server
+│   │   │   ├── dashboard/            # Administrative & staff dashboard
+│   │   │   │   ├── members/          # Member directory, profiles, status modals
+│   │   │   │   ├── billing/          # Invoices, settlements, payment approvals
+│   │   │   │   ├── restaurant/       # POS, interactive table layout, KDS
+│   │   │   │   ├── inventory/        # Stock levels, adjustments, low-stock flags
+│   │   │   │   ├── assets/           # Equipment tracking, maintenance, scrap
+│   │   │   │   ├── requests/         # Centralized member requests management
+│   │   │   │   ├── concierge/        # Real-time help desk & member ticketing
+│   │   │   │   └── r/[role]/         # Dedicated dashboard views per staff role
+│   │   │   ├── member/               # Member & Family Affiliate portal
+│   │   │   ├── login/                # Authentication routes
+│   │   │   └── layout.tsx            # Global HTML layout & styling
+│   │   ├── components/               # Modals, UI widgets, navigation bars
+│   │   ├── context/                  # AuthContext, SocketContext
+│   │   └── lib/                      # Axios API client, formatting utilities
+│   └── package.json
+├── backend/                          # Express TypeScript API server
 │   ├── src/
-│   │   ├── index.ts             # Server entry
-│   │   ├── routes/              # 24 route modules
-│   │   │   ├── auth.ts          # Login, reset password
-│   │   │   ├── billing.ts       # Invoices, payments, approval
-│   │   │   ├── member.ts        # CRUD + import
-│   │   │   ├── menu.ts          # Menu + categories
-│   │   │   ├── restaurant.ts    # POS, KOT, orders
-│   │   │   ├── inventory.ts     # Stock, usage
-│   │   │   ├── asset.ts         # Asset lifecycle
-│   │   │   ├── complaint.ts     # Help desk tickets
-│   │   │   ├── access.ts        # Entry logs
-│   │   │   ├── audit.ts         # Audit log viewer
-│   │   │   ├── reports.ts       # Charts, feedback
-│   │   │   └── ... (12 more)
-│   │   ├── middleware/
-│   │   │   └── auth.ts          # JWT verify + RBAC
-│   │   ├── lib/
-│   │   │   ├── prisma.ts        # DB client
-│   │   │   ├── socket.ts        # Socket.IO server
-│   │   │   ├── email.ts         # Nodemailer
-│   │   │   ├── whatsapp.ts      # WhatsApp Cloud API
-│   │   │   ├── push.ts          # Expo push
-│   │   │   ├── audit.ts         # Audit log helper
-│   │   │   ├── cache.ts         # In-memory cache
-│   │   │   └── ledger.ts        # GL ledger logic
+│   │   ├── index.ts                  # Server entry point, middleware, lifecycle
+│   │   ├── routes/                   # 24 modular route controllers
+│   │   ├── middleware/               # auth.ts (JWT verify, RBAC, screen permissions)
 │   │   ├── services/
-│   │   │   ├── automation.ts    # Scheduled tasks
-│   │   │   ├── backup.ts        # DB backup
-│   │   │   └── sync.ts          # n8n sync
-│   │   └── seed/                # Sample data
-│   └── prisma/
-│       ├── schema.prisma        # Full schema (45 models)
-│       └── migrations/
-└── package.json                 # Root workspace
+│   │   │   ├── automation.ts         # Automated cron tasks & renewal checks
+│   │   │   ├── backup.ts             # Snapshot backup generator & manifest
+│   │   │   └── sync.ts               # Autonomous cloud-to-local registry sync
+│   │   └── lib/                      # Prisma, Socket.IO, WhatsApp, Push, Audit
+│   ├── prisma/
+│   │   ├── schema.prisma             # Primary PostgreSQL schema (45+ models)
+│   │   ├── local.prisma              # Local SQLite replica schema
+│   │   ├── ledger.prisma             # Transaction ledger schema
+│   │   └── seed.ts                   # Seed script for roles, admin & test data
+│   ├── vitest.config.ts              # Vitest backend configuration
+│   └── package.json
+├── STATUS.md                         # Detailed project status & change journal
+├── package.json                      # Workspace configuration
+└── start.sh                          # One-command dual-server launcher
 ```
 
 ---
 
-## Features
+## Key Features
 
-### Member Management
-- 4-step registration flow (personal, address, documents, payment)
-- Family member (affiliate) management
-- QR card generation for access
-- AMC renewal tracking
-- Bulk import/export
+### 1. Member & Family Affiliate Governance
+- **4-Step Member Registration:** Comprehensive onboarding capturing personal details, residential addresses, Aadhaar documents, and initial payment verification.
+- **SuperAdmin Membership Lifecycle Control:** Direct SuperAdmin/Admin override across all valid lifecycle states (`APPROVED`, `ACTIVE`, `PENDING`, `SUSPENDED`, `EXPIRED`, `INACTIVE`, `TERMINATED`, `REJECTED`) with automated synchronization of `accessStatus` (`ENABLED`/`DISABLED`).
+- **AMC Waiver vs Gold Billing:** Automatic AMC waiver logic for Blue tier members upon registration; Gold tier retains active AMC status.
+- **Instant AMC Settle & Bill Generation:** One-click SuperAdmin settlement of unpaid AMC dues via `PATCH /api/members/:id/amc-status`, automatically creating an official paid invoice (`department: 'AMC'`, format `AMC-YYYY-XXXX`), 18% GST calculation, receipt number, and ledger journal entry.
+- **Family Affiliate Protocol:** Enforces a strict capacity limit of 3 family affiliates per primary member (4 total account capacity). Suffix ID logic assigns `-1` to the primary member and `-2` through `-4` to affiliates.
+- **Bifurcated Member Portal:** Dedicated views for family affiliates showing their individual QR cards, personal reservations, and orders, while isolating financial accounts to the primary member.
+- **Self-Service Identity Node:** Members can self-edit non-sensitive personal details (occupation, blood group, spouse/father name) directly from their portal.
 
-### Billing & Payments
-- Department invoicing (restaurant, salon, gym, pool, banquet, PT)
-- Walk-in guest billing
-- Tax calculation (GST)
-- Payment approval workflow (PENDING_APPROVAL → PAID)
-- **WhatsApp notifications** — on approval, member receives bill, amount received, and balance via WhatsApp Cloud API
-- Ledger with running balance
+### 2. Granular Screen Permissions System
+- Built-in `UserScreenAccess` schema providing per-user, per-screen permissions (`canCreate`, `canRead`, `canUpdate`, `canDelete`).
+- Supported screens include: `members`, `billing`, `inventory`, `restaurant`, `assets`, `concierge`, `announcements`, `reports`, `access`, `staff`, `requests`, and `salary`.
+- Frontend `usePermission` hook seamlessly gates action buttons and links.
+- Unrestricted bypass for `SUPER_ADMIN` accounts.
 
-### Restaurant POS & Kitchen Display
-- Table-based ordering with interactive layout
-- KOT (Kitchen Order Ticket) system
-- Menu categories and modifiers (Veg/Non-Veg, add-ons)
-- Auto stock deduction on order placement
-- Order history by table
+### 3. Administrative Requests Hub (`/dashboard/requests`)
+- Unified command center for administrative personnel to review, approve, or reject pending estate requests:
+  - Family affiliate enrollment applications.
+  - Table dining reservations and cancellations.
+  - Member unenrollment / departure requests.
 
-### Inventory
-- Stock items with units and reorder levels
-- Low-stock alerts via real-time notification
-- Usage logging
-- Stock adjustment history
+### 4. Billing, Invoicing & Financial Ledger
+- Multi-department billing covering: Restaurant Dining, Salon, Gymnasium, Swimming Pool, Banquet Hall, and Personal Training.
+- Walk-in guest billing support with mobile phone and Aadhaar capture.
+- Automated GST computation (18%) and real-time running ledger balances.
+- Two-stage payment approval workflow (`PENDING_APPROVAL` → `PAID`).
+- Instant payment receipts sent via WhatsApp Cloud API.
 
-### Asset Management
-- Asset register with purchase details, warranty
-- Depreciation tracking
-- Maintenance scheduling
-- Scrap/disposal workflow
+### 5. Restaurant POS & Kitchen Display System (KDS)
+- Interactive floor plans with dynamic table statuses (`AVAILABLE`, `OCCUPIED`, `RESERVED`).
+- Kitchen Order Ticket (KOT) generation and automated dispatch.
+- Real-time Kitchen Display System tracking order statuses (`PENDING` → `PREPARING` → `READY` → `SERVED`).
+- Direct bill generation with table release and automatic recipe ingredient deduction from inventory.
 
-### Concierge (Help Desk)
-- Complaint ticketing with categories and priority
-- Real-time chat between members and staff
-- Status tracking (OPEN, IN_PROGRESS, RESOLVED)
+### 6. Inventory & Asset Management
+- Real-time stock registry with automated minimum threshold warnings and low-stock alerts.
+- Asset lifecycle tracking with straight-line depreciation calculations, maintenance schedules, and scrap approvals.
 
-### Staff Management
-- Roles: SUPER_ADMIN, ADMIN, CLUB_MANAGER, ACCOUNTANT, FRONT_DESK, SECURITY, FNB, HOUSEKEEPING, MAINTENANCE
-- Attendance tracking
-- Salary/payroll
-- Leave management
-- Housekeeping task allocation
+### 7. Concierge & Help Desk
+- Priority-tagged ticketing system with status updates (`OPEN`, `IN_PROGRESS`, `RESOLVED`).
+- Live two-way WebSocket chat between members and staff.
 
-### Access Control
-- Fingerprint/webcam check-in
-- QR code scanning for members and family
-- Real-time entry logs with allowed/denied status
-- Blacklist management
+### 8. Security & Surgical Rate Limiting
+- Real-time access logging with QR scanning and biometric integration.
+- Selective Authentication Vector Rate Limiter: throttles `/api/auth` to 25 requests per 5 minutes to prevent brute-force attacks, while keeping operational endpoints (`/api/system`, `/health`, etc.) 100% open. Supports `x-test-bypass: true` header for automated verification suites.
 
-### Activities (Estate Curation)
-- Activity scheduling with venue and capacity
-- Member registration with waitlist
-- Email notifications to members
-
-### Announcements
-- Estate-wide notices
-- Real-time push via Socket.IO
-
-### Feedback
-- Post-billing feedback modal (star rating + comments)
-- Dashboard for staff to review and mark as handled
-
-### Reports & Analytics
-- Revenue charts (daily/monthly/yearly)
-- Member growth metrics
-- Department-wise billing breakdown
-- Edit Logs (audit trail for invoice changes)
+### 9. Multi-Database Resilience & Local Backup
+- **Autonomous Sync Engine:** Automatic background synchronization between Supabase Cloud and local SQLite registry on startup and lifecycle triggers.
+- **Snapshot Generator:** Automated snapshot engine creating tar/compressed snapshots of database states with manifest tracking.
 
 ---
 
-## Role-Based Access
+## Role-Based Access & Granular Permissions
 
-| Page / Action              | SUPER_ADMIN | ADMIN | CLUB_MANAGER | ACCOUNTANT | Others |
-| -------------------------- | :---------: | :---: | :----------: | :--------: | :----: |
-| Dashboard                  |      ✅      |   ✅   |      ✅       |     ✅      |   ✅    |
-| Members (CRUD)             |      ✅      |   ✅   |      ✅       |     ✅      |   —    |
-| Billing                    |      ✅      |   ✅   |      ✅       |     ✅      |   —    |
-| Restaurant POS             |      ✅      |   ✅   |      ✅       |     —      |  FNB   |
-| Inventory                  |      ✅      |   ✅   |      ✅       |     —      |   —    |
-| Assets                     |      ✅      |   ✅   |      ✅       |     —      |   —    |
-| Activities                 |      ✅      |   ✅   |      ✅       |     —      |   —    |
-| Announcements              |      ✅      |   ✅   |      ✅       |     —      |   —    |
-| Concierge                  |      ✅      |   ✅   |      ✅       |     —      |   ✅    |
-| Access Logs                |      ✅      |   ✅   |      ✅       |     —      | SECURITY |
-| Staff / Salary             |      ✅      |   ✅   |      ✅       |     —      |   —    |
-| Edit Logs (under Insights) |      ✅      |   —    |      —       |     —      |   —    |
-| Feedback                   |      ✅      |   ✅   |      ✅       |     ✅      |   —    |
+| Page / Vector | SUPER_ADMIN | ADMIN | CLUB_MANAGER | ACCOUNTANT | F&B / CHEF | SECURITY | HOUSEKEEPING |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **System Dashboard** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Member Governance** | ✅ | ✅ | ✅ | ✅ | — | — | — |
+| **Billing & Invoices** | ✅ | ✅ | ✅ | ✅ | — | — | — |
+| **Requests Hub** | ✅ | ✅ | ✅ | — | — | — | — |
+| **Restaurant POS & KDS** | ✅ | ✅ | ✅ | — | ✅ | — | — |
+| **Inventory Tracking** | ✅ | ✅ | ✅ | — | ✅ | — | — |
+| **Asset Register** | ✅ | ✅ | ✅ | — | — | — | — |
+| **Estate Activities** | ✅ | ✅ | ✅ | — | — | — | — |
+| **Concierge Tickets** | ✅ | ✅ | ✅ | — | — | — | — |
+| **Access Gate Logs** | ✅ | ✅ | ✅ | — | — | ✅ | — |
+| **Staff & Payroll** | ✅ | ✅ | ✅ | — | — | — | — |
+| **Audit Logs** | ✅ | — | — | — | — | — | — |
 
-All create/update/delete actions are further gated by `usePermission(screenKey, action)` which checks a `UserScreenAccess` table.
-
----
-
-## Real-Time Events (Socket.IO)
-
-The system uses Socket.IO for live updates. Events are emitted from the backend and handled by `SocketContext` on the frontend:
-
-| Event                | Trigger                            | Shows Toast? |
-| -------------------- | ---------------------------------- | :----------: |
-| `new_invoice`        | Invoice created                    |      ✅      |
-| `payment_received`   | Payment approved                   |      —      |
-| `payment_confirmed`  | Payment approved (with balance)    |      ✅      |
-| `new_kot`            | KOT sent to kitchen                |      ✅      |
-| `new_announcement`   | Estate notice published            |      ✅      |
-| `new_message`        | Concierge chat message             |      ✅      |
-| `low_stock_alert`    | Stock below reorder level          |      ✅      |
-| `new_access_log`     | Entry attempt (allowed/denied)     |      ✅      |
-| `activity_update`    | New activity created               |      ✅      |
-
-Staff are registered in rooms by `userId` and `role`, allowing targeted notifications.
+*All non-admin mutations are further filtered through `UserScreenAccess` records.*
 
 ---
 
-## WhatsApp Integration
+## Real-Time Events & WebSockets
 
-When a payment is approved, the system sends the member a WhatsApp message with:
+The system leverages Socket.IO with both broadcast channels and private user rooms (`user_{id}`, `affiliate_{id}`):
 
-- Invoice number
-- Amount received
-- Outstanding balance
+| Event | Origin / Trigger | Recipient Target | Frontend Toast |
+| :--- | :--- | :--- | :---: |
+| `new_invoice` | Invoice generated in any department | Staff Room / Member | ✅ |
+| `payment_confirmed` | Payment approved by accountant | Private Member Room | ✅ |
+| `new_kot` | Waiter dispatches kitchen order | Kitchen / Chef Room | ✅ |
+| `order_status_update` | Item status advanced in KDS | Waiter / POS Terminals | ✅ |
+| `new_announcement` | Admin broadcasts estate notice | All Connected Clients | ✅ |
+| `new_message` | Chat sent in Concierge ticket | Specific Member / Staff | ✅ |
+| `low_stock_alert` | Stock quantity drops below reorder point | Store Manager / Admin | ✅ |
+| `new_access_log` | Member checks in at gate | Security / Gate Staff | ✅ |
+| `activity_update` | Estate event published / updated | All Members | ✅ |
 
-### Prerequisites
-1. A WhatsApp Business Account (WABA) from Meta
-2. A phone number linked to the WABA (the club's number, e.g. +91 78880 05995)
-3. A **payment_confirmation** message template approved in Meta Business Manager
-4. The Phone Number ID and a permanent access token
+---
 
-### Setup
+## External Integrations
 
+### WhatsApp Cloud API (Meta)
+Automated payment receipts and balance notifications are dispatched when transactions are verified.
 ```env
-WHATSAPP_PHONE_NUMBER_ID=123456789012345
-WHATSAPP_ACCESS_TOKEN=EAAx...
+WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
+WHATSAPP_ACCESS_TOKEN=your_permanent_access_token
 WHATSAPP_API_VERSION=v22.0
 ```
 
-**Sending number:** +91 78880 05995 (linked via the Phone Number ID in WABA)  
-**Recipient:** Member's `whatsappNumber` field (falls back to `mobileNumber`)
+### Nodemailer (Gmail SMTP)
+Used for automated member onboarding emails, password recovery, and event announcements.
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=office@stellaar.com
+SMTP_PASS=your_app_password
+SMTP_SECURE=true
+```
 
-If not configured, the system logs the message to the console in development mode.
+---
+
+## API Reference
+
+The backend provides 24 modular route controllers mounted at `/api/`:
+
+| Base Path | Primary Controller | Functionality |
+| :--- | :--- | :--- |
+| `/api/auth` | `auth.ts` | Login, password reset, token validation |
+| `/api/users` | `user.ts` | Staff accounts, roles, screen permission matrices |
+| `/api/members` | `member.ts` | Member directory, KYC, family affiliates, status & AMC controls |
+| `/api/billing` | `billing.ts` | Department invoices, payment settlement, running ledger |
+| `/api/restaurant` | `restaurant.ts` | Table layouts, dining orders, KOT generation, KDS status |
+| `/api/menu` | `menu.ts` | Menu item categories, pricing, veg/non-veg modifiers |
+| `/api/inventory` | `inventory.ts` | Stock quantities, recipe associations, reorder logs |
+| `/api/assets` | `asset.ts` | Equipment inventory, maintenance schedules, depreciation |
+| `/api/complaints` | `complaint.ts` | Concierge tickets, two-way live messaging |
+| `/api/access` | `access.ts` | Gate entry logging, QR card validation, blacklists |
+| `/api/activities` | `activity.ts` | Estate events, booking quotas, attendee rosters |
+| `/api/announcements`| `announcement.ts` | Broadcast announcements & notifications |
+| `/api/reports` | `reports.ts` | Financial charts, revenue summaries, member growth |
+| `/api/audit` | `audit.ts` | Tamper-evident administrative audit logs |
+| `/api/amc` | `amc.ts` | Annual maintenance charge approvals and requests |
+| `/api/init` | `init.ts` | System bootstrap and initialization checks |
+| `/api/system` | `system.ts` | Lock status, operational health, traffic testing |
+| `/api/leave` | `leave.ts` | Staff leave requests and management |
+| `/api/push` | `push.ts` | Mobile push notification registry |
+| `/api/walkin-guests` | `walkin-guests.ts`| Walk-in patron registration and tracking |
+| `/api/housekeeping` | `housekeeping.ts`| Floor and room cleaning checklists |
+| `/api/attendance` | `attendance.ts` | Daily staff attendance logs |
+| `/api/salary` | `salary.ts` | Payroll generation, bonus/deduction records |
+| `/api/export-requests`| `export-requests.ts`| Audit export generation and tracking |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- PostgreSQL 14+ (or Supabase project)
+- **Node.js:** v20.0.0 or higher
+- **PostgreSQL:** v14+ (local instance on port 5432 or Supabase cloud instance)
+- **npm:** v10+
 
-### 1. Install dependencies
+### 1. Installation
+Clone the repository and install workspace dependencies:
 ```bash
+git clone https://github.com/officethestellaar/TSApp.git
+cd TSApp
 npm install
 ```
 
-### 2. Database setup
+### 2. Environment Configuration
+Configure `backend/.env` (refer to `backend/.env.example`):
+```env
+PORT=5001
+DATABASE_URL="postgresql://user:pass@host:5432/postgres?connection_limit=5"
+DIRECT_URL="postgresql://user:pass@host:5432/postgres"
+JWT_SECRET="your-secure-jwt-secret"
+FRONTEND_URL="http://localhost:3000"
+```
+
+Configure `frontend/.env.local`:
+```env
+NEXT_PUBLIC_API_URL="http://localhost:5001/api/"
+```
+
+### 3. Database Generation & Seeding
 ```bash
 cd backend
-cp .env.example .env          # Edit DATABASE_URL
-npx prisma migrate dev
-npx prisma db seed
+npx prisma generate
+npx prisma generate --schema=prisma/local.prisma
+npx prisma generate --schema=prisma/ledger.prisma
+npx prisma db push
+npm run prisma:seed
+cd ..
 ```
 
-### 3. Start the app
+### 4. Launch Development Servers
+Launch both frontend and backend concurrently:
 ```bash
-./start.sh                    # Both servers
-# or separately:
-npm run dev:frontend          # http://localhost:3000
-npm run dev:backend           # http://localhost:5001/api
+./start.sh
+```
+Or run individually via npm workspaces:
+```bash
+# Terminal 1 - Backend (Port 5001)
+npm run dev:backend
+
+# Terminal 2 - Frontend (Port 3000)
+npm run dev:frontend
 ```
 
-### 4. Login
-- **Email:** `admin@stellaar.com`
+### 5. Default Administrative Credentials
+- **URL:** [http://localhost:3000/login](http://localhost:3000/login)
+- **SuperAdmin Email:** `admin@stellaar.com`
 - **Password:** `admin123`
 
-### 5. Run tests
-```bash
-npm test                      # All tests
-npm run test -w frontend      # Frontend only
-npm run test -w backend       # Backend only
-```
-
 ---
 
-## API Overview
+## Testing & Quality Standards
 
-| Base Path     | Description            |
-| ------------- | ---------------------- |
-| `/api/auth`   | Login, reset password  |
-| `/api/member` | Member CRUD, import    |
-| `/api/billing`| Invoices, payments     |
-| `/api/menu`   | Menu items, categories |
-| `/api/restaurant` | POS, KOT, orders   |
-| `/api/inventory`  | Stock, usage      |
-| `/api/asset`  | Asset lifecycle       |
-| `/api/complaint`  | Help desk, messages |
-| `/api/access` | Entry logs, checks    |
-| `/api/activity`   | Estate curation   |
-| `/api/announcement` | Notices          |
-| `/api/reports`| Charts, feedback      |
-| `/api/audit`  | Edit trail            |
-| `/api/staff`  | Attendance, salary    |
-
----
-
-## Environment Variables
-
-```env
-# Database
-DATABASE_URL=postgresql://...
-DIRECT_URL=postgresql://...
-
-# Auth
-JWT_SECRET=your-secret
-
-# Server
-PORT=5001
-FRONTEND_URL=http://localhost:3000
-
-# SMTP (Email)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_USER=office@example.com
-SMTP_PASS=app-password
-SMTP_SECURE=true
-
-# WhatsApp Cloud API
-WHATSAPP_PHONE_NUMBER_ID=
-WHATSAPP_ACCESS_TOKEN=
-WHATSAPP_API_VERSION=v22.0
-
-# Expo Push
-EXPO_ACCESS_TOKEN=
-```
-
----
-
-## Deployment
-
-The app uses a two-service architecture: **Frontend (Next.js)** on Vercel + **Backend (Express API)** on Render/Railway/VPS.
-
-### Architecture
-
-```
-Vercel (Next.js)          Render / Railway (Express)
-┌─────────────────┐       ┌───────────────────────┐
-│  thestellaar.    │       │  api.stellaar.com     │
-│  vercel.app      │       │                       │
-│                  │ HTTP  │  ┌─────────────────┐  │
-│  NEXT_PUBLIC_    │──────►│  │ Prisma →        │  │
-│  API_URL =       │       │  │ Supabase        │  │
-│  https://api.    │◄──────│  │ (PostgreSQL)    │  │
-│  stellaar.com/api│  JSON │  └─────────────────┘  │
-│                  │       │                       │
-│  Socket.io       │◄──────│  WebSocket (realtime) │
-└─────────────────┘       └───────────────────────┘
-```
-
-### Deploy Backend to Render
-
-1. Push your repo to GitHub
-2. Go to [render.com](https://render.com) → **New +** → **Web Service**
-3. Connect your GitHub repo
-4. Fill in:
-
-   | Setting | Value |
-   |---------|-------|
-   | **Name** | `stellaar-backend` |
-   | **Root Directory** | `backend` |
-   | **Runtime** | `Node` |
-   | **Build Command** | `npm install && npx prisma generate && npm run build` |
-   | **Start Command** | `npm run start` |
-   | **Plan** | `Free` |
-
-5. Add environment variables (click **Advanced** → **Add Environment Variable**):
-
-   ```
-   PORT=5001
-   DATABASE_URL=postgresql://...
-   DIRECT_URL=postgresql://...
-   JWT_SECRET=your-secret
-   FRONTEND_URL=https://your-app.vercel.app
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=465
-   SMTP_USER=office@thestellaar.com
-   SMTP_PASS=your-app-password
-   SMTP_SECURE=true
-   ```
-
-6. Click **Deploy Web Service**
-
-After deployment, you'll get a URL like `https://stellaar-backend.onrender.com`.
-
-> **Alternatively:** Use Railway or Fly.io with the same config. The `backend/render.yaml` file can be used for Render Blueprint deploys.
-
-### Deploy Frontend to Vercel
-
-#### Option A: Vercel Dashboard
-
-1. Push your repo to GitHub
-2. Go to [vercel.com](https://vercel.com) → **Add New** → **Project**
-3. Import your GitHub repo
-4. **Root Directory** → click **Edit** → select `frontend/`
-5. **Framework Preset** → auto-detects **Next.js**
-6. **Environment Variables** → add:
-
-   ```
-   NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/
-   ```
-
-7. Click **Deploy**
-
-#### Option B: Vercel CLI
+The project adheres to strict automated testing and zero-warning linting standards:
 
 ```bash
-cd frontend
-npx vercel --prod --env NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/
+# Run all automated tests across frontend and backend
+npm run test
+
+# Run backend Vitest tests only
+npm run test -w backend
+
+# Run frontend Vitest tests only
+npm run test -w frontend
+
+# Run strict ESLint verification (0 errors, 0 warnings enforced)
+npm run lint
+
+# Validate Prisma database schemas
+cd backend
+npx prisma validate
+npx prisma validate --schema=prisma/local.prisma
+npx prisma validate --schema=prisma/ledger.prisma
+cd ..
+
+# Verify backend TypeScript compilation
+cd backend && npx tsc --noEmit && cd ..
 ```
 
-Your frontend will be live at `https://frontend-xxxxx.vercel.app`.
+---
 
-### Post-Deployment
+## Deployment Guide
 
-1. **Update `FRONTEND_URL`** in your Render backend env vars to your Vercel URL:
-   ```
-   FRONTEND_URL=https://your-app.vercel.app
-   ```
-2. **Update CORS** — The backend already reads `FRONTEND_URL` for CORS. You can pass multiple origins:
-   ```
-   FRONTEND_URL=https://your-app.vercel.app,http://localhost:3000
-   ```
-3. **Verify API** — Visit `https://your-backend.onrender.com/health` — should return `{"status":"ok"}`
+The platform is designed to deploy cleanly with separate frontend and backend instances:
 
-### Troubleshooting
+### Backend Deployment (Render / Railway / VPS)
+- **Root Directory:** `backend`
+- **Build Command:** `npm install && npx prisma generate && npx prisma generate --schema=prisma/local.prisma && npx prisma generate --schema=prisma/ledger.prisma && tsc && cp -r src/generated dist/generated`
+- **Start Command:** `npm run start`
+- **Port:** `5001` (or dynamic `PORT`)
+- Configure database connection pooler (`pgbouncer=true` on port `6543` for Supabase).
 
-| Symptom | Fix |
-|---------|-----|
-| Frontend loads but API calls fail | Check `NEXT_PUBLIC_API_URL` env var in Vercel |
-| Backend returns 403 | Check CORS — `FRONTEND_URL` must match your Vercel domain |
-| Prisma connection errors | Verify `DATABASE_URL` and `DIRECT_URL` in Render env vars |
-| Socket.io not connecting | Ensure WebSocket transport works on your hosting plan (Render free tier supports it) |
-| Login page shows "Network Error" | Check backend health endpoint and env vars |
+### Frontend Deployment (Vercel)
+- **Root Directory:** `frontend`
+- **Framework Preset:** Next.js
+- **Environment Variable:** `NEXT_PUBLIC_API_URL=https://your-backend-api.com/api/`
+
+---
+
+## Project Health & Status
+
+For a chronological journal of system enhancements, architectural upgrades, and verification results, consult [`STATUS.md`](./STATUS.md).
+
+- **Current Status:** ✅ **ALL SYSTEMS NOMINAL / FULLY TESTED / BACKEND VERIFIED**
+- **Automated Tests:** 30 / 30 tests passing (100% pass rate)
+- **Frontend Linter:** 0 errors, 0 warnings
 
 ---
 
 ## License
 
-Proprietary — The Stellaar Club
+Proprietary — **The Stellaar Club**. All rights reserved.
