@@ -709,7 +709,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/areebalishivji/Documents/TSApp/backend/src/generated/local-client",
+      "value": "/Volumes/Dev_SSD/TSApp/backend/src/generated/local-client",
       "fromEnvVar": null
     },
     "config": {
@@ -723,7 +723,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/areebalishivji/Documents/TSApp/backend/prisma/local.prisma",
+    "sourceFilePath": "/Volumes/Dev_SSD/TSApp/backend/prisma/local.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -737,6 +737,7 @@ const config = {
     "db"
   ],
   "activeProvider": "sqlite",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {

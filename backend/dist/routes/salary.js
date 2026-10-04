@@ -37,7 +37,7 @@ router.get('/my', auth_1.authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN'), (0, auth_1.authorizePermission)('staff-salary', 'read'), async (req, res) => {
     try {
         const { userId, month, year } = req.query;
         const where = {};
@@ -49,10 +49,24 @@ router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMI
             where.year = Number(year);
         const records = await prisma_1.default.staffSalary.findMany({
             where,
-            include: { user: { select: { id: true, name: true, email: true, role: { select: { name: true } } } } },
             orderBy: [{ year: 'desc' }, { month: 'desc' }],
         });
-        res.json(records);
+        const userIds = [...new Set(records.map(r => r.userId))];
+        const users = userIds.length
+            ? await prisma_1.default.user.findMany({
+                where: { id: { in: userIds } },
+                include: { role: { select: { name: true } } },
+            })
+            : [];
+        const userMap = new Map(users.map(u => [u.id, u]));
+        const enriched = records.map(r => {
+            const u = userMap.get(r.userId);
+            return {
+                ...r,
+                user: u ? { id: u.id, name: u.name, email: u.email, role: u.role } : null,
+            };
+        });
+        res.json(enriched);
     }
     catch {
         res.status(500).json({ message: 'Internal server error' });

@@ -19,7 +19,7 @@ function determineStatus(actualTime, defaultCheckIn) {
         return 'LATE';
     return 'PRESENT';
 }
-router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'ACCOUNTANT', 'HOUSEKEEPING_SUPERVISOR', 'SALON_MANAGER', 'RESTAURANT_MANAGER', 'RECEPTIONIST'), async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'ACCOUNTANT', 'HOUSEKEEPING_SUPERVISOR', 'SALON_MANAGER', 'RESTAURANT_MANAGER', 'RECEPTIONIST'), (0, auth_1.authorizePermission)('staff-attendance', 'read'), async (req, res) => {
     try {
         const { userId, month, year, date } = req.query;
         const where = {};
@@ -36,10 +36,24 @@ router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMI
         }
         const records = await prisma_1.default.staffAttendance.findMany({
             where,
-            include: { user: { select: { id: true, name: true, email: true, role: { select: { name: true } } } } },
             orderBy: { date: 'desc' },
         });
-        res.json(records);
+        const userIds = [...new Set(records.map(r => r.userId))];
+        const users = userIds.length
+            ? await prisma_1.default.user.findMany({
+                where: { id: { in: userIds } },
+                include: { role: { select: { name: true } } },
+            })
+            : [];
+        const userMap = new Map(users.map(u => [u.id, u]));
+        const enriched = records.map(r => {
+            const u = userMap.get(r.userId);
+            return {
+                ...r,
+                user: u ? { id: u.id, name: u.name, email: u.email, role: u.role } : null,
+            };
+        });
+        res.json(enriched);
     }
     catch {
         res.status(500).json({ message: 'Internal server error' });

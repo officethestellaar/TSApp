@@ -137,7 +137,7 @@ router.post('/import/revenue', auth_1.authenticateToken, (0, auth_1.authorizeRol
     }
 });
 // Get overall stats and Multi-Period Comparisons
-router.get('/stats', auth_1.authenticateToken, async (req, res) => {
+router.get('/stats', auth_1.authenticateToken, (0, auth_1.authorizePermission)('reports', 'read'), async (req, res) => {
     try {
         const cached = cache_1.default.get('report_stats');
         if (cached)
@@ -238,7 +238,7 @@ router.get('/stats', auth_1.authenticateToken, async (req, res) => {
     }
 });
 // Get revenue data for charts (last 6 months)
-router.get('/revenue-chart', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/revenue-chart', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), (0, auth_1.authorizePermission)('reports', 'read'), async (req, res) => {
     try {
         const cached = cache_1.default.get('report_revenue_chart');
         if (cached)
@@ -287,7 +287,7 @@ router.get('/revenue-chart', auth_1.authenticateToken, (0, auth_1.authorizeRoles
     }
 });
 // Get membership distribution
-router.get('/membership-distribution', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/membership-distribution', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), (0, auth_1.authorizePermission)('reports', 'read'), async (req, res) => {
     try {
         const cached = cache_1.default.get('report_member_dist');
         if (cached)
@@ -311,7 +311,7 @@ router.get('/membership-distribution', auth_1.authenticateToken, (0, auth_1.auth
     }
 });
 // Daily Sales Summary (Last 24h)
-router.get('/daily-summary', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/daily-summary', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), (0, auth_1.authorizePermission)('reports', 'read'), async (req, res) => {
     try {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -337,7 +337,7 @@ router.get('/daily-summary', auth_1.authenticateToken, (0, auth_1.authorizeRoles
     }
 });
 // AMC Defaulter List
-router.get('/amc-defaulters', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/amc-defaulters', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), (0, auth_1.authorizePermission)('reports', 'read'), async (req, res) => {
     try {
         const defaulters = await prisma_1.default.member.findMany({
             where: {
@@ -361,7 +361,7 @@ router.get('/amc-defaulters', auth_1.authenticateToken, (0, auth_1.authorizeRole
     }
 });
 // GST Filing Helper (Tax Summary)
-router.get('/gst-summary', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/gst-summary', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), (0, auth_1.authorizePermission)('reports', 'read'), async (req, res) => {
     try {
         const cached = cache_1.default.get('report_gst_summary');
         if (cached)
@@ -391,7 +391,7 @@ router.get('/gst-summary', auth_1.authenticateToken, (0, auth_1.authorizeRoles)(
     }
 });
 // Table Turnaround Report
-router.get('/table-turnaround', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/table-turnaround', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), (0, auth_1.authorizePermission)('reports', 'read'), async (req, res) => {
     try {
         const cached = cache_1.default.get('report_table_turnaround');
         if (cached)

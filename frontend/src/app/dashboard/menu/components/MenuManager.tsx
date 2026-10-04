@@ -5,6 +5,8 @@ import api from '@/lib/api';
 import { Plus, Edit, Trash2, Search, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import ExportButton from '@/components/ui/ExportButton';
 import { usePermission } from '@/hooks/usePermission';
+import { apiErrorMessage } from '@/lib/apiError';
+import toast from 'react-hot-toast';
 
 export interface MenuConfig {
   department: string;
@@ -62,16 +64,34 @@ export default function MenuManager({ config, screenKey }: { config: MenuConfig;
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form, price: Number(form.price) };
+      const trimmedName = form.name.trim();
+      const numPrice = Number(form.price);
+      if (!trimmedName) {
+        toast.error('Item name is required');
+        setSaving(false);
+        return;
+      }
+      if (isNaN(numPrice) || numPrice < 0) {
+        toast.error('Price must be a valid non-negative number');
+        setSaving(false);
+        return;
+      }
+      const payload = { ...form, name: trimmedName, price: numPrice };
       if (editing) {
         const res = await api.put(`menu/${editing.id}`, payload);
         setItems(prev => prev.map(i => i.id === editing.id ? res.data : i));
+        toast.success('Item updated');
       } else {
         const res = await api.post('menu', payload);
         setItems(prev => [res.data, ...prev]);
+        toast.success('Item added');
       }
       setShowModal(false);
-    } catch { alert('Failed to save item'); } finally { setSaving(false); }
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err, editing ? 'Failed to update item' : 'Failed to add item'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id: number, name: string) => {
@@ -79,14 +99,20 @@ export default function MenuManager({ config, screenKey }: { config: MenuConfig;
     try {
       await api.delete(`menu/${id}`);
       setItems(prev => prev.filter(i => i.id !== id));
-    } catch { alert('Failed to delete item'); }
+      toast.success('Item deleted');
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err, 'Failed to delete item'));
+    }
   };
 
   const toggleAvailability = async (item: MenuItem) => {
     try {
       const res = await api.put(`menu/${item.id}`, { isAvailable: !item.isAvailable });
       setItems(prev => prev.map(i => i.id === item.id ? res.data : i));
-    } catch { alert('Failed to update'); }
+      toast.success(res.data.isAvailable ? 'Item is now available' : 'Item is now hidden');
+    } catch (err: any) {
+      toast.error(apiErrorMessage(err, 'Failed to update availability'));
+    }
   };
 
   const filtered = items.filter(i =>

@@ -58,12 +58,23 @@ router.get('/', auth_1.authenticateToken, async (req, res) => {
         const complaints = await prisma_1.default.complaint.findMany({
             where,
             include: {
-                member: { select: { nameAsAadhaar: true, membershipNumber: true } },
                 _count: { select: { messages: true } }
             },
             orderBy: { createdAt: 'desc' },
         });
-        res.json(complaints);
+        const memberIds = [...new Set(complaints.map(c => c.memberId))];
+        const members = memberIds.length
+            ? await prisma_1.default.member.findMany({
+                where: { id: { in: memberIds } },
+                select: { id: true, nameAsAadhaar: true, membershipNumber: true },
+            })
+            : [];
+        const memberMap = new Map(members.map(m => [m.id, m]));
+        const enriched = complaints.map(c => ({
+            ...c,
+            member: memberMap.get(c.memberId) || null,
+        }));
+        res.json(enriched);
     }
     catch (error) {
         res.status(500).json({ message: 'Internal server error' });
@@ -77,10 +88,7 @@ router.get('/:id', auth_1.authenticateToken, async (req, res) => {
         const complaintId = Number(req.params.id);
         const complaint = await prisma_1.default.complaint.findUnique({
             where: { id: complaintId },
-            include: {
-                member: { select: { nameAsAadhaar: true, membershipNumber: true } },
-                messages: { orderBy: { createdAt: 'asc' } }
-            }
+            include: { messages: { orderBy: { createdAt: 'asc' } } }
         });
         if (!complaint)
             return res.status(404).json({ message: 'Complaint not found' });
@@ -88,7 +96,11 @@ router.get('/:id', auth_1.authenticateToken, async (req, res) => {
         if (role === 'MEMBER' && (complaint.memberId !== userId || complaint.affiliateId !== (req.user?.affiliateId || null))) {
             return res.status(403).json({ message: 'Access denied to this concierge node' });
         }
-        res.json(complaint);
+        const owner = await prisma_1.default.member.findUnique({
+            where: { id: complaint.memberId },
+            select: { nameAsAadhaar: true, membershipNumber: true },
+        });
+        res.json({ ...complaint, member: owner || null });
     }
     catch (error) {
         res.status(500).json({ message: 'Internal server error' });

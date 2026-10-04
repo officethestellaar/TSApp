@@ -1,5 +1,6 @@
 import express from 'express';
 import prisma from '../lib/prisma';
+import { describeError } from '../lib/apiError';
 import { authenticateToken, authorizeRoles, authorizePermission } from '../middleware/auth';
 import { emitEvent } from '../lib/socket';
 
@@ -23,7 +24,8 @@ router.get('/', authenticateToken, authorizePermission('inventory', 'read'), asy
     });
     res.json(items);
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[Inventory] List items failed:', error);
+    res.status(500).json({ message: describeError(error, 'Internal server error') });
   }
 });
 
@@ -39,26 +41,83 @@ router.get('/alerts', authenticateToken, async (req, res) => {
     
     res.json(lowStockItems);
   } catch (error) {
-    console.error('Inventory alerts error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[Inventory] Low stock alerts failed:', error);
+    res.status(500).json({ message: describeError(error, 'Internal server error') });
   }
 });
 
+const INVENTORY_MANAGERS = [
+  'SUPER_ADMIN',
+  'ADMIN',
+  'OPERATIONS_MANAGER',
+  'DATA_OPERATOR',
+  'RESTAURANT_MANAGER',
+  'CHEF',
+  'HOUSEKEEPING_SUPERVISOR',
+  'HOUSEKEEPING_EXECUTIVE',
+  'CLUB_MANAGER',
+];
+
+const authorizeInventoryAction = (action: 'create' | 'update' | 'delete') => {
+  return async (req: any, res: any, next: any) => {
+    if (!req.user) return res.status(401).json({ message: 'Not authenticated' });
+    if (req.user.role === 'SUPER_ADMIN' || req.user.role === 'ADMIN') return next();
+
+    const allowedRoles: Record<'create' | 'update' | 'delete', string[]> = {
+      create: INVENTORY_MANAGERS,
+      update: INVENTORY_MANAGERS,
+      delete: ['SUPER_ADMIN', 'ADMIN', 'OPERATIONS_MANAGER', 'CLUB_MANAGER'],
+    };
+
+    if (allowedRoles[action]?.includes(req.user.role)) return next();
+
+    // Check granular userScreenAccess
+    const fieldMap = { create: 'canCreate', update: 'canUpdate', delete: 'canDelete' } as const;
+    const perm = await prisma.userScreenAccess.findUnique({
+      where: { userId_screenKey: { userId: req.user.userId, screenKey: 'inventory' } },
+      select: { [fieldMap[action]]: true },
+    });
+
+    if (perm && (perm as any)[fieldMap[action]]) return next();
+
+    return res.status(403).json({ message: 'Unauthorized role or insufficient permissions' });
+  };
+};
+
 // Create inventory item
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.post('/', authenticateToken, authorizeInventoryAction('create'), async (req, res) => {
   try {
+    const { name, category, unit, currentStock, minStockLevel, unitPrice } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ message: 'Item name is required' });
+    }
+    if (!category || !String(category).trim()) {
+      return res.status(400).json({ message: 'Category is required' });
+    }
+    if (!unit || !String(unit).trim()) {
+      return res.status(400).json({ message: 'Unit is required' });
+    }
+
     const item = await prisma.inventoryItem.create({
-      data: req.body
+      data: {
+        name: String(name).trim(),
+        category: String(category).trim(),
+        unit: String(unit).trim(),
+        currentStock: isNaN(Number(currentStock)) ? 0 : Number(currentStock),
+        minStockLevel: isNaN(Number(minStockLevel)) ? 5 : Number(minStockLevel),
+        unitPrice: isNaN(Number(unitPrice)) ? 0 : Number(unitPrice),
+      }
     });
     emitEvent('inventory_updated', { action: 'CREATE', item: item.name });
     res.status(201).json(item);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to create item' });
+    console.error('[Inventory] Create item failed:', error);
+    res.status(400).json({ message: describeError(error, 'Failed to create item') });
   }
 });
 
 // Restock item
-router.post('/:id/restock', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'DATA_OPERATOR', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.post('/:id/restock', authenticateToken, authorizeInventoryAction('update'), async (req, res) => {
   try {
     const { quantity, unitPrice, description } = req.body;
     const id = Number(req.params.id);
@@ -87,12 +146,13 @@ router.post('/:id/restock', authenticateToken, authorizeRoles('SUPER_ADMIN', 'AD
     emitEvent('inventory_updated', { action: 'RESTOCK', item: item.name });
     res.json(item);
   } catch (error) {
-    res.status(400).json({ message: 'Restock failed' });
+    console.error('[Inventory] Restock failed:', error);
+    res.status(400).json({ message: describeError(error, 'Restock failed') });
   }
 });
 
 // Manage recipes (Link menu item to inventory)
-router.post('/recipes', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.post('/recipes', authenticateToken, authorizeInventoryAction('update'), async (req, res) => {
   try {
     const { menuItemId, ingredients } = req.body; // ingredients: [{ inventoryItemId, quantity }]
 
@@ -111,13 +171,13 @@ router.post('/recipes', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'
 
     res.status(201).json({ message: 'Recipe saved successfully' });
   } catch (error) {
-    console.error('Recipe save error:', error);
-    res.status(400).json({ message: 'Failed to save recipe' });
+    console.error('[Inventory] Recipe save failed:', error);
+    res.status(400).json({ message: describeError(error, 'Failed to save recipe') });
   }
 });
 
 // Get consumption trends
-router.get('/reports/consumption', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.get('/reports/consumption', authenticateToken, authorizeRoles(...INVENTORY_MANAGERS), async (req, res) => {
   try {
     const logs = await prisma.inventoryLog.findMany({
       where: { type: 'USAGE' },
@@ -143,12 +203,13 @@ router.get('/reports/consumption', authenticateToken, authorizeRoles('SUPER_ADMI
 
     res.json(Object.values(trendData));
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[Inventory] Consumption report failed:', error);
+    res.status(500).json({ message: describeError(error, 'Internal server error') });
   }
 });
 
 // Get inventory valuation by category
-router.get('/reports/valuation', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.get('/reports/valuation', authenticateToken, authorizeRoles(...INVENTORY_MANAGERS), async (req, res) => {
   try {
     const items = await prisma.inventoryItem.findMany();
     
@@ -166,12 +227,13 @@ router.get('/reports/valuation', authenticateToken, authorizeRoles('SUPER_ADMIN'
 
     res.json(formattedData);
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[Inventory] Valuation report failed:', error);
+    res.status(500).json({ message: describeError(error, 'Internal server error') });
   }
 });
 
 // Get all inventory logs
-router.get('/logs', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.get('/logs', authenticateToken, authorizeRoles(...INVENTORY_MANAGERS), async (req, res) => {
   try {
     const logs = await prisma.inventoryLog.findMany({
       include: { item: { select: { name: true, unit: true } } },
@@ -180,27 +242,38 @@ router.get('/logs', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'R
     });
     res.json(logs);
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[Inventory] List logs failed:', error);
+    res.status(500).json({ message: describeError(error, 'Internal server error') });
   }
 });
 
 // Update inventory item
-router.patch('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'RESTAURANT_MANAGER'), async (req, res) => {
+router.patch('/:id', authenticateToken, authorizeInventoryAction('update'), async (req, res) => {
   try {
     const id = Number(req.params.id);
+    const { name, category, unit, currentStock, minStockLevel, unitPrice } = req.body;
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = String(name).trim();
+    if (category !== undefined) updateData.category = String(category).trim();
+    if (unit !== undefined) updateData.unit = String(unit).trim();
+    if (currentStock !== undefined) updateData.currentStock = isNaN(Number(currentStock)) ? 0 : Number(currentStock);
+    if (minStockLevel !== undefined) updateData.minStockLevel = isNaN(Number(minStockLevel)) ? 5 : Number(minStockLevel);
+    if (unitPrice !== undefined) updateData.unitPrice = isNaN(Number(unitPrice)) ? 0 : Number(unitPrice);
+
     const item = await prisma.inventoryItem.update({
       where: { id },
-      data: req.body
+      data: updateData
     });
     emitEvent('inventory_updated', { action: 'UPDATE', item: item.name });
     res.json(item);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to update item' });
+    console.error('[Inventory] Update item failed:', error);
+    res.status(400).json({ message: describeError(error, 'Failed to update item') });
   }
 });
 
 // Delete inventory item
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req, res) => {
+router.delete('/:id', authenticateToken, authorizeInventoryAction('delete'), async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -213,8 +286,9 @@ router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (r
 
     emitEvent('inventory_updated', { action: 'DELETE', item: item.name });
     res.json({ message: 'Inventory node and associated history removed successfully' });
-  } catch (error: any) {
-    res.status(400).json({ message: error.message || 'Failed to remove item' });
+  } catch (error) {
+    console.error('[Inventory] Delete item failed:', error);
+    res.status(400).json({ message: describeError(error, 'Failed to remove item') });
   }
 });
 

@@ -291,23 +291,42 @@ export default function TableSelectionPage() {
                     <span className="text-xs text-navy/40 ml-2">{table.capacity} pax — {table.floor}</span>
                     <span className={`ml-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${badgeStyle(table.status)}`}>{statusLabel(table.status)}</span>
                   </div>
-                  <button
-                    onClick={async () => {
-                      if (!confirm(`Delete Table ${table.number}?`)) return;
-                      try {
-                        await api.delete(`restaurant/tables/${table.id}`);
-                        toast.success(`Table ${table.number} deleted`);
-                        fetchTables();
-                      } catch (err: any) {
-                        toast.error(err.response?.data?.message || 'Failed to delete table');
-                      }
-                    }}
-                    disabled={table.status !== 'AVAILABLE'}
-                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    title={table.status === 'BILL_PENDING' ? 'Table has an unpaid bill' : table.status === 'OCCUPIED' ? 'Table has active orders' : 'Delete table'}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {table.status !== 'AVAILABLE' && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await api.post(`restaurant/tables/${table.id}/clear`);
+                            toast.success(res.data.message || `Table ${table.number} cleared`);
+                            fetchTables();
+                          } catch (err: any) {
+                            toast.error(err.response?.data?.message || 'Cannot clear table');
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-amber-100 text-amber-900 hover:bg-amber-200 rounded-lg text-xs font-bold transition-all"
+                        title={table.status === 'BILL_PENDING' ? 'Bill must be settled before clearing' : 'Must create bill and settle before clearing'}
+                      >
+                        Clear Table
+                      </button>
+                    )}
+                    <button
+                      onClick={async () => {
+                        if (!confirm(`Delete Table ${table.number}?`)) return;
+                        try {
+                          await api.delete(`restaurant/tables/${table.id}`);
+                          toast.success(`Table ${table.number} deleted`);
+                          fetchTables();
+                        } catch (err: any) {
+                          toast.error(err.response?.data?.message || 'Failed to delete table');
+                        }
+                      }}
+                      disabled={table.status !== 'AVAILABLE'}
+                      className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      title={table.status === 'BILL_PENDING' ? 'Table has an unpaid bill' : table.status === 'OCCUPIED' ? 'Table has active orders' : 'Delete table'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
               {tables.length === 0 && (

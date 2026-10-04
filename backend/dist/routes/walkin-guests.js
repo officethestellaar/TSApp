@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
-router.get('/', auth_1.authenticateToken, async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizePermission)('members', 'read'), async (req, res) => {
     try {
         const { search } = req.query;
         const where = {};

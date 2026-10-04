@@ -208,6 +208,7 @@ router.post('/invoice', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SU
         let customerName = '';
         let discount = 0;
         if (isMember === false) {
+            discount = Math.min(Number(req.body.discount) || 0, subtotal);
             if (req.body.guestName) {
                 const existing = await prisma_1.default.walkInGuest.findFirst({
                     where: { name: { equals: req.body.guestName, mode: 'insensitive' } },
@@ -238,7 +239,15 @@ router.post('/invoice', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SU
             resolvedMemberId = Number(memberId);
             const member = await prisma_1.default.member.findUnique({ where: { id: resolvedMemberId } });
             customerName = member?.nameAsAadhaar || 'Member';
-            if (member && member.membershipNumber !== 'GUEST-001') {
+            // Honor an explicitly provided custom discount; only fall back to the
+            // in-built 30% member benefit when no discount value was sent.
+            const customDiscount = req.body.discount !== undefined && req.body.discount !== ''
+                ? Number(req.body.discount)
+                : null;
+            if (customDiscount !== null && !Number.isNaN(customDiscount)) {
+                discount = Math.min(Math.max(customDiscount, 0), subtotal);
+            }
+            else if (member && member.membershipNumber !== 'GUEST-001') {
                 discount = subtotal * 0.30;
             }
         }
@@ -248,8 +257,19 @@ router.post('/invoice', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SU
         const rawTotal = taxableAmount + gstAmount;
         const roundedTotal = Math.round(rawTotal);
         const roundOff = Number((roundedTotal - rawTotal).toFixed(2));
-        const count = await prisma_1.default.invoice.count();
-        const invoiceNumber = `INV-${new Date().getFullYear()}-${1000 + count + 1}`;
+        // Use shared sequence for race-safe invoice numbers, with count fallback
+        let nextSeq;
+        try {
+            const seqResult = await prisma_1.default.$queryRaw `
+        SELECT nextval('public.invoice_number_seq') as nextval
+      `;
+            nextSeq = Number(seqResult[0].nextval);
+        }
+        catch {
+            const count = await prisma_1.default.invoice.count();
+            nextSeq = count + 1;
+        }
+        const invoiceNumber = `INV-${new Date().getFullYear()}-${10000 + nextSeq}`;
         const invoice = await prisma_1.default.invoice.create({
             data: {
                 invoiceNumber,
@@ -338,6 +358,7 @@ router.post('/payment', auth_1.authenticateToken, uploadProof.single('proof'), a
         const count = await prisma_1.default.payment.count();
         const receiptNumber = `RCP-${new Date().getFullYear()}-${1000 + count + 1}`;
         const isMemberPayment = req.user?.role === 'MEMBER';
+        let releasedTableNumber = null;
         const payment = await prisma_1.default.$transaction(async (tx) => {
             const p = await tx.payment.create({
                 data: {
@@ -351,7 +372,10 @@ router.post('/payment', auth_1.authenticateToken, uploadProof.single('proof'), a
                     receivedById: isMemberPayment ? null : userId,
                 },
             });
-            const updatedInvoice = await tx.invoice.findUnique({ where: { id: Number(invoiceId) }, include: { member: true, walkInGuest: true } });
+            const updatedInvoice = await tx.invoice.findUnique({
+                where: { id: Number(invoiceId) },
+                include: { member: true, walkInGuest: true, order: { include: { table: true } } },
+            });
             const aggregateResult = await tx.payment.aggregate({
                 where: { invoiceId: Number(invoiceId) },
                 _sum: { amount: true },
@@ -371,6 +395,20 @@ router.post('/payment', auth_1.authenticateToken, uploadProof.single('proof'), a
                         where: { id: updatedInvoice.memberId },
                         data: { amcStatus: 'PAID', accessStatus: 'ENABLED' },
                     });
+                }
+                // A POS invoice can be settled from this screen instead of the table POS.
+                // Release its table too, otherwise it stays BILL_PENDING forever. A member
+                // payment left at PENDING_APPROVAL has not settled yet, so it keeps the table.
+                if (newStatus === 'PAID' && updatedInvoice.order?.tableId) {
+                    await tx.order.update({
+                        where: { id: updatedInvoice.order.id },
+                        data: { status: 'PAID' },
+                    });
+                    await tx.restaurantTable.update({
+                        where: { id: updatedInvoice.order.tableId },
+                        data: { status: 'AVAILABLE' },
+                    });
+                    releasedTableNumber = updatedInvoice.order.table?.number || null;
                 }
             }
             if (updatedInvoice.department === 'MEMBERSHIP' && updatedInvoice.memberId) {
@@ -412,6 +450,11 @@ router.post('/payment', auth_1.authenticateToken, uploadProof.single('proof'), a
             (0, cache_1.clearCachePattern)('report_');
             return p;
         });
+        // Only after commit: a table_cleared emitted inside the transaction could fire for
+        // a payment that then rolled back.
+        if (releasedTableNumber) {
+            (0, socket_1.emitEvent)('table_cleared', { tableNumber: releasedTableNumber });
+        }
         res.status(201).json(payment);
     }
     catch (error) {
@@ -535,32 +578,82 @@ router.post('/payment/:id/reject', auth_1.authenticateToken, (0, auth_1.authoriz
         res.status(400).json({ message: error.message || 'Rejection failed' });
     }
 });
-// Edit invoice (SUPER_ADMIN ONLY)
+// Edit invoice (SUPER_ADMIN ONLY) — amount, discount, gst, total, status, items
 router.patch('/invoice/:id', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN'), (0, auth_1.authorizePermission)('billing', 'update'), async (req, res) => {
     try {
         const id = Number(req.params.id);
-        const { amount, discount, gst, total, status } = req.body;
-        const oldInvoice = await prisma_1.default.invoice.findUnique({ where: { id } });
-        const invoice = await prisma_1.default.invoice.update({
+        const { amount, discount, gst, total, status, items } = req.body;
+        const oldInvoice = await prisma_1.default.invoice.findUnique({
             where: { id },
-            data: {
-                amount: amount ? Number(amount) : undefined,
-                discount: discount ? Number(discount) : undefined,
-                gst: gst ? Number(gst) : undefined,
-                total: total ? Number(total) : undefined,
-                status: status || undefined
+            include: { items: true, member: true, walkInGuest: true },
+        });
+        if (!oldInvoice)
+            return res.status(404).json({ message: 'Invoice not found' });
+        // Settled invoices are locked — no edits allowed once paid
+        if (oldInvoice.status === 'PAID' || oldInvoice.status === 'PENDING_APPROVAL') {
+            return res.status(400).json({ message: 'This invoice is settled and locked. Editing is not allowed.' });
+        }
+        // When items are provided, recompute the bill from scratch (superadmin convenience).
+        const hasItems = Array.isArray(items) && items.length > 0;
+        let newAmount = hasItems
+            ? items.reduce((sum, item) => sum + (Number(item.unitPrice) * Number(item.quantity)), 0)
+            : amount !== undefined && amount !== '' ? Number(amount) : oldInvoice.amount;
+        let newDiscount = discount !== undefined && discount !== '' ? Number(discount) : oldInvoice.discount;
+        let newGst = hasItems ? 0 : gst !== undefined && gst !== '' ? Number(gst) : oldInvoice.gst;
+        let newRoundOff = oldInvoice.roundOff;
+        let newTotal = hasItems ? 0 : total !== undefined && total !== '' ? Number(total) : oldInvoice.total;
+        if (hasItems) {
+            newDiscount = Math.min(Math.max(newDiscount, 0), newAmount);
+            const gstRate = (oldInvoice.department === 'RESTAURANT' || oldInvoice.department === 'BANQUET') ? 0.05 : 0.18;
+            const taxableAmount = newAmount - newDiscount;
+            newGst = taxableAmount * gstRate;
+            const rawTotal = taxableAmount + newGst;
+            newTotal = Math.round(rawTotal);
+            newRoundOff = Number((newTotal - rawTotal).toFixed(2));
+        }
+        const invoice = await prisma_1.default.$transaction(async (tx) => {
+            if (Array.isArray(items)) {
+                await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
+                if (items.length > 0) {
+                    await tx.invoiceItem.createMany({
+                        data: items.map((item) => ({
+                            invoiceId: id,
+                            description: item.description || 'Item',
+                            quantity: Number(item.quantity) || 1,
+                            unitPrice: Number(item.unitPrice) || 0,
+                            amount: (Number(item.unitPrice) || 0) * (Number(item.quantity) || 1),
+                        })),
+                    });
+                }
             }
+            return tx.invoice.update({
+                where: { id },
+                data: {
+                    amount: Number(newAmount),
+                    discount: Number(newDiscount),
+                    gst: Number(newGst),
+                    roundOff: Number(newRoundOff),
+                    total: Number(newTotal),
+                    status: status || oldInvoice.status,
+                },
+                include: { items: true, member: true, walkInGuest: true },
+            });
         });
         const user = req.user;
-        const fieldLabels = { amount: 'Amount', discount: 'Discount', gst: 'GST', total: 'Total', status: 'Status' };
+        const fieldLabels = { amount: 'Amount', discount: 'Discount', gst: 'GST', total: 'Total', status: 'Status', roundOff: 'Round Off', items: 'Items' };
         const changes = [];
-        if (oldInvoice) {
-            for (const [key, label] of Object.entries(fieldLabels)) {
-                const oldVal = oldInvoice[key];
-                const newVal = invoice[key];
-                if (String(oldVal) !== String(newVal)) {
-                    changes.push(`${label}: ${oldVal ?? 'empty'} → ${newVal ?? 'empty'}`);
-                }
+        for (const [key, label] of Object.entries(fieldLabels)) {
+            if (key === 'items') {
+                const oldCount = oldInvoice.items?.length || 0;
+                const newCount = invoice.items?.length || 0;
+                if (oldCount !== newCount)
+                    changes.push(`${label}: ${oldCount} → ${newCount}`);
+                continue;
+            }
+            const oldVal = oldInvoice[key];
+            const newVal = invoice[key];
+            if (String(oldVal) !== String(newVal)) {
+                changes.push(`${label}: ${oldVal ?? 'empty'} → ${newVal ?? 'empty'}`);
             }
         }
         await (0, audit_1.createAuditLog)({

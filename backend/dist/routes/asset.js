@@ -8,7 +8,7 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
 // Get all assets
-router.get('/', auth_1.authenticateToken, async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizePermission)('assets', 'read'), async (req, res) => {
     try {
         const { category, status } = req.query;
         const where = {};
@@ -32,7 +32,7 @@ router.get('/', auth_1.authenticateToken, async (req, res) => {
     }
 });
 // Get asset stats
-router.get('/stats', auth_1.authenticateToken, async (req, res) => {
+router.get('/stats', auth_1.authenticateToken, (0, auth_1.authorizePermission)('assets', 'read'), async (req, res) => {
     try {
         const [totalAssets, maintenanceCount, retiredCount, totalCost] = await Promise.all([
             prisma_1.default.asset.count(),

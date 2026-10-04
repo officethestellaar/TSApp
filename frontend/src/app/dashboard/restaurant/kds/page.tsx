@@ -221,13 +221,13 @@ export default function KDSPage() {
                 {order.items.length > 0 && order.items.every(i => i.status === 'SERVED') ? (
                   <button 
                     onClick={async () => {
-                      if (!confirm(`Generate bill for ${order.orderNumber} and release Table ${order.table.number}?`)) return;
+                      if (!confirm(`Generate bill for ${order.orderNumber}? Table ${order.table.number} will remain occupied until payment is recorded at POS.`)) return;
                       setBillingLoading(true);
                       try {
                         const res = await api.post(`restaurant/order/${order.id}/bill`);
                         setInvoiceData(res.data);
                         setBillingOrderId(order.id);
-                        toast.success('Bill generated! Table released.');
+                        toast.success('Bill generated! Awaiting payment at POS to clear table.');
                         fetchActiveOrders();
                       } catch (err: any) {
                         toast.error(err.response?.data?.message || 'Billing failed');
@@ -239,7 +239,7 @@ export default function KDSPage() {
                     className="w-full bg-emerald-600 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {billingLoading ? <Loader2 className="animate-spin" size={14} /> : <Receipt size={14} />}
-                    {billingLoading ? 'Generating...' : 'Generate Bill & Release Table'}
+                    {billingLoading ? 'Generating...' : 'Generate Bill'}
                   </button>
                 ) : (
                   canKitchen ? (
@@ -282,7 +282,7 @@ export default function KDSPage() {
             </div>
             <h2 className="text-2xl font-bold text-navy">Bill Generated</h2>
             <p className="text-sm text-slate/60 font-semibold">
-              Order {billingOrderId ? `#${billingOrderId}` : ''} ({invoiceData.invoice?.invoiceNumber}) created and table released.
+              Order {billingOrderId ? `#${billingOrderId}` : ''} ({invoiceData.invoice?.invoiceNumber}) billed — table will be cleared once payment is settled at POS.
             </p>
             {invoiceData.discountAbsolute > 0 && (
               <div className="bg-gold/10 rounded-xl px-4 py-3 text-sm font-bold text-navy">

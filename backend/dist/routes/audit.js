@@ -8,7 +8,7 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
 // Get audit logs
-router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'ACCOUNTANT'), (0, auth_1.authorizePermission)('audit-logs', 'read'), async (req, res) => {
     try {
         const { action, entityType, search, limit = 50 } = req.query;
         const where = {};

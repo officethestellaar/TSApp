@@ -15,6 +15,7 @@ vitest_1.vi.mock('../middleware/auth', () => ({
         next();
     },
     authorizeRoles: () => (req, res, next) => next(),
+    authorizePermission: () => (req, res, next) => next(),
 }));
 // Mock Prisma
 vitest_1.vi.mock('../lib/prisma', () => ({
@@ -94,5 +95,39 @@ app.use('/api/members', member_1.default);
         const createCall = vitest_1.vi.mocked(prisma_1.default.member.create).mock.calls[0][0];
         // AMC should be applicable by default (or at least not forced to false)
         (0, vitest_1.expect)(createCall.data.amcApplicable).not.toBe(false);
+    });
+    (0, vitest_1.it)('should allow superadmin to update membership status', async () => {
+        vitest_1.vi.mocked(prisma_1.default.member.findUnique).mockResolvedValue({ id: 1, nameAsAadhaar: 'John Doe', status: 'PENDING' });
+        vitest_1.vi.mocked(prisma_1.default.member.update).mockResolvedValue({ id: 1, nameAsAadhaar: 'John Doe', status: 'APPROVED', accessStatus: 'ENABLED' });
+        const response = await (0, supertest_1.default)(app)
+            .patch('/api/members/1/status')
+            .send({ status: 'APPROVED' });
+        (0, vitest_1.expect)(response.status).toBe(200);
+        (0, vitest_1.expect)(response.body.status).toBe('APPROVED');
+    });
+    (0, vitest_1.it)('should allow superadmin to settle AMC status from UNPAID to PAID by generating an AMC bill', async () => {
+        const mockMember = { id: 1, nameAsAadhaar: 'Jane Doe', membershipNumber: 'STEL-1001-1', amcStatus: 'UNPAID', amcAmount: 5000 };
+        vitest_1.vi.mocked(prisma_1.default.member.findUnique).mockResolvedValue(mockMember);
+        vitest_1.vi.mocked(prisma_1.default.member.update).mockResolvedValue({ ...mockMember, amcStatus: 'PAID', amcYear: '2026', accessStatus: 'ENABLED' });
+        // Mock invoice creation inside transaction
+        prisma_1.default.invoice = {
+            count: vitest_1.vi.fn().mockResolvedValue(10),
+            create: vitest_1.vi.fn().mockResolvedValue({
+                id: 1,
+                invoiceNumber: 'AMC-2026-1011',
+                department: 'AMC',
+                amount: 5000,
+                gst: 900,
+                total: 5900,
+                status: 'PAID',
+            }),
+        };
+        const response = await (0, supertest_1.default)(app)
+            .patch('/api/members/1/amc-status')
+            .send({ amcStatus: 'PAID', paymentMode: 'CASH', amount: 5000, notes: 'Direct SuperAdmin Settle' });
+        (0, vitest_1.expect)(response.status).toBe(200);
+        (0, vitest_1.expect)(response.body.message).toContain('AMC Status updated to PAID');
+        (0, vitest_1.expect)(response.body.member.amcStatus).toBe('PAID');
+        (0, vitest_1.expect)(response.body.invoice.department).toBe('AMC');
     });
 });

@@ -273,8 +273,18 @@ router.post('/invoice', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN'
     const roundedTotal = Math.round(rawTotal);
     const roundOff = Number((roundedTotal - rawTotal).toFixed(2));
 
-    const count = await prisma.invoice.count();
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${1000 + count + 1}`;
+    // Use shared sequence for race-safe invoice numbers, with count fallback
+    let nextSeq: number;
+    try {
+      const seqResult = await prisma.$queryRaw<[{ nextval: bigint }]>`
+        SELECT nextval('public.invoice_number_seq') as nextval
+      `;
+      nextSeq = Number(seqResult[0].nextval);
+    } catch {
+      const count = await prisma.invoice.count();
+      nextSeq = count + 1;
+    }
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${10000 + nextSeq}`;
 
     const invoice = await prisma.invoice.create({
       data: {
@@ -373,6 +383,8 @@ router.post('/payment', authenticateToken, uploadProof.single('proof'), async (r
 
     const isMemberPayment = req.user?.role === 'MEMBER';
 
+    let releasedTableNumber: string | null = null;
+
     const payment = await prisma.$transaction(async (tx) => {
       const p = await tx.payment.create({
         data: {
@@ -387,7 +399,10 @@ router.post('/payment', authenticateToken, uploadProof.single('proof'), async (r
         },
       });
 
-      const updatedInvoice = await tx.invoice.findUnique({ where: { id: Number(invoiceId) }, include: { member: true, walkInGuest: true } });
+      const updatedInvoice = await tx.invoice.findUnique({
+        where: { id: Number(invoiceId) },
+        include: { member: true, walkInGuest: true, order: { include: { table: true } } },
+      });
       const aggregateResult = await tx.payment.aggregate({
         where: { invoiceId: Number(invoiceId) },
         _sum: { amount: true },
@@ -410,6 +425,21 @@ router.post('/payment', authenticateToken, uploadProof.single('proof'), async (r
             where: { id: updatedInvoice.memberId },
             data: { amcStatus: 'PAID', accessStatus: 'ENABLED' },
           });
+        }
+
+        // A POS invoice can be settled from this screen instead of the table POS.
+        // Release its table too, otherwise it stays BILL_PENDING forever. A member
+        // payment left at PENDING_APPROVAL has not settled yet, so it keeps the table.
+        if (newStatus === 'PAID' && updatedInvoice.order?.tableId) {
+          await tx.order.update({
+            where: { id: updatedInvoice.order.id },
+            data: { status: 'PAID' },
+          });
+          await tx.restaurantTable.update({
+            where: { id: updatedInvoice.order.tableId },
+            data: { status: 'AVAILABLE' },
+          });
+          releasedTableNumber = updatedInvoice.order.table?.number || null;
         }
       }
 
@@ -459,6 +489,12 @@ router.post('/payment', authenticateToken, uploadProof.single('proof'), async (r
 
       return p;
     });
+
+    // Only after commit: a table_cleared emitted inside the transaction could fire for
+    // a payment that then rolled back.
+    if (releasedTableNumber) {
+      emitEvent('table_cleared', { tableNumber: releasedTableNumber });
+    }
 
     res.status(201).json(payment);
   } catch (error: any) {

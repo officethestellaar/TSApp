@@ -83,7 +83,7 @@ router.post('/submit', auth_1.authenticateToken, upload.single('proof'), async (
     }
 });
 // Admin: List all pending AMC requests
-router.get('/pending', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), async (req, res) => {
+router.get('/pending', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), (0, auth_1.authorizePermission)('amc-approvals', 'read'), async (req, res) => {
     try {
         const requests = await prisma_1.default.aMCPaymentRequest.findMany({
             where: { status: 'PENDING' },
@@ -97,7 +97,7 @@ router.get('/pending', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUP
     }
 });
 // Admin: Approve/Reject AMC request
-router.patch('/:id/process', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), async (req, res) => {
+router.patch('/:id/process', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER'), (0, auth_1.authorizePermission)('amc-approvals', 'update'), async (req, res) => {
     try {
         const requestId = Number(req.params.id);
         const { status, rejectionReason } = req.body; // status: APPROVED or REJECTED

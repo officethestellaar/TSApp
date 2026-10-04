@@ -11,7 +11,7 @@ const email_1 = require("../lib/email");
 const router = express_1.default.Router();
 const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'RECEPTIONIST'];
 // Get all activities with current booking status
-router.get('/', auth_1.authenticateToken, async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizePermissionOrMember)('activities', 'read'), async (req, res) => {
     try {
         const activities = await prisma_1.default.activity.findMany({
             include: {

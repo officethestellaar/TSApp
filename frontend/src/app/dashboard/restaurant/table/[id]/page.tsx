@@ -199,6 +199,16 @@ export default function TablePOSPage() {
     }
   };
 
+  const handleClearTable = async () => {
+    try {
+      const res = await api.post(`restaurant/tables/${id}/clear`);
+      toast.success(res.data.message || 'Table cleared successfully');
+      router.push('/dashboard/restaurant');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Cannot clear table');
+    }
+  };
+
   const handlePay = async () => {
     if (!pendingBill) return;
     setPaymentLoading(true);
@@ -211,7 +221,7 @@ export default function TablePOSPage() {
       });
       setShowPayment(false);
       setPaymentRef('');
-      toast.success('Payment recorded — table released');
+      toast.success('Payment recorded — Table cleared and now available');
       setShowFeedbackModal(true);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Payment failed');
@@ -257,7 +267,18 @@ export default function TablePOSPage() {
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl font-serif font-bold text-navy">Table POS — No. {id}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-serif font-bold text-navy">Table POS — No. {id}</h1>
+              {activeOrder && (
+                <button
+                  onClick={handleClearTable}
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 transition-all uppercase tracking-wider"
+                  title="Clear Table / Make Available"
+                >
+                  Clear Table
+                </button>
+              )}
+            </div>
             <div className="text-[10px] text-gold font-bold uppercase tracking-widest">Interactive Order Console</div>
           </div>
         </div>
@@ -537,12 +558,20 @@ export default function TablePOSPage() {
                 </div>
               )}
               {activeOrder && pendingBill && canBill && (
-                <button
-                  onClick={() => setShowPayment(true)}
-                  className="w-full font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg bg-amber-500 text-white shadow-amber-500/30 hover:bg-amber-600"
-                >
-                  <Receipt size={18} /> Record Payment
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setShowPayment(true)}
+                    className="w-full font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg bg-amber-500 text-white shadow-amber-500/30 hover:bg-amber-600"
+                  >
+                    <Receipt size={18} /> Pay & Clear Table
+                  </button>
+                  <button
+                    onClick={handleClearTable}
+                    className="w-full py-2.5 rounded-xl text-xs font-bold text-slate/60 hover:text-red-600 hover:bg-red-50 border border-slate/10 transition-all text-center"
+                  >
+                    Clear Table
+                  </button>
+                </div>
               )}
               {activeOrder && pendingBill && !canBill && (
                 <div className="w-full text-center py-3 text-xs font-bold text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
@@ -550,24 +579,32 @@ export default function TablePOSPage() {
                 </div>
               )}
               {activeOrder && !pendingBill && canBill && (
-                <button
-                  onClick={handleBillConfirm}
-                  disabled={!allItemsServed || billingLoading}
-                  className={`w-full font-bold py-4 rounded-2xl flex items-center justify-center gap-3 disabled:opacity-50 transition-all active:scale-95 shadow-lg ${
-                    allItemsServed
-                      ? 'bg-emerald-600 text-white shadow-emerald-500/30 hover:bg-emerald-700'
-                      : 'bg-navy/10 text-navy/40'
-                  }`}
-                >
-                  {billingLoading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : allItemsServed ? (
-                    <Receipt size={18} />
-                  ) : (
-                    <Clock size={18} />
-                  )}
-                  {billingLoading ? 'Generating Bill...' : allItemsServed ? 'Generate Bill' : `Waiting... ${servedCount}/${totalCount} Served`}
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={handleBillConfirm}
+                    disabled={!allItemsServed || billingLoading}
+                    className={`w-full font-bold py-4 rounded-2xl flex items-center justify-center gap-3 disabled:opacity-50 transition-all active:scale-95 shadow-lg ${
+                      allItemsServed
+                        ? 'bg-emerald-600 text-white shadow-emerald-500/30 hover:bg-emerald-700'
+                        : 'bg-navy/10 text-navy/40'
+                    }`}
+                  >
+                    {billingLoading ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : allItemsServed ? (
+                      <Receipt size={18} />
+                    ) : (
+                      <Clock size={18} />
+                    )}
+                    {billingLoading ? 'Generating Bill...' : allItemsServed ? 'Generate Bill' : `Waiting... ${servedCount}/${totalCount} Served`}
+                  </button>
+                  <button
+                    onClick={handleClearTable}
+                    className="w-full py-2.5 rounded-xl text-xs font-bold text-slate/60 hover:text-red-600 hover:bg-red-50 border border-slate/10 transition-all text-center"
+                  >
+                    Clear Table
+                  </button>
+                </div>
               )}
               {activeOrder && !pendingBill && !canBill && allItemsServed && (
                 <div className="w-full text-center py-3 text-xs font-bold text-orange-600 bg-orange-50 rounded-xl border border-orange-200">
@@ -627,7 +664,7 @@ export default function TablePOSPage() {
           <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 shadow-2xl space-y-5">
             <div className="text-center">
               <Receipt size={40} className="mx-auto text-amber-500" />
-              <h3 className="text-lg font-bold text-navy mt-2">Collect Payment</h3>
+              <h3 className="text-lg font-bold text-navy mt-2">Collect Payment & Clear Table</h3>
               <p className="text-[10px] font-bold text-slate uppercase tracking-widest mt-1">
                 Invoice {pendingBill.invoiceNumber}
               </p>
@@ -678,11 +715,11 @@ export default function TablePOSPage() {
                 className="flex-1 py-3 bg-amber-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider hover:bg-amber-600 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {paymentLoading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                Pay & Release
+                Pay & Clear Table
               </button>
             </div>
             <p className="text-[9px] font-bold text-slate/60 text-center uppercase tracking-wider">
-              Table is vacated automatically after payment
+              Table is cleared and made available automatically once payment is recorded
             </p>
           </div>
         </div>

@@ -1,11 +1,57 @@
 # Project Status & Stabilization Report
 
-**Last Updated:** October 2, 2026 | 11:00 (Local Time)  
-**Status:** ✅ ALL SYSTEMS NOMINAL / FULLY TESTED / BACKEND VERIFIED
+**Last Updated:** October 4, 2026 | 11:42 (Local Time)  
+**Status:** ✅ ALL SYSTEMS NOMINAL / RESTAURANT POS TABLE CLEARANCE & BILLING WORKFLOW RESTORED / FULLY TESTED
 
 ---
 
 ## 🕒 Change Journal
+
+### [October 4, 2026 | 11:42] - Feature: Restaurant POS Table Clearance & Bill/Invoice Payment Workflow
+- **Business Rule Enforcement:**
+  1. In Restaurant POS, when a table is occupied, clearing the table requires creating the bill and invoice once.
+  2. Tables cannot be cleared or marked unoccupied while active orders are unbilled or while generated bills remain unpaid.
+  3. Once the bill is paid (either through Table POS or Treasury/Billing settlement), the table is cleared and marked `AVAILABLE` (non-occupied).
+- **Backend Architecture & Validations:**
+  1. **Clear Table Endpoint (`POST /api/restaurant/tables/:id/clear`):**
+     - Checks table occupancy. If table has open orders without an invoice, rejects with `400 Bad Request` (`code: 'BILL_NOT_CREATED'`: *"Cannot clear occupied table. Please create bill and invoice first."*).
+     - If an invoice is generated but remains unpaid (`status !== 'PAID'`), rejects with `400 Bad Request` (`code: 'BILL_UNPAID'`: *"Cannot clear table. Bill [INV] is unpaid. Please collect payment first."*).
+     - When all orders are paid or table has no active orders, atomically updates table status to `AVAILABLE`, marks orders as `PAID`, emits `table_cleared`, and clears cache.
+  2. **Single Bill & Invoice Creation (`POST /api/restaurant/order/:id/bill`):**
+     - Idempotent: returns existing invoice with `alreadyExists: true` if already billed, preventing duplicate invoices and ledger entries.
+     - Sets order status to `BILLED`, table status to `BILL_PENDING` (keeping table occupied and locked until payment is recorded).
+     - Added robust sequence handling with automatic fallback to count if `invoice_number_seq` is not yet initialized.
+  3. **Payment & Release (`POST /api/restaurant/order/:id/pay` & `POST /api/billing/payment`):**
+     - Records payment, settles invoice to `PAID`, closes order to `PAID`, and marks table `AVAILABLE`. Emits `table_cleared` and `payment_confirmed`.
+- **Frontend POS & KDS Enhancements:**
+  1. [`table/[id]/page.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/restaurant/table/%5Bid%5D/page.tsx): Added prominent bill status banners, "Pay & Clear Table" actions, explicit "Clear Table" action with server-backed error alerts, and updated modals.
+  2. [`restaurant/page.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/restaurant/page.tsx): Displaying `BILL_PENDING` status with amount due and "Clear Table" management control in Manage Tables modal.
+  3. [`kds/page.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/restaurant/kds/page.tsx): Corrected misleading "Release Table" label to "Generate Bill" with explicit notes that table remains occupied until payment is settled at POS.
+- **Automated Testing & Quality Verification:**
+  1. Created [`backend/src/routes/restaurant.test.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/routes/restaurant.test.ts) covering unbilled clear rejection, unpaid bill clear rejection, successful clear upon payment, idempotent billing, and pay-to-release workflow.
+  2. Backend Vitest: 100% passing (41/41 tests across 5 test files).
+  3. Frontend Vitest: 100% passing (4/4 tests).
+  4. Frontend Lint: Clean (0 errors, 0 warnings).
+  5. Result: ✅ ALL SYSTEMS NOMINAL.
+
+### [October 4, 2026 | 11:41] - Fix: "Failed to Add Item" in Inventory & Menu Modals
+- **Root Cause Analysis:**
+  1. In [`backend/src/routes/inventory.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/routes/inventory.ts), `POST /` and `PATCH /:id` were restricted via `authorizeRoles('SUPER_ADMIN', 'ADMIN', 'RESTAURANT_MANAGER')`. Key operational roles designated with inventory responsibilities in [`screenDefaults.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/lib/screenDefaults.ts) (`OPERATIONS_MANAGER`, `DATA_OPERATOR`, `CHEF`, `HOUSEKEEPING_SUPERVISOR`, `HOUSEKEEPING_EXECUTIVE`, `CLUB_MANAGER`), as well as users granted explicit `canCreate`/`canUpdate` screen access via `userScreenAccess`, were blocked with `403 Forbidden` (`Unauthorized role`).
+  2. In [`backend/src/routes/menu.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/routes/menu.ts), `POST /` and `PUT /:id` were restricted exclusively to `SUPER_ADMIN` and `SALON_MANAGER`. `RESTAURANT_MANAGER`, `ADMIN`, `CHEF`, and department managers were blocked when adding or updating menu items in the "Add Item" modal across Restaurant, Banquet, Gym, Pool, and Personal Trainer menu hubs.
+  3. In both [`InventoryRegistrationModal.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/components/inventory/InventoryRegistrationModal.tsx) and the Menu page modals ([`restaurant/page.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/menu/restaurant/page.tsx), [`MenuManager.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/menu/components/MenuManager.tsx), [`salon/page.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/menu/salon/page.tsx)), raw inputs were not trimmed and fallback error handling swallowed or obscured transport/validation errors.
+- **Backend Authorization & Sanitization Fixes:**
+  1. Created `authorizeInventoryAction` in [`inventory.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/routes/inventory.ts) supporting all inventory-managing roles (`OPERATIONS_MANAGER`, `DATA_OPERATOR`, `RESTAURANT_MANAGER`, `CHEF`, `HOUSEKEEPING_SUPERVISOR`, `HOUSEKEEPING_EXECUTIVE`, `CLUB_MANAGER`, `ADMIN`, `SUPER_ADMIN`) and dynamically falling back to per-user `userScreenAccess` CRUD permissions.
+  2. Updated `POST /api/inventory` and `PATCH /api/inventory/:id` to sanitize and validate required fields (`name`, `category`, `unit`) and ensure numeric types (`currentStock`, `minStockLevel`, `unitPrice`) are safely parsed, using `describeError` to provide clear feedback.
+  3. Created `authorizeMenuRead` and `authorizeMenuWrite` in [`menu.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/routes/menu.ts) supporting `RESTAURANT_MANAGER`, `SALON_MANAGER`, `CLUB_MANAGER`, `OPERATIONS_MANAGER`, `CHEF`, `DATA_OPERATOR`, `ADMIN`, `SUPER_ADMIN`, and per-user screen permissions.
+- **Frontend Error Handling & Toast Feedback:**
+  1. Updated [`InventoryRegistrationModal.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/components/inventory/InventoryRegistrationModal.tsx) to trim input names, validate required fields before submission, and utilize `apiErrorMessage` to distinguish between backend errors and server transport/connection failures.
+  2. Integrated `apiErrorMessage` and `toast` notifications across [`restaurant/page.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/menu/restaurant/page.tsx), [`MenuManager.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/menu/components/MenuManager.tsx), and [`salon/page.tsx`](file:///Volumes/Dev_SSD/TSApp/frontend/src/app/dashboard/menu/salon/page.tsx) to ensure transparent feedback for all item creation and updates.
+- **System Verification & Health:**
+  - Automated integration testing via supertest confirmed successful `POST`, `PATCH`, and `DELETE` across `OPERATIONS_MANAGER`, `CHEF`, `RESTAURANT_MANAGER`, and `ADMIN`.
+  - Backend Vitest test suite: 100% passing (34/34 tests passed).
+  - Frontend Vitest test suite: 100% passing (4/4 tests passed).
+  - Frontend linting: Clean (0 errors, 0 warnings).
+  - Result: ✅ ALL SYSTEMS NOMINAL.
 
 ### [October 2, 2026 | 11:00] - Verification: Backend Testing & Stabilization
 - **Backend Automated Test Verification:** Executed Vitest across the backend test suite covering 26 unit and integration test assertions across 3 test suites ([`auth.test.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/middleware/auth.test.ts), [`user-screens.test.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/routes/user-screens.test.ts), [`member.test.ts`](file:///Volumes/Dev_SSD/TSApp/backend/src/routes/member.test.ts)). All 26 tests passed.

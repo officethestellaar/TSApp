@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Package, Loader2, Save, Box, IndianRupee, AlertTriangle, Edit3 } from 'lucide-react';
 import api from '@/lib/api';
+import { apiErrorMessage } from '@/lib/apiError';
 import toast from 'react-hot-toast';
 
 interface InventoryModalProps {
@@ -40,11 +41,19 @@ export default function InventoryRegistrationModal({ onClose, onSuccess, item }:
     setLoading(true);
     try {
       const payload = {
-        ...formData,
-        currentStock: Number(formData.currentStock),
-        minStockLevel: Number(formData.minStockLevel),
-        unitPrice: Number(formData.unitPrice)
+        name: formData.name.trim(),
+        category: formData.category,
+        unit: formData.unit,
+        currentStock: isNaN(Number(formData.currentStock)) ? 0 : Number(formData.currentStock),
+        minStockLevel: isNaN(Number(formData.minStockLevel)) ? 5 : Number(formData.minStockLevel),
+        unitPrice: isNaN(Number(formData.unitPrice)) ? 0 : Number(formData.unitPrice)
       };
+
+      if (!payload.name) {
+        toast.error('Item name is required');
+        setLoading(false);
+        return;
+      }
 
       if (item) {
         await api.patch(`inventory/${item.id}`, payload);
@@ -57,7 +66,7 @@ export default function InventoryRegistrationModal({ onClose, onSuccess, item }:
       onSuccess();
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || `Failed to ${item ? 'update' : 'add'} item`);
+      toast.error(apiErrorMessage(error, `Failed to ${item ? 'update' : 'add'} item`));
     } finally {
       setLoading(false);
     }

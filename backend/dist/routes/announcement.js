@@ -10,7 +10,7 @@ const socket_1 = require("../lib/socket");
 const push_1 = require("../lib/push");
 const router = express_1.default.Router();
 // Get announcements
-router.get('/', auth_1.authenticateToken, async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizePermissionOrMember)('notices', 'read'), async (req, res) => {
     try {
         const announcements = await prisma_1.default.announcement.findMany({
             where: { isActive: true },

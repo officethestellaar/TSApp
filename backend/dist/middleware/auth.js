@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authorizeRoles = exports.authenticateToken = exports.authorizePermission = void 0;
+exports.authorizeRoles = exports.authenticateToken = exports.authorizePermissionOrMember = exports.authorizePermission = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const cache_1 = __importDefault(require("../lib/cache"));
 const prisma_1 = __importDefault(require("../lib/prisma"));
+const screenDefaults_1 = require("../lib/screenDefaults");
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const actionFieldMap = {
     create: 'canCreate',
@@ -17,7 +18,8 @@ const actionFieldMap = {
 /**
  * Middleware that checks if the authenticated user has a specific CRUD action
  * on a given screen. SUPER_ADMIN bypasses all checks.
- * Use AFTER authenticateToken.
+ * Role default screens (ROLE_SCREEN_MAP) grant a read-only baseline unless an
+ * explicit per-user permission exists. Use AFTER authenticateToken.
  */
 const authorizePermission = (screenKey, action) => {
     return async (req, res, next) => {
@@ -32,12 +34,23 @@ const authorizePermission = (screenKey, action) => {
                 where: { userId_screenKey: { userId: req.user.userId, screenKey } },
                 select: { [field]: true },
             });
-            if (!perm || !perm[field]) {
-                return res.status(403).json({
-                    message: `You don't have ${action} permission on ${screenKey}`,
-                });
+            // Explicit per-user permission exists → enforce it (can grant OR revoke)
+            if (perm) {
+                if (!perm[field]) {
+                    return res.status(403).json({
+                        message: `You don't have ${action} permission on ${screenKey}`,
+                    });
+                }
+                return next();
             }
-            next();
+            // Fall back to the role's default screens (read-only baseline)
+            const roleDefaults = screenDefaults_1.ROLE_SCREEN_MAP[req.user.role] || [];
+            if (action === 'read' && roleDefaults.includes(screenKey)) {
+                return next();
+            }
+            return res.status(403).json({
+                message: `You don't have ${action} permission on ${screenKey}`,
+            });
         }
         catch {
             return res.status(500).json({ message: 'Internal server error' });
@@ -45,6 +58,18 @@ const authorizePermission = (screenKey, action) => {
     };
 };
 exports.authorizePermission = authorizePermission;
+/**
+ * Same as authorizePermission, but MEMBER-role users bypass the screen check.
+ * Used for member-facing read endpoints (activities, announcements, restaurant).
+ */
+const authorizePermissionOrMember = (screenKey, action) => {
+    return async (req, res, next) => {
+        if (req.user?.role === 'MEMBER')
+            return next();
+        return (0, exports.authorizePermission)(screenKey, action)(req, res, next);
+    };
+};
+exports.authorizePermissionOrMember = authorizePermissionOrMember;
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];

@@ -125,7 +125,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/areebalishivji/Documents/TSApp/backend/src/generated/ledger-client",
+      "value": "/Volumes/Dev_SSD/TSApp/backend/src/generated/ledger-client",
       "fromEnvVar": null
     },
     "config": {
@@ -139,7 +139,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/areebalishivji/Documents/TSApp/backend/prisma/ledger.prisma",
+    "sourceFilePath": "/Volumes/Dev_SSD/TSApp/backend/prisma/ledger.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

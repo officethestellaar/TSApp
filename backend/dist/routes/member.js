@@ -47,6 +47,8 @@ const audit_1 = require("../lib/audit");
 const cache_1 = require("../lib/cache");
 const json2csv_1 = require("json2csv");
 const path_1 = __importDefault(require("path"));
+const ledger_1 = require("../lib/ledger");
+const socket_1 = require("../lib/socket");
 const router = express_1.default.Router();
 // Multer setup for file upload (Memory for bulk import)
 const storage = multer_1.default.memoryStorage();
@@ -361,7 +363,7 @@ router.post('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADM
     }
 });
 // List members
-router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'DATA_OPERATOR', 'SALES_EXECUTIVE', 'ACCOUNTANT', 'RESTAURANT_MANAGER', 'SALON_MANAGER', 'HOUSEKEEPING_SUPERVISOR', 'RECEPTIONIST'), async (req, res) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'DATA_OPERATOR', 'SALES_EXECUTIVE', 'ACCOUNTANT', 'RESTAURANT_MANAGER', 'SALON_MANAGER', 'HOUSEKEEPING_SUPERVISOR', 'RECEPTIONIST'), (0, auth_1.authorizePermission)('members', 'read'), async (req, res) => {
     try {
         const { status, search } = req.query;
         const where = {};
@@ -563,10 +565,21 @@ router.get('/family-requests/pending', auth_1.authenticateToken, (0, auth_1.auth
     try {
         const requests = await prisma_1.default.familyMember.findMany({
             where: { status: 'PENDING' },
-            include: { member: { select: { nameAsAadhaar: true, membershipNumber: true } } },
             orderBy: { createdAt: 'desc' }
         });
-        res.json(requests);
+        const memberIds = [...new Set(requests.map(r => r.memberId))];
+        const members = memberIds.length
+            ? await prisma_1.default.member.findMany({
+                where: { id: { in: memberIds } },
+                select: { id: true, nameAsAadhaar: true, membershipNumber: true },
+            })
+            : [];
+        const memberMap = new Map(members.map(m => [m.id, m]));
+        const enriched = requests.map(r => ({
+            ...r,
+            member: memberMap.get(r.memberId) || null,
+        }));
+        res.json(enriched);
     }
     catch (error) {
         res.status(500).json({ message: 'Internal server error' });
@@ -661,15 +674,29 @@ router.patch('/:id/status', auth_1.authenticateToken, (0, auth_1.authorizeRoles)
         const { status } = req.body;
         const id = Number(req.params.id);
         const oldMember = await prisma_1.default.member.findUnique({ where: { id } });
+        if (!oldMember)
+            return res.status(404).json({ message: 'Member not found' });
+        const disabledStatuses = ['SUSPENDED', 'TERMINATED', 'REJECTED', 'INACTIVE', 'EXPIRED'];
+        const enabledStatuses = ['APPROVED', 'ACTIVE'];
+        let accessStatusUpdate = {};
+        if (enabledStatuses.includes(status)) {
+            accessStatusUpdate = { accessStatus: 'ENABLED' };
+        }
+        else if (disabledStatuses.includes(status)) {
+            accessStatusUpdate = { accessStatus: 'DISABLED' };
+        }
         const member = await prisma_1.default.member.update({
             where: { id },
-            data: { status },
+            data: {
+                status,
+                ...accessStatusUpdate
+            },
         });
         await (0, audit_1.createAuditLog)({
             action: 'UPDATE_STATUS',
             entityType: 'MEMBER',
             entityId: String(id),
-            description: `Updated status for ${member.nameAsAadhaar} from ${oldMember?.status} to ${status}.`,
+            description: `Updated Membership Status for ${member.nameAsAadhaar} from ${oldMember?.status} to ${status}.`,
             oldData: { status: oldMember?.status },
             newData: { status: member.status },
             user: {
@@ -678,11 +705,143 @@ router.patch('/:id/status', auth_1.authenticateToken, (0, auth_1.authorizeRoles)
                 role: req.user.role
             }
         });
+        (0, socket_1.emitEvent)('member_status_updated', { memberId: id, status: member.status });
         (0, cache_1.clearCachePattern)('report_');
         res.json(member);
     }
     catch (error) {
         res.status(400).json({ message: 'Failed to update member status' });
+    }
+});
+// SuperAdmin/Admin: Direct AMC status update and bill creation/settlement
+router.patch('/:id/amc-status', auth_1.authenticateToken, (0, auth_1.authorizeRoles)('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const { amcStatus, paymentMode, amount, notes, transactionRef } = req.body;
+        const member = await prisma_1.default.member.findUnique({ where: { id } });
+        if (!member)
+            return res.status(404).json({ message: 'Member not found' });
+        const processorId = req.user?.userId;
+        const processorName = req.user?.name || 'SuperAdmin';
+        const processorRole = req.user?.role || 'SUPER_ADMIN';
+        if (amcStatus === 'PAID') {
+            const currentYear = String(new Date().getFullYear());
+            const amcAmount = Number(amount) || member.amcAmount || 5000;
+            const ref = transactionRef || notes || `SUPERADMIN_AMC_SETTLEMENT_${Date.now()}`;
+            const mode = paymentMode || 'OFFLINE_VERIFIED';
+            const result = await prisma_1.default.$transaction(async (tx) => {
+                // 1. Update member AMC status, amcYear, and accessStatus
+                const updatedMember = await tx.member.update({
+                    where: { id },
+                    data: {
+                        amcStatus: 'PAID',
+                        amcYear: currentYear,
+                        accessStatus: 'ENABLED'
+                    }
+                });
+                // 2. Generate paid invoice named "AMC"
+                const count = await tx.invoice.count();
+                const invoiceNumber = `AMC-${currentYear}-${1000 + count + 1}`;
+                const gstAmount = amcAmount * 0.18;
+                const totalAmount = amcAmount * 1.18;
+                const invoice = await tx.invoice.create({
+                    data: {
+                        invoiceNumber,
+                        memberId: id,
+                        department: 'AMC',
+                        amount: amcAmount,
+                        gst: gstAmount,
+                        total: totalAmount,
+                        status: 'PAID',
+                        dueDate: new Date(),
+                        items: {
+                            create: {
+                                description: `Annual Maintenance Charge - Year ${currentYear}`,
+                                quantity: 1,
+                                unitPrice: amcAmount,
+                                amount: amcAmount
+                            }
+                        },
+                        payments: {
+                            create: {
+                                receiptNumber: `RCP-AMC-${Date.now()}`,
+                                amount: totalAmount,
+                                paymentMode: mode,
+                                transactionId: ref,
+                                receivedById: processorId || null
+                            }
+                        }
+                    },
+                    include: {
+                        items: true,
+                        payments: true
+                    }
+                });
+                // 3. Create Audit Log
+                await (0, audit_1.createAuditLog)({
+                    action: 'SUPERADMIN_AMC_SETTLED',
+                    entityType: 'MEMBER',
+                    entityId: String(id),
+                    description: `SuperAdmin changed AMC Status to PAID for ${member.nameAsAadhaar}. Generated & paid AMC Bill ${invoiceNumber} for ₹${totalAmount.toFixed(2)}.`,
+                    oldData: { amcStatus: member.amcStatus },
+                    newData: { amcStatus: 'PAID', invoiceNumber },
+                    user: {
+                        userId: processorId,
+                        name: processorName,
+                        role: processorRole
+                    }
+                });
+                // 4. Ledger entry
+                await (0, ledger_1.commitToLedger)({
+                    staffId: processorId,
+                    staffName: processorName,
+                    memberName: member.nameAsAadhaar,
+                    memberId: member.membershipNumber,
+                    amount: totalAmount,
+                    type: 'AMC_SETTLEMENT',
+                    description: `SuperAdmin AMC Direct Settlement: ${invoiceNumber}. Ref: ${ref}`
+                });
+                return { member: updatedMember, invoice };
+            });
+            (0, socket_1.emitEvent)('member_status_updated', { memberId: id, amcStatus: 'PAID' });
+            (0, socket_1.emitEvent)('new_invoice', { action: 'AMC_RECORDED' });
+            (0, cache_1.clearCachePattern)('report_');
+            return res.json({
+                message: 'AMC Status updated to PAID. AMC bill created and settled successfully.',
+                member: result.member,
+                invoice: result.invoice
+            });
+        }
+        else {
+            // Revert or set to UNPAID / PENDING_APPROVAL
+            const updatedMember = await prisma_1.default.member.update({
+                where: { id },
+                data: { amcStatus: amcStatus || 'UNPAID' }
+            });
+            await (0, audit_1.createAuditLog)({
+                action: 'UPDATE_AMC_STATUS',
+                entityType: 'MEMBER',
+                entityId: String(id),
+                description: `Updated AMC status for ${member.nameAsAadhaar} from ${member.amcStatus} to ${amcStatus || 'UNPAID'}.`,
+                oldData: { amcStatus: member.amcStatus },
+                newData: { amcStatus: updatedMember.amcStatus },
+                user: {
+                    userId: processorId,
+                    name: processorName,
+                    role: processorRole
+                }
+            });
+            (0, socket_1.emitEvent)('member_status_updated', { memberId: id, amcStatus: updatedMember.amcStatus });
+            (0, cache_1.clearCachePattern)('report_');
+            return res.json({
+                message: `AMC Status updated to ${updatedMember.amcStatus}.`,
+                member: updatedMember
+            });
+        }
+    }
+    catch (error) {
+        console.error('Failed to update AMC status:', error);
+        res.status(400).json({ message: error.message || 'Failed to update AMC status' });
     }
 });
 // Generate QR Code for a member

@@ -435,11 +435,17 @@ router.post('/order/:id/bill', authenticateToken, async (req, res) => {
     const gstAmount = gstFood + gstSalon;
     const totalAmount = taxableFood + taxableSalon + gstAmount;
 
-    // Create Invoice — use a DB sequence for race-safe invoice numbers
-    const seqResult = await prisma.$queryRaw<[{ nextval: bigint }]>`
-      SELECT nextval('public.invoice_number_seq') as nextval
-    `;
-    const nextSeq = Number(seqResult[0].nextval);
+    // Create Invoice — use a DB sequence for race-safe invoice numbers, with count fallback
+    let nextSeq: number;
+    try {
+      const seqResult = await prisma.$queryRaw<[{ nextval: bigint }]>`
+        SELECT nextval('public.invoice_number_seq') as nextval
+      `;
+      nextSeq = Number(seqResult[0].nextval);
+    } catch {
+      const count = await prisma.invoice.count();
+      nextSeq = count + 1;
+    }
     const invoiceData: any = {
       invoiceNumber: `INV-POS-${new Date().getFullYear()}-${10000 + nextSeq}`,
       department: 'POS',
@@ -681,6 +687,75 @@ router.post('/order/:id/pay', authenticateToken, async (req: AuthRequest, res) =
     res.json({ payment, tableStatus: 'AVAILABLE' });
   } catch (error: any) {
     res.status(400).json({ message: error.message || 'Payment failed' });
+  }
+});
+
+// Clear table / make table available or non-occupied
+// Enforcement:
+// 1. Table must exist.
+// 2. If table is OCCUPIED with open orders without invoice:
+//    Reject: Cannot clear occupied table. Please create bill and invoice first.
+// 3. If table has an unpaid bill (status is BILL_PENDING or invoice status is UNPAID):
+//    Reject: Cannot clear table. Bill is unpaid. Please collect payment first.
+// 4. When bill is paid (or table has no active unbilled/unpaid orders):
+//    Allow clearing table -> status: 'AVAILABLE', emit 'table_cleared'.
+router.post('/tables/:id/clear', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'RESTAURANT_MANAGER', 'CAPTAIN', 'CASHIER', 'WAITER', 'STEWARD'), async (req: AuthRequest, res) => {
+  try {
+    const tableId = Number(req.params.id);
+    const table = await prisma.restaurantTable.findUnique({
+      where: { id: tableId },
+      include: {
+        orders: {
+          where: { status: { in: ['OPEN', 'BILLING', 'BILLED'] } },
+          include: { invoice: true },
+        },
+      },
+    });
+
+    if (!table) return res.status(404).json({ message: 'Table not found' });
+
+    // Check for open orders without invoice
+    const unbilledOrder = table.orders.find(o => !o.invoice || o.status === 'OPEN' || o.status === 'BILLING');
+    if (unbilledOrder) {
+      return res.status(400).json({
+        message: 'Cannot clear occupied table. Please create bill and invoice first.',
+        code: 'BILL_NOT_CREATED',
+        orderNumber: unbilledOrder.orderNumber,
+      });
+    }
+
+    // Check for billed orders where invoice is unpaid
+    const unpaidOrder = table.orders.find(o => o.invoice && o.invoice.status !== 'PAID');
+    if (unpaidOrder) {
+      return res.status(400).json({
+        message: `Cannot clear table. Bill ${unpaidOrder.invoice?.invoiceNumber} is unpaid. Please collect payment first.`,
+        code: 'BILL_UNPAID',
+        invoiceNumber: unpaidOrder.invoice?.invoiceNumber,
+        amountDue: unpaidOrder.invoice?.total,
+      });
+    }
+
+    // All active orders are paid or table has no active orders -> update table to AVAILABLE
+    const updated = await prisma.restaurantTable.update({
+      where: { id: tableId },
+      data: { status: 'AVAILABLE' },
+    });
+
+    // Mark any lingering orders as PAID
+    await prisma.order.updateMany({
+      where: { tableId, status: { in: ['OPEN', 'BILLED'] } },
+      data: { status: 'PAID' },
+    });
+
+    emitEvent('table_cleared', { tableNumber: table.number });
+    clearCachePattern('report_table_turnaround');
+
+    res.json({
+      message: `Table ${table.number} cleared successfully and is now available.`,
+      table: updated,
+    });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message || 'Failed to clear table' });
   }
 });
 
