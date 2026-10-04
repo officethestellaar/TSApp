@@ -5,15 +5,19 @@ import api from '@/lib/api';
 import { useSocket } from '@/context/SocketContext';
 import { Utensils, Clock, CheckCircle2, PlayCircle, ChefHat, Loader2, User, Receipt } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
 
 interface OrderItem {
   id: number;
   status: 'PENDING' | 'PREPARING' | 'READY' | 'SERVED';
   quantity: number;
   notes: string | null;
+  isCustom?: boolean;
+  customName?: string;
+  customPrice?: number;
   menuItem: {
     name: string;
-  };
+  } | null;
 }
 
 interface Order {
@@ -34,6 +38,8 @@ export default function KDSPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const { socket } = useSocket();
+  const { user } = useAuth();
+  const canKitchen = !!user && ['SUPER_ADMIN','ADMIN','CLUB_MANAGER','OPERATIONS_MANAGER','RESTAURANT_MANAGER','CHEF','SOUS_CHEF','KITCHEN_STAFF'].includes(user.role);
 
   const fetchActiveOrders = useCallback(async () => {
     try {
@@ -164,7 +170,7 @@ export default function KDSPage() {
                             {item.quantity}
                           </span>
                           <span className={`font-bold text-sm ${item.status === 'READY' || item.status === 'SERVED' ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                            {item.menuItem.name}
+                            {item.isCustom ? item.customName || 'Custom Item' : item.menuItem?.name || 'Item'}
                           </span>
                         </div>
                         {item.notes && (
@@ -178,32 +184,34 @@ export default function KDSPage() {
                       </div>
                     </div>
                     
-                    <div className="ml-8 flex gap-2">
-                      {item.status === 'PENDING' && (
-                        <button 
-                          onClick={() => updateItemStatus(item.id, 'PREPARING')}
-                          className="flex items-center gap-1 text-[9px] font-black text-orange-600 hover:text-orange-700 bg-orange-50 px-2 py-1 rounded-lg transition-colors"
-                        >
-                          <PlayCircle size={10} /> START
-                        </button>
-                      )}
-                      {(item.status === 'PREPARING' || item.status === 'PENDING') && (
-                        <button 
-                          onClick={() => updateItemStatus(item.id, 'READY')}
-                          className="flex items-center gap-1 text-[9px] font-black text-green-600 hover:text-green-700 bg-green-50 px-2 py-1 rounded-lg transition-colors"
-                        >
-                          <CheckCircle2 size={10} /> FINISH
-                        </button>
-                      )}
-                      {item.status === 'READY' && (
-                        <button 
-                          onClick={() => updateItemStatus(item.id, 'SERVED')}
-                          className="flex items-center gap-1 text-[9px] font-black text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded-lg transition-colors"
-                        >
-                          <CheckCircle2 size={10} /> SERVE
-                        </button>
-                      )}
-                    </div>
+                    {canKitchen && (
+                      <div className="ml-8 flex gap-2">
+                        {item.status === 'PENDING' && (
+                          <button 
+                            onClick={() => updateItemStatus(item.id, 'PREPARING')}
+                            className="flex items-center gap-1 text-[9px] font-black text-orange-600 hover:text-orange-700 bg-orange-50 px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <PlayCircle size={10} /> START
+                          </button>
+                        )}
+                        {(item.status === 'PREPARING' || item.status === 'PENDING') && (
+                          <button 
+                            onClick={() => updateItemStatus(item.id, 'READY')}
+                            className="flex items-center gap-1 text-[9px] font-black text-green-600 hover:text-green-700 bg-green-50 px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <CheckCircle2 size={10} /> FINISH
+                          </button>
+                        )}
+                        {item.status === 'READY' && (
+                          <button 
+                            onClick={() => updateItemStatus(item.id, 'SERVED')}
+                            className="flex items-center gap-1 text-[9px] font-black text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                          >
+                            <CheckCircle2 size={10} /> SERVE
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -234,24 +242,30 @@ export default function KDSPage() {
                     {billingLoading ? 'Generating...' : 'Generate Bill & Release Table'}
                   </button>
                 ) : (
-                  <button 
-                    onClick={async () => {
-                      const allReady = order.items.every(i => i.status === 'READY' || i.status === 'SERVED');
-                      if (!allReady) {
-                        if (!confirm('Not all items are ready. Mark entire order as ready anyway?')) return;
-                      }
-                      try {
-                        await api.patch(`restaurant/order/${order.id}/status`, { status: 'READY' });
-                        toast.success(`Order ${order.orderNumber} is ready!`);
-                        fetchActiveOrders();
-                      } catch {
-                        toast.error('Failed to update order');
-                      }
-                    }}
-                    className="w-full bg-navy text-gold py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-md"
-                  >
-                    Mark Order Ready
-                  </button>
+                  canKitchen ? (
+                    <button 
+                      onClick={async () => {
+                        const allReady = order.items.every(i => i.status === 'READY' || i.status === 'SERVED');
+                        if (!allReady) {
+                          if (!confirm('Not all items are ready. Mark entire order as ready anyway?')) return;
+                        }
+                        try {
+                          await api.patch(`restaurant/order/${order.id}/status`, { status: 'READY' });
+                          toast.success(`Order ${order.orderNumber} is ready!`);
+                          fetchActiveOrders();
+                        } catch {
+                          toast.error('Failed to update order');
+                        }
+                      }}
+                      className="w-full bg-navy text-gold py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-md"
+                    >
+                      Mark Order Ready
+                    </button>
+                  ) : (
+                    <div className="w-full text-center py-3 text-xs font-bold text-navy/50 bg-navy/5 rounded-xl border border-navy/10">
+                      Kitchen access required
+                    </div>
+                  )
                 )}
               </div>
             </div>

@@ -8,12 +8,26 @@ import { useSocket } from '@/context/SocketContext';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
+interface PendingInvoice {
+  id: number;
+  invoiceNumber: string;
+  total: number;
+  status: string;
+}
+
+interface TableOrder {
+  id: number;
+  status: string;
+  invoice?: PendingInvoice | null;
+}
+
 interface Table {
   id: number;
   number: string;
   capacity: number;
   floor: string;
-  status: 'AVAILABLE' | 'OCCUPIED';
+  status: 'AVAILABLE' | 'OCCUPIED' | 'BILL_PENDING';
+  orders?: TableOrder[];
 }
 
 export default function TableSelectionPage() {
@@ -51,9 +65,11 @@ export default function TableSelectionPage() {
     if (socket) {
       socket.on('new_kot', () => fetchTables());
       socket.on('table_cleared', () => fetchTables());
+      socket.on('table_bill_pending', () => fetchTables());
       return () => {
         socket.off('new_kot');
         socket.off('table_cleared');
+        socket.off('table_bill_pending');
       };
     }
   }, [socket, fetchTables]);
@@ -68,6 +84,33 @@ export default function TableSelectionPage() {
   };
 
   const floors = Array.from(new Set(tables.map(t => t.floor || 'Main Floor'))).sort();
+
+  const pendingBillOf = (table: Table) =>
+    (table.orders || []).find(o => o.status === 'BILLED' && o.invoice && o.invoice.status !== 'PAID')?.invoice;
+
+  const cardStyle = (status: Table['status']) =>
+    status === 'AVAILABLE'
+      ? 'bg-white border-gray-100 hover:border-blue-500'
+      : status === 'BILL_PENDING'
+        ? 'bg-amber-50 border-amber-300 hover:border-amber-500'
+        : 'bg-blue-50 border-blue-200';
+
+  const avatarStyle = (status: Table['status']) =>
+    status === 'AVAILABLE'
+      ? 'bg-gray-100 text-gray-500'
+      : status === 'BILL_PENDING'
+        ? 'bg-amber-500 text-white'
+        : 'bg-blue-600 text-white';
+
+  const badgeStyle = (status: Table['status']) =>
+    status === 'AVAILABLE'
+      ? 'bg-green-100 text-green-700'
+      : status === 'BILL_PENDING'
+        ? 'bg-amber-200 text-amber-900'
+        : 'bg-blue-100 text-blue-700';
+
+  const statusLabel = (status: Table['status']) =>
+    status === 'BILL_PENDING' ? 'Bill Pending' : status.charAt(0) + status.slice(1).toLowerCase();
 
   return (
     <div className="p-6">
@@ -153,15 +196,9 @@ export default function TableSelectionPage() {
                     <Link
                       key={table.id}
                       href={`/dashboard/restaurant/table/${table.id}`}
-                      className={`p-6 rounded-2xl shadow-sm border-2 transition-all flex flex-col items-center justify-center gap-3 ${
-                        table.status === 'AVAILABLE'
-                          ? 'bg-white border-gray-100 hover:border-blue-500'
-                          : 'bg-blue-50 border-blue-200'
-                      }`}
+                      className={`p-6 rounded-2xl shadow-sm border-2 transition-all flex flex-col items-center justify-center gap-3 ${cardStyle(table.status)}`}
                     >
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        table.status === 'AVAILABLE' ? 'bg-gray-100 text-gray-500' : 'bg-blue-600 text-white'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${avatarStyle(table.status)}`}>
                         <Utensils size={24} />
                       </div>
                       <div className="text-center">
@@ -170,11 +207,12 @@ export default function TableSelectionPage() {
                           <Users size={12} /> {table.capacity} Pax
                         </p>
                       </div>
-                      <div className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                        table.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {table.status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                      <div className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${badgeStyle(table.status)}`}>
+                        {statusLabel(table.status)}
                       </div>
+                      {table.status === 'BILL_PENDING' && pendingBillOf(table) && (
+                        <p className="text-[10px] font-bold text-amber-800">₹{Number(pendingBillOf(table)!.total).toFixed(2)} due</p>
+                      )}
                     </Link>
                   ))}
                 </div>
@@ -251,9 +289,7 @@ export default function TableSelectionPage() {
                   <div>
                     <span className="font-bold text-navy">Table {table.number}</span>
                     <span className="text-xs text-navy/40 ml-2">{table.capacity} pax — {table.floor}</span>
-                    <span className={`ml-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                      table.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                    }`}>{table.status}</span>
+                    <span className={`ml-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${badgeStyle(table.status)}`}>{statusLabel(table.status)}</span>
                   </div>
                   <button
                     onClick={async () => {
@@ -266,9 +302,9 @@ export default function TableSelectionPage() {
                         toast.error(err.response?.data?.message || 'Failed to delete table');
                       }
                     }}
-                    disabled={table.status === 'OCCUPIED'}
+                    disabled={table.status !== 'AVAILABLE'}
                     className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    title={table.status === 'OCCUPIED' ? 'Table has active orders' : 'Delete table'}
+                    title={table.status === 'BILL_PENDING' ? 'Table has an unpaid bill' : table.status === 'OCCUPIED' ? 'Table has active orders' : 'Delete table'}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

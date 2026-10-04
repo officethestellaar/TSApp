@@ -117,8 +117,8 @@ router.get('/tables', authenticateToken, authorizePermissionOrMember('restaurant
 
       include: { 
         orders: { 
-          where: { status: 'OPEN' },
-          include: { items: { include: { menuItem: true } } }
+          where: { status: { in: ['OPEN', 'BILLED'] } },
+          include: { items: { include: { menuItem: true } }, invoice: true }
         } 
       },
       orderBy: { number: 'asc' }
@@ -166,9 +166,9 @@ router.put('/tables/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMI
 router.delete('/tables/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res) => {
   try {
     const id = Number(req.params.id);
-    const table = await prisma.restaurantTable.findUnique({ where: { id }, include: { orders: { where: { status: 'OPEN' } } } });
+    const table = await prisma.restaurantTable.findUnique({ where: { id }, include: { orders: { where: { status: { in: ['OPEN', 'BILLED'] } } } } });
     if (!table) return res.status(404).json({ message: 'Table not found.' });
-    if (table.orders.length > 0) return res.status(400).json({ message: 'Cannot delete a table with active orders.' });
+    if (table.orders.length > 0) return res.status(400).json({ message: 'Cannot delete a table with active orders or an unpaid bill.' });
     await prisma.restaurantTable.delete({ where: { id } });
     res.json({ message: `Table ${table.number} deleted.` });
   } catch (error: any) {
@@ -225,6 +225,22 @@ router.post('/order', authenticateToken, async (req: AuthRequest, res) => {
     });
 
     if (!order) {
+      // A generated-but-unpaid bill keeps the table locked. Refuse to start a new KOT
+      // until the existing invoice is paid, otherwise the table would go double-seated.
+      const pendingBillOrder = await prisma.order.findFirst({
+        where: { tableId, status: 'BILLED' },
+        select: {
+          id: true,
+          invoice: { select: { id: true, invoiceNumber: true, status: true, total: true } },
+        },
+      });
+      if (pendingBillOrder) {
+        return res.status(409).json({
+          message: 'Table has an unpaid bill. Record payment before starting a new order.',
+          pendingBill: pendingBillOrder,
+        });
+      }
+
       const count = await prisma.order.count();
       order = await prisma.order.create({
         data: {
@@ -248,16 +264,38 @@ router.post('/order', authenticateToken, async (req: AuthRequest, res) => {
     // Add items to order (KOT)
     // Create order items (SQLite doesn't support createMany)
     const newItems = await Promise.all(
-      items.map((item: any) => 
-        prisma.orderItem.create({
+      items.map((item: any) => {
+        const isCustom = Boolean(item.isCustom);
+        if (isCustom) {
+          if (!item.customName || item.customPrice === undefined || item.customPrice === null) {
+            throw new Error('Custom items require customName and customPrice');
+          }
+          return prisma.orderItem.create({
+            data: {
+              orderId: order.id,
+              isCustom: true,
+              customName: String(item.customName).trim(),
+              customPrice: Number(item.customPrice),
+              quantity: item.quantity,
+              notes: item.notes,
+            },
+            include: { menuItem: true },
+          });
+        }
+
+        if (!item.menuItemId) {
+          throw new Error('Menu item is required for non-custom items');
+        }
+        return prisma.orderItem.create({
           data: {
             orderId: order.id,
             menuItemId: item.menuItemId,
             quantity: item.quantity,
-            notes: item.notes
-          }
-        })
-      )
+            notes: item.notes,
+          },
+          include: { menuItem: true },
+        });
+      })
     );
 
     // Real-time notification for kitchen
@@ -324,18 +362,55 @@ router.post('/order/:id/bill', authenticateToken, async (req, res) => {
     const orderId = Number(req.params.id);
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: { include: { menuItem: true } }, member: true, table: true },
+      include: { items: { include: { menuItem: true } }, member: true, table: true, invoice: true },
     });
 
     if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    // Idempotency: one bill per order. If this order was already billed, return the
+    // existing invoice instead of creating a second one (which would also duplicate
+    // the ledger entry and re-lock the table).
+    if (order.invoiceId && order.invoice) {
+      return res.json({
+        invoice: order.invoice,
+        discountAbsolute: Number(order.invoice.discount),
+        alreadyExists: true,
+      });
+    }
+
+    // Claim the order before writing anything. Two concurrent bill requests would
+    // otherwise both read `invoiceId: null`, both create an invoice, and the loser's
+    // invoice would be orphaned. `status` is a free-form string, so BILLING works as
+    // a lock without a schema change.
+    const claim = await prisma.order.updateMany({
+      where: { id: orderId, invoiceId: null, status: 'OPEN' },
+      data: { status: 'BILLING' },
+    });
+
+    if (claim.count === 0) {
+      const current = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { invoice: true },
+      });
+      if (current?.invoice) {
+        return res.json({
+          invoice: current.invoice,
+          discountAbsolute: Number(current.invoice.discount),
+          alreadyExists: true,
+        });
+      }
+      return res.status(409).json({ message: 'This order is already being billed. Please retry in a moment.' });
+    }
 
     // Phase 3: Dynamic Menus & Taxes
     let subtotalFood = 0;
     let subtotalSalon = 0;
 
     for (const item of order.items) {
-      const amount = Number(item.menuItem.price) * item.quantity;
-      if (item.menuItem.category === 'SALON' || item.menuItem.category === 'SPA') {
+      const price = item.isCustom ? Number(item.customPrice) : Number(item.menuItem?.price || 0);
+      const amount = price * item.quantity;
+      const category = item.isCustom ? 'FOOD' : (item.menuItem?.category || 'FOOD');
+      if (category === 'SALON' || category === 'SPA') {
         subtotalSalon += amount;
       } else {
         subtotalFood += amount;
@@ -360,10 +435,13 @@ router.post('/order/:id/bill', authenticateToken, async (req, res) => {
     const gstAmount = gstFood + gstSalon;
     const totalAmount = taxableFood + taxableSalon + gstAmount;
 
-    // Create Invoice
-    const count = await prisma.invoice.count();
+    // Create Invoice — use a DB sequence for race-safe invoice numbers
+    const seqResult = await prisma.$queryRaw<[{ nextval: bigint }]>`
+      SELECT nextval('public.invoice_number_seq') as nextval
+    `;
+    const nextSeq = Number(seqResult[0].nextval);
     const invoiceData: any = {
-      invoiceNumber: `INV-POS-${new Date().getFullYear()}-${1000 + count + 1}`,
+      invoiceNumber: `INV-POS-${new Date().getFullYear()}-${10000 + nextSeq}`,
       department: 'POS',
       amount: Number(subtotal),
       discount: Number(discountAmount),
@@ -373,15 +451,27 @@ router.post('/order/:id/bill', authenticateToken, async (req, res) => {
       status: 'UNPAID',
       items: {
         create: order.items.map(item => ({
-          description: item.menuItem.name,
+          description: item.isCustom ? item.customName || 'Custom Item' : item.menuItem?.name || 'Item',
           quantity: item.quantity,
-          unitPrice: item.menuItem.price,
-          amount: Number(Number(item.menuItem.price) * item.quantity),
+          unitPrice: item.isCustom ? item.customPrice : item.menuItem?.price || 0,
+          amount: Number((item.isCustom ? Number(item.customPrice) : Number(item.menuItem?.price || 0)) * item.quantity),
         })),
       },
     };
 
     if (order.memberId) {
+      // Block bill generation if member's AMC is unpaid
+      const member = await prisma.member.findUnique({
+        where: { id: order.memberId },
+        select: { amcStatus: true, membershipNumber: true },
+      });
+      if (!member || member.amcStatus !== 'PAID') {
+        return res.status(403).json({
+          message: 'Member AMC is unpaid. Clear AMC dues before billing.',
+          amcStatus: member?.amcStatus ?? 'NOT_FOUND',
+          membershipNumber: member?.membershipNumber ?? 'UNKNOWN',
+        });
+      }
       invoiceData.memberId = order.memberId;
     } else {
       // Safely ensure GUEST-001 exists outside the nested create to avoid race conditions and unique constraint errors
@@ -423,9 +513,30 @@ router.post('/order/:id/bill', authenticateToken, async (req, res) => {
       invoiceData.memberId = guestNode.id;
     }
 
-    const invoice = await prisma.invoice.create({
-      data: invoiceData
-    });
+    let invoice: any;
+    try {
+      // Create the invoice, link it to the order, and lock the table in one
+      // transaction so a failure can never leave a half-billed order behind.
+      invoice = await prisma.$transaction(async (tx) => {
+        const created = await tx.invoice.create({ data: invoiceData });
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: 'BILLED', invoiceId: created.id },
+        });
+        await tx.restaurantTable.update({
+          where: { id: order.tableId },
+          data: { status: 'BILL_PENDING' },
+        });
+        return created;
+      });
+    } catch (err) {
+      // Release the claim so the guest can retry instead of being stuck in BILLING.
+      await prisma.order.updateMany({
+        where: { id: orderId, status: 'BILLING', invoiceId: null },
+        data: { status: 'OPEN' },
+      });
+      throw err;
+    }
 
     // Create Audit Log for Bill Generation
     await createAuditLog({
@@ -450,30 +561,126 @@ router.post('/order/:id/bill', authenticateToken, async (req, res) => {
       description: `Gourmet POS Bill: ${invoice.invoiceNumber}. Pax: ${order.paxCount}`
     });
 
-    // Close Order and update Table
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'BILLED' },
-    });
-    await prisma.restaurantTable.update({
-      where: { id: order.tableId },
-      data: { status: 'AVAILABLE' },
-    });
-
     // Real-time notification for Table status
-    emitEvent('table_cleared', { tableNumber: order.table.number });
+    emitEvent('table_bill_pending', {
+      tableNumber: order.table.number,
+      invoiceNumber: invoice.invoiceNumber,
+      total: invoice.total,
+    });
     emitEvent('new_invoice', { 
       invoiceNumber: invoice.invoiceNumber, 
       memberName: order.member?.nameAsAadhaar || 'Guest',
       total: invoice.total 
     });
 
-    clearCachePattern('report_table_turnaround');
-
     // Return absolute discount value
     res.json({ invoice, discountAbsolute: discountAmount });
   } catch (error: any) {
     res.status(400).json({ message: error.message || 'Billing failed' });
+  }
+});
+
+// Record payment for a generated POS bill and release the table.
+// The table stays locked as BILL_PENDING until this succeeds.
+router.post('/order/:id/pay', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const orderId = Number(req.params.id);
+    const { paymentMode, transactionId, referenceNumber, amount } = req.body;
+    const staffId = req.user?.userId || 1;
+    const staffName = req.user?.name || 'System';
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { table: true, member: true, invoice: true },
+    });
+
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (!order.invoice) return res.status(400).json({ message: 'No bill has been generated for this order yet.' });
+    if (order.invoice.status === 'PAID') return res.status(400).json({ message: 'Invoice is already settled.' });
+    if (order.invoice.status === 'CANCELLED') return res.status(400).json({ message: 'Invoice has been cancelled.' });
+
+    const due = Number(order.invoice.total);
+    const paidAmount = amount === undefined || amount === null || amount === '' ? due : Number(amount);
+
+    if (!Number.isFinite(paidAmount) || paidAmount <= 0) {
+      return res.status(400).json({ message: 'Invalid payment amount.' });
+    }
+    if (paidAmount < due - 0.01) {
+      return res.status(409).json({ message: `Partial payment not accepted. Amount due: ₹${due.toFixed(2)}` });
+    }
+
+    const memberName = order.member?.nameAsAadhaar || 'Walk-in Guest';
+    const invoiceId = order.invoice.id;
+    const tableNumber = order.table.number;
+
+    const payment = await prisma.$transaction(async (tx) => {
+      const count = await tx.payment.count();
+      const receiptNumber = `RCP-${new Date().getFullYear()}-${1000 + count + 1}`;
+
+      const p = await tx.payment.create({
+        data: {
+          receiptNumber,
+          invoiceId,
+          amount: paidAmount,
+          paymentMode: paymentMode || 'CASH',
+          referenceNumber: referenceNumber || null,
+          transactionId: transactionId || null,
+          receivedById: staffId,
+        },
+      });
+
+      // Settle the invoice, close the order, then release the table — atomically.
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: { status: 'PAID' },
+      });
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'PAID' },
+      });
+
+      await tx.restaurantTable.update({
+        where: { id: order.tableId },
+        data: { status: 'AVAILABLE' },
+      });
+
+      return p;
+    });
+
+    await createAuditLog({
+      action: 'PAYMENT_RECORDED',
+      entityType: 'PAYMENT',
+      entityId: payment.receiptNumber,
+      description: `POS payment of ₹${paidAmount} received for ${order.invoice.invoiceNumber} (Table ${tableNumber}).`,
+      user: { userId: staffId, name: staffName, role: req.user?.role || 'SYSTEM' },
+    });
+
+    await commitToLedger({
+      staffId,
+      staffName,
+      memberName,
+      memberId: order.member?.membershipNumber || 'GUEST-001',
+      amount: paidAmount,
+      type: 'PAYMENT_CAPTURE',
+      description: `POS bill settled: ${order.invoice.invoiceNumber}. Table ${tableNumber}. Mode: ${paymentMode || 'CASH'}.`,
+    });
+
+    // Table is genuinely free now.
+    emitEvent('table_cleared', { tableNumber });
+    emitEvent('payment_confirmed', {
+      memberName,
+      invoiceNumber: order.invoice.invoiceNumber,
+      invoiceTotal: due,
+      amountReceived: paidAmount,
+      balance: 0,
+    });
+
+    clearCachePattern('report_table_turnaround');
+
+    res.json({ payment, tableStatus: 'AVAILABLE' });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message || 'Payment failed' });
   }
 });
 
@@ -526,7 +733,8 @@ router.patch('/item/:id/status', authenticateToken, authorizePermission('kitchen
     // Phase 4: Strict Standardized Recipe Management
     // If item is marked as READY, deduct exact ingredient weights from the Store
     if (status === 'READY') {
-      const recipes = item.menuItem.recipes;
+      // Custom items have no menuItem, so they have no recipe to deduct.
+      const recipes = item.menuItem?.recipes || [];
       if (recipes && recipes.length > 0) {
         // Execute raw transactions to handle precise float deductions safely
         await prisma.$transaction(async (tx) => {
@@ -546,7 +754,7 @@ router.patch('/item/:id/status', authenticateToken, authorizePermission('kitchen
                 itemId: recipe.inventoryItemId,
                 change: -deductionAmount,
                 type: 'USAGE',
-                description: `Order ${item.order.orderNumber} - ${item.menuItem.name} (${deductionAmount} deduced)`,
+                description: `Order ${item.order.orderNumber} - ${item.menuItem?.name || item.customName || 'Custom Item'} (${deductionAmount} deduced)`,
                 performedById: (req as any).user?.userId || 1
               }
             });
@@ -571,7 +779,7 @@ router.patch('/item/:id/status', authenticateToken, authorizePermission('kitchen
     emitEvent('order_item_updated', {
       orderId: item.orderId,
       tableNumber: item.order.table.number,
-      itemName: item.menuItem.name,
+      itemName: item.menuItem?.name || item.customName || 'Custom Item',
       status: item.status
     });
 
