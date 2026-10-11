@@ -214,7 +214,7 @@ router.get('/invoice/:id', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Create invoice for a member
-router.post('/invoice', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'DATA_OPERATOR', 'ACCOUNTANT'), authorizePermission('billing', 'create'), async (req: AuthRequest, res) => {
+router.post('/invoice', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'DATA_OPERATOR', 'ACCOUNTANT', 'RESTAURANT_MANAGER', 'SALON_MANAGER'), authorizePermission('billing', 'create'), async (req: AuthRequest, res) => {
   try {
     const { memberId, department, items, isMember } = req.body;
     

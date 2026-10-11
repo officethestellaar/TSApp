@@ -3,16 +3,15 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-const ALL_SCREENS = [
-  'overview', 'requests', 'records', 'activities', 'members', 'concierge',
-  'notices', 'billing', 'amc-approvals', 'ledger', 'restaurant-pos',
-  'kitchen-display', 'inventory', 'assets', 'salon-menu', 'housekeeping',
-  'housekeeping-tasks', 'housekeeping-allocations', 'housekeeping-deep-cleaning',
-  'housekeeping-reports', 'reports', 'audit-logs', 'users', 'leave',
-  'system-init', 'staff-attendance', 'staff-salary',
-];
+interface StaffAccount {
+  email: string;
+  name: string;
+  role: string;
+  screens: string[];
+  granularPermissions?: Record<string, { canCreate?: boolean; canRead?: boolean; canUpdate?: boolean; canDelete?: boolean }>;
+}
 
-const STAFF_ACCOUNTS: { email: string; name: string; role: string; screens: string[] }[] = [
+const STAFF_ACCOUNTS: StaffAccount[] = [
   {
     email: 'operations.manager@thestellaar.com',
     name: 'Operations Manager',
@@ -60,6 +59,9 @@ const STAFF_ACCOUNTS: { email: string; name: string; role: string; screens: stri
     name: 'Accountant',
     role: 'ACCOUNTANT',
     screens: ['overview', 'billing', 'reports', 'audit-logs', 'leave'],
+    granularPermissions: {
+      billing: { canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    },
   },
   {
     email: 'receptionist@thestellaar.com',
@@ -77,13 +79,21 @@ const STAFF_ACCOUNTS: { email: string; name: string; role: string; screens: stri
     email: 'Salon@thestellaar.com',
     name: 'Salon Manager',
     role: 'SALON_MANAGER',
-    screens: ['overview', 'salon-menu', 'leave'],
+    screens: ['overview', 'salon-menu', 'billing', 'salon-billing', 'leave'],
+    granularPermissions: {
+      billing: { canCreate: true, canRead: true, canUpdate: false, canDelete: false },
+      'salon-billing': { canCreate: true, canRead: true, canUpdate: false, canDelete: false },
+    },
   },
   {
     email: 'Restro@thestellaar.com',
     name: 'Restaurant Manager',
     role: 'RESTAURANT_MANAGER',
-    screens: ['overview', 'restaurant-pos', 'kitchen-display', 'inventory', 'leave'],
+    screens: ['overview', 'restaurant-pos', 'kitchen-display', 'inventory', 'billing', 'restaurant-billing', 'leave'],
+    granularPermissions: {
+      billing: { canCreate: true, canRead: true, canUpdate: false, canDelete: false },
+      'restaurant-billing': { canCreate: true, canRead: true, canUpdate: false, canDelete: false },
+    },
   },
 ];
 
@@ -108,7 +118,7 @@ async function main() {
       },
     });
 
-    // Assign screen permissions
+    // Assign screen permissions (basic)
     for (const screenKey of account.screens) {
       await prisma.userScreenAccess.upsert({
         where: { userId_screenKey: { userId: user.id, screenKey } },
@@ -117,15 +127,30 @@ async function main() {
       });
     }
 
+    // Assign granular permissions if specified
+    if (account.granularPermissions) {
+      for (const [screenKey, perms] of Object.entries(account.granularPermissions)) {
+        await prisma.userScreenAccess.upsert({
+          where: { userId_screenKey: { userId: user.id, screenKey } },
+          update: perms,
+          create: { userId: user.id, screenKey, ...perms },
+        });
+      }
+    }
+
     console.log(`✓ ${account.email} (${account.role}) — ${account.screens.length} screens`);
   }
 
   // Remove members except mohammedareebalishivji@gmail.com
   const keepEmail = 'mohammedareebalishivji@gmail.com';
-  const deleted = await prisma.member.deleteMany({
-    where: { NOT: { email: keepEmail } },
-  });
-  console.log(`\n🗑 Deleted ${deleted.count} members (kept ${keepEmail})`);
+  try {
+    const deleted = await prisma.member.deleteMany({
+      where: { NOT: { email: keepEmail } },
+    });
+    console.log(`\n🗑 Deleted ${deleted.count} members (kept ${keepEmail})`);
+  } catch (e) {
+    console.log('\n⚠️  Member cleanup skipped (foreign key constraints)');
+  }
 
   await prisma.$disconnect();
 }

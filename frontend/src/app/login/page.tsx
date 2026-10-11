@@ -142,13 +142,21 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="text-center pt-4">
+        <div className="text-center pt-4 space-y-3">
           <p className="text-[10px] text-navy/40 font-bold uppercase tracking-widest">
             Don&apos;t have an estate account?{' '}
             <Link href="/register" className="text-navy hover:text-gold transition-colors font-black border-b border-navy/10">
               Request Enrollment
             </Link>
           </p>
+          <div className="pt-3 border-t border-navy/10">
+            <Link 
+              href="/login" 
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gold text-navy font-black text-xs uppercase tracking-[0.3em] rounded-xl shadow-lg hover:bg-gold/90 transition-all border-2 border-navy/20"
+            >
+              Employee Login
+            </Link>
+          </div>
         </div>
       </div>
     </div>
