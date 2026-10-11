@@ -354,7 +354,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB
 });
 
 // List members
-router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'ADMIN', 'CLUB_MANAGER', 'OPERATIONS_MANAGER', 'DATA_OPERATOR', 'SALES_EXECUTIVE', 'ACCOUNTANT', 'RESTAURANT_MANAGER', 'SALON_MANAGER', 'HOUSEKEEPING_SUPERVISOR', 'RECEPTIONIST'), authorizePermission('members', 'read'), async (req, res) => {
+router.get('/', authenticateToken, authorizePermission('members', 'read'), async (req, res) => {
   try {
     const { status, search } = req.query;
     const where: any = {};

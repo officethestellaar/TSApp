@@ -46,7 +46,7 @@ const STAFF_ACCOUNTS: StaffAccount[] = [
     email: 'waiter@thestellaar.com',
     name: 'Waiter',
     role: 'WAITER',
-    screens: ['restaurant-pos', 'leave'],
+    screens: ['members', 'restaurant-pos', 'leave'],
   },
   {
     email: 'housekeeping.executive@thestellaar.com',
@@ -58,7 +58,7 @@ const STAFF_ACCOUNTS: StaffAccount[] = [
     email: 'accountant@thestellaar.com',
     name: 'Accountant',
     role: 'ACCOUNTANT',
-    screens: ['overview', 'billing', 'reports', 'audit-logs', 'leave'],
+    screens: ['overview', 'members', 'billing', 'reports', 'audit-logs', 'leave'],
     granularPermissions: {
       billing: { canCreate: true, canRead: true, canUpdate: true, canDelete: true },
     },
@@ -79,7 +79,7 @@ const STAFF_ACCOUNTS: StaffAccount[] = [
     email: 'Salon@thestellaar.com',
     name: 'Salon Manager',
     role: 'SALON_MANAGER',
-    screens: ['overview', 'salon-menu', 'billing', 'salon-billing', 'leave'],
+    screens: ['overview', 'members', 'salon-menu', 'billing', 'salon-billing', 'leave'],
     granularPermissions: {
       billing: { canCreate: true, canRead: true, canUpdate: false, canDelete: false },
       'salon-billing': { canCreate: true, canRead: true, canUpdate: false, canDelete: false },
@@ -89,7 +89,7 @@ const STAFF_ACCOUNTS: StaffAccount[] = [
     email: 'Restro@thestellaar.com',
     name: 'Restaurant Manager',
     role: 'RESTAURANT_MANAGER',
-    screens: ['overview', 'restaurant-pos', 'kitchen-display', 'inventory', 'billing', 'restaurant-billing', 'leave'],
+    screens: ['overview', 'members', 'restaurant-pos', 'kitchen-display', 'inventory', 'billing', 'restaurant-billing', 'leave'],
     granularPermissions: {
       billing: { canCreate: true, canRead: true, canUpdate: false, canDelete: false },
       'restaurant-billing': { canCreate: true, canRead: true, canUpdate: false, canDelete: false },

@@ -51,13 +51,13 @@ export const ROLE_SCREEN_MAP: Record<string, string[]> = {
   OPERATIONS_MANAGER: ['housekeeping', 'inventory', 'assets', 'staff-attendance', 'activities', 'members', 'reports', 'requests'],
   DATA_OPERATOR: ['members', 'records', 'activities', 'menu-hub', 'inventory', 'assets', 'requests', 'notices', 'leave', 'reports'],
   SALES_EXECUTIVE: ['members', 'billing'],
-  ACCOUNTANT: ['billing', 'ledger', 'amc-approvals', 'reports', 'audit-logs'],
-  RESTAURANT_MANAGER: ['restaurant-pos', 'kitchen-display', 'restaurant-menu', 'billing'],
-  SALON_MANAGER: ['salon-menu', 'billing'],
+  ACCOUNTANT: ['members', 'billing', 'ledger', 'amc-approvals', 'reports', 'audit-logs'],
+  RESTAURANT_MANAGER: ['members', 'restaurant-pos', 'kitchen-display', 'restaurant-menu', 'billing'],
+  SALON_MANAGER: ['members', 'salon-menu', 'billing'],
   HOUSEKEEPING_SUPERVISOR: ['housekeeping', 'housekeeping-tasks', 'housekeeping-allocations', 'housekeeping-deep-cleaning', 'housekeeping-reports', 'staff-attendance', 'inventory', 'requests'],
   HOUSEKEEPING_EXECUTIVE: ['housekeeping', 'housekeeping-tasks', 'housekeeping-allocations', 'housekeeping-deep-cleaning', 'housekeeping-reports', 'staff-attendance', 'inventory', 'requests'],
   RECEPTIONIST: ['members', 'billing', 'activities', 'concierge', 'requests', 'notices', 'records'],
-  WAITER: ['restaurant-pos', 'billing'],
+  WAITER: ['members', 'restaurant-pos', 'billing'],
   CHEF: ['kitchen-display', 'restaurant-menu', 'inventory'],
 };
 
